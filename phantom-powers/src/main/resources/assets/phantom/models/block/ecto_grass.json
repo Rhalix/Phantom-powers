@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "top": "phantom:block/ecto_grass_top",
-    "side": "phantom:block/ecto_grass_side",
-    "bottom": "phantom:block/ecto_stone"
-  }
-}
