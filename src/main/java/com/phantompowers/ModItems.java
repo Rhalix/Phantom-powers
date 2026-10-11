@@ -65,10 +65,24 @@ public final class ModItems {
 	public static final Item VOLTAGE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("voltage_spawn_egg"),
 			new SpawnEggItem(ModEntities.VOLTAGE, 0x1B1426, 0xD94DFF, new Item.Settings()));
 
+	public static final Item[] ESSENCES = {
+			essence("hostile_ghost_essence", GhostPowers.ESS_HOSTILE, Rarity.UNCOMMON),
+			essence("friendly_ghost_essence", GhostPowers.ESS_FRIENDLY, Rarity.UNCOMMON),
+			essence("jailer_essence", GhostPowers.ESS_JAILER, Rarity.EPIC),
+			essence("crate_king_essence", GhostPowers.ESS_CRATE, Rarity.EPIC),
+			essence("voltage_essence", GhostPowers.ESS_VOLTAGE, Rarity.EPIC)};
+
+	private static Item essence(String name, int power, Rarity rarity) {
+		return Registry.register(Registries.ITEM, PhantomMod.id(name), new EssenceItem(power, new Item.Settings().rarity(rarity)));
+	}
+
 	private ModItems() {}
 
 	public static void init() {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ECTOPLASM));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(e -> {
+			for (Item i : ESSENCES) e.add(i);
+		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(e -> {
 			e.add(THERMOS);
 			e.add(HOVER_GLIDER);

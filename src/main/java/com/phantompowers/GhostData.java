@@ -12,6 +12,9 @@ public class GhostData {
 	public boolean transformed;
 	public int points;
 	public int totalPoints;
+	/** Essences eaten (bitmask), lost on death. */
+	public int eaten;
+	public int hitCount;
 	public int formTicks;
 	public int unlocked;
 	public float energy = GhostPowers.MAX_ENERGY;
@@ -52,6 +55,7 @@ public class GhostData {
 		n.putBoolean("pending", pendingPowers);
 		n.putInt("points", points);
 		n.putInt("totalPoints", totalPoints);
+		n.putInt("eaten", eaten);
 		n.putInt("formTicks", formTicks);
 		n.putInt("unlocked", unlocked);
 		n.putFloat("energy", energy);
@@ -72,6 +76,7 @@ public class GhostData {
 		d.pendingPowers = n.getBoolean("pending");
 		d.points = n.getInt("points");
 		d.totalPoints = n.getInt("totalPoints");
+		d.eaten = n.getInt("eaten");
 		d.formTicks = n.getInt("formTicks");
 		d.unlocked = n.getInt("unlocked");
 		d.energy = n.contains("energy") ? n.getFloat("energy") : GhostPowers.MAX_ENERGY;

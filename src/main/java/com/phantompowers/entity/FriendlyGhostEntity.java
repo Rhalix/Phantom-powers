@@ -109,11 +109,11 @@ public class FriendlyGhostEntity extends AbstractGhostEntity {
 	}
 
 	/** Float along a few blocks away from the nearest player. */
-	static class FollowPlayerGoal extends Goal {
+	public static class FollowPlayerGoal extends Goal {
 		private final AbstractGhostEntity ghost;
 		private PlayerEntity player;
 
-		FollowPlayerGoal(AbstractGhostEntity ghost) {
+		public FollowPlayerGoal(AbstractGhostEntity ghost) {
 			this.ghost = ghost;
 			this.setControls(EnumSet.of(Goal.Control.MOVE));
 		}

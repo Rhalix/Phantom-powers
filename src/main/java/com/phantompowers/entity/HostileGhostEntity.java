@@ -76,11 +76,11 @@ public class HostileGhostEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	/** Swoop at the target and claw at them up close. */
-	static class ChargeGoal extends Goal {
+	public static class ChargeGoal extends Goal {
 		private final AbstractGhostEntity ghost;
 		private int cooldown;
 
-		ChargeGoal(AbstractGhostEntity ghost) {
+		public ChargeGoal(AbstractGhostEntity ghost) {
 			this.ghost = ghost;
 			this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
 		}

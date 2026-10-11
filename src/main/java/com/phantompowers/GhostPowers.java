@@ -205,6 +205,74 @@ public final class GhostPowers {
 		broadcastStates(p.getServer());
 	}
 
+	// ------------------------------------------------------- devoured essences
+
+	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4;
+	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage"};
+	public static final String[] ESSENCE_POWERS = {
+			"Strength and night vision",
+			"Constant healing",
+			"Toughness, and your hits chain enemies (slow them)",
+			"A crate-armor shield that keeps coming back",
+			"Speed, and every 4th hit calls down lightning"};
+
+	public static void eatEssence(ServerPlayerEntity p, int power) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		boolean already = (d.eaten & (1 << power)) != 0;
+		d.eaten |= 1 << power;
+		st.markDirty();
+		applyEaten(p, d);
+		p.sendMessage(Text.literal(already
+				? "You already carry the " + ESSENCE_NAMES[power] + "'s power. It surges through you again!"
+				: "You devoured the " + ESSENCE_NAMES[power] + "'s essence! You gained: " + ESSENCE_POWERS[power] + " (until you die).")
+				.formatted(Formatting.LIGHT_PURPLE), false);
+		ServerWorld w = p.getServerWorld();
+		w.spawnParticles(ParticleTypes.SOUL, p.getX(), p.getY() + 1, p.getZ(), 25, 0.4, 0.6, 0.4, 0.05);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOST_DEATH, SoundCategory.PLAYERS, 0.8f, 1.6f);
+	}
+
+	/** Refresh the powers of every essence this player has eaten. */
+	private static void applyEaten(ServerPlayerEntity p, GhostData d) {
+		if (d.eaten == 0) return;
+		if ((d.eaten & (1 << ESS_HOSTILE)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 120, 0, true, false, true));
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 320, 0, true, false, true));
+		}
+		if ((d.eaten & (1 << ESS_FRIENDLY)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 120, 0, true, false, true));
+		}
+		if ((d.eaten & (1 << ESS_JAILER)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 120, 0, true, false, true));
+		}
+		if ((d.eaten & (1 << ESS_CRATE)) != 0 && p.getAbsorptionAmount() <= 0 && p.age % 600 < 40) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 1200, 1, true, false, true));
+		}
+		if ((d.eaten & (1 << ESS_VOLTAGE)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 120, 1, true, false, true));
+		}
+	}
+
+	/** Melee hits by a player who ate certain essences. */
+	public static void onPlayerHit(ServerPlayerEntity p, LivingEntity target) {
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		if (d.eaten == 0) return;
+		ServerWorld w = p.getServerWorld();
+		if ((d.eaten & (1 << ESS_JAILER)) != 0) {
+			target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 1), p);
+			w.spawnParticles(ParticleTypes.CRIT, target.getX(), target.getY() + 1, target.getZ(), 6, 0.3, 0.3, 0.3, 0.1);
+		}
+		if ((d.eaten & (1 << ESS_VOLTAGE)) != 0 && ++d.hitCount % 4 == 0) {
+			net.minecraft.entity.LightningEntity bolt = net.minecraft.entity.EntityType.LIGHTNING_BOLT.create(w);
+			if (bolt != null) {
+				bolt.setCosmetic(true);
+				bolt.refreshPositionAfterTeleport(target.getPos());
+				w.spawnEntity(bolt);
+			}
+			target.damage(w.getDamageSources().indirectMagic(p, p), 6f);
+		}
+	}
+
 	// ------------------------------------------------------------ ghost level
 
 	/** Ghost level goes up as you earn stat points (one level per 2 points, max 30). */
@@ -1017,6 +1085,7 @@ public final class GhostPowers {
 		}
 
 		tickPossession(p, d);
+		if (p.age % 40 == 0 && p.isAlive()) applyEaten(p, d);
 		tickHold(p, d);
 		tickCutscene(p, d);
 		tickWail(p, d);
@@ -1095,6 +1164,10 @@ public final class GhostPowers {
 		GhostData d = st.data(p.getUuid());
 		d.transformed = false;
 		d.intangible = false;
+		if (d.eaten != 0) {
+			d.eaten = 0;
+			p.sendMessage(Text.literal("The ghost powers you devoured slip away...").formatted(Formatting.DARK_PURPLE), false);
+		}
 		GhostFlags.SELF.remove(p.getUuid());
 		GhostFlags.TEMP.remove(p.getUuid());
 		releaseHold(p, d, false);

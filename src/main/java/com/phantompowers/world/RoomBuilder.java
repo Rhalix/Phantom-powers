@@ -1,7 +1,7 @@
 package com.phantompowers.world;
 
 import com.phantompowers.ModEntities;
-import com.phantompowers.entity.AbstractGhostEntity;
+import com.phantompowers.entity.RoomGhostEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -178,7 +178,8 @@ public final class RoomBuilder {
 		long seed = w.getSeed();
 		Random r = Random.create(seed ^ (index * 0x9E3779B97F4A7C15L) ^ 0x5DEECE66DL);
 		// Walk through every theme before any repeats, starting at a seed-based offset
-		Theme theme = THEMES.get(Math.floorMod(index + (int) (seed % THEME_COUNT), THEME_COUNT));
+		int themeIndex = Math.floorMod(index + (int) (seed % THEME_COUNT), THEME_COUNT);
+		Theme theme = THEMES.get(themeIndex);
 
 		Ctx c = new Ctx(w, origin, r);
 		c.W = 11 + r.nextInt(3) * 2;
@@ -197,22 +198,20 @@ public final class RoomBuilder {
 		c.set(dx, 1, -1, door.with(DoorBlock.HALF, DoubleBlockHalf.LOWER));
 		c.set(dx, 2, -1, door.with(DoorBlock.HALF, DoubleBlockHalf.UPPER));
 
-		// Some rooms are haunted: friendly ghosts in some, hostile ones in others
-		String haunting = "";
-		if (r.nextInt(10) < 6) {
-			boolean hostile = r.nextBoolean();
-			int n = hostile ? 1 + r.nextInt(3) : 1 + r.nextInt(2);
-			BlockPos home = origin.add(c.W / 2, 2, c.D / 2);
-			for (int i = 0; i < n; i++) {
-				AbstractGhostEntity g = hostile ? ModEntities.HOSTILE_GHOST.create(w) : ModEntities.FRIENDLY_GHOST.create(w);
-				if (g == null) continue;
-				g.refreshPositionAndAngles(home.getX() + r.nextInt(5) - 2 + 0.5, home.getY(), home.getZ() + r.nextInt(5) - 2 + 0.5, r.nextFloat() * 360f, 0f);
-				g.setHome(home, Math.max(2f, Math.min(c.W, c.D) / 2f - 1.5f));
-				g.setPersistent();
-				w.spawnEntity(g);
-			}
-			haunting = hostile ? " (Haunted!)" : " (Friendly spirits)";
+		// Every room is haunted by its own kind of ghost (friendly in some rooms, hostile in others)
+		boolean hostile = RoomGhostEntity.HOSTILE[themeIndex];
+		int n = hostile ? 1 + r.nextInt(3) : 1 + r.nextInt(2);
+		BlockPos home = origin.add(c.W / 2, 2, c.D / 2);
+		for (int i = 0; i < n; i++) {
+			RoomGhostEntity g = ModEntities.ROOM_GHOST.create(w);
+			if (g == null) continue;
+			g.setVariant(themeIndex);
+			g.refreshPositionAndAngles(home.getX() + r.nextInt(5) - 2 + 0.5, home.getY(), home.getZ() + r.nextInt(5) - 2 + 0.5, r.nextFloat() * 360f, 0f);
+			g.setHome(home, Math.max(2f, Math.min(c.W, c.D) / 2f - 1.5f));
+			g.setPersistent();
+			w.spawnEntity(g);
 		}
+		String haunting = " (" + RoomGhostEntity.NAMES[themeIndex] + (hostile ? ", hostile!)" : ", friendly)");
 
 		String name = "The " + MOODS[r.nextInt(MOODS.length)] + " " + theme.name() + haunting;
 		Vec3d entry = new Vec3d(origin.getX() + dx + 0.5, origin.getY() + 1, origin.getZ() + 1.5);

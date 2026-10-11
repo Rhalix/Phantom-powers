@@ -150,6 +150,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.CRATE_KING, CrateKingRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(VoltageModel.LAYER, VoltageModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.VOLTAGE, VoltageRenderer::new);
+		EntityRendererRegistry.register(ModEntities.ROOM_GHOST, RoomGhostRenderer::new);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.WIDE, () -> GhostSuitFeature.layer(false));

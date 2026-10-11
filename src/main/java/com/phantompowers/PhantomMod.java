@@ -106,6 +106,14 @@ public class PhantomMod implements ModInitializer {
 			GhostPowers.onAnyDeath(entity);
 		});
 
+		// Hits by players who ate ghost essences
+		net.fabricmc.fabric.api.event.player.AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!world.isClient && player instanceof ServerPlayerEntity sp && entity instanceof net.minecraft.entity.LivingEntity le) {
+				GhostPowers.onPlayerHit(sp, le);
+			}
+			return ActionResult.PASS;
+		});
+
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) ->
 				GhostPowers.onRespawn(newPlayer));
 

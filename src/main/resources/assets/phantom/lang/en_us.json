@@ -42,5 +42,11 @@
   "item.phantom.ghost_blaster": "Ghost Blaster",
   "entity.phantom.voltage": "Voltage",
   "item.phantom.thunder_guitar": "Thunder Guitar",
-  "item.phantom.voltage_spawn_egg": "Voltage Spawn Egg"
+  "item.phantom.voltage_spawn_egg": "Voltage Spawn Egg",
+  "entity.phantom.room_ghost": "Room Ghost",
+  "item.phantom.hostile_ghost_essence": "Hostile Ghost Essence",
+  "item.phantom.friendly_ghost_essence": "Friendly Ghost Essence",
+  "item.phantom.jailer_essence": "Ghost Jailer Essence",
+  "item.phantom.crate_king_essence": "Crate King Essence",
+  "item.phantom.voltage_essence": "Voltage Essence"
 }
