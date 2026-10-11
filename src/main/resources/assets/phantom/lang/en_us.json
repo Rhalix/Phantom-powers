@@ -39,5 +39,8 @@
   "entity.phantom.crate_king": "The Crate King",
   "item.phantom.crate_king_spawn_egg": "Crate King Spawn Egg",
   "entity.phantom.crate_projectile": "Thrown Crate",
-  "item.phantom.ghost_blaster": "Ghost Blaster"
+  "item.phantom.ghost_blaster": "Ghost Blaster",
+  "entity.phantom.voltage": "Voltage",
+  "item.phantom.thunder_guitar": "Thunder Guitar",
+  "item.phantom.voltage_spawn_egg": "Voltage Spawn Egg"
 }

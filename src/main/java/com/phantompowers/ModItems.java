@@ -6,6 +6,8 @@ import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.SpawnEggItem;
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.ToolMaterials;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvents;
@@ -57,6 +59,12 @@ public final class ModItems {
 	public static final Item GHOST_BLASTER = Registry.register(Registries.ITEM, PhantomMod.id("ghost_blaster"),
 			new GhostBlasterItem(new Item.Settings().maxDamage(750).rarity(Rarity.RARE)));
 
+	public static final Item THUNDER_GUITAR = Registry.register(Registries.ITEM, PhantomMod.id("thunder_guitar"),
+			new ThunderGuitarItem(new Item.Settings().maxDamage(900).rarity(Rarity.EPIC).fireproof()
+					.attributeModifiers(SwordItem.createAttributeModifiers(ToolMaterials.DIAMOND, 5, -2.5f))));
+	public static final Item VOLTAGE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("voltage_spawn_egg"),
+			new SpawnEggItem(ModEntities.VOLTAGE, 0x1B1426, 0xD94DFF, new Item.Settings()));
+
 	private ModItems() {}
 
 	public static void init() {
@@ -68,6 +76,7 @@ public final class ModItems {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
 			e.add(HUNTER_SUIT);
 			e.add(GHOST_BLASTER);
+			e.add(THUNDER_GUITAR);
 			e.add(PANDORAS_BOX);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
@@ -75,6 +84,7 @@ public final class ModItems {
 			e.add(FRIENDLY_GHOST_EGG);
 			e.add(GHOST_JAILER_EGG);
 			e.add(CRATE_KING_EGG);
+			e.add(VOLTAGE_EGG);
 		});
 	}
 }

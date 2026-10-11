@@ -70,6 +70,7 @@ public class ThermosItem extends Item {
 	public static boolean canTrap(Entity e) {
 		if (e instanceof GhostJailerEntity j) return j.getHealth() < j.getMaxHealth() * 0.3f;
 		if (e instanceof com.phantompowers.entity.CrateKingEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
+		if (e instanceof com.phantompowers.entity.VoltageEntity v) return v.getHealth() < v.getMaxHealth() * 0.2f;
 		return e instanceof AbstractGhostEntity || e instanceof VexEntity || e instanceof PhantomEntity;
 	}
 
@@ -99,7 +100,8 @@ public class ThermosItem extends Item {
 			p.sendMessage(Text.literal("Point the Thermos at a ghost!").formatted(Formatting.GRAY), true);
 			return TypedActionResult.fail(stack);
 		}
-		if ((target instanceof GhostJailerEntity || target instanceof com.phantompowers.entity.CrateKingEntity) && !canTrap(target)) {
+		if ((target instanceof GhostJailerEntity || target instanceof com.phantompowers.entity.CrateKingEntity
+				|| target instanceof com.phantompowers.entity.VoltageEntity) && !canTrap(target)) {
 			p.sendMessage(Text.literal("It's too strong! Weaken it first.").formatted(Formatting.RED), true);
 			return TypedActionResult.fail(stack);
 		}
@@ -118,7 +120,7 @@ public class ThermosItem extends Item {
 		if (bh.getType() != HitResult.Type.MISS) end = bh.getPos();
 		Box box = p.getBoundingBox().stretch(end.subtract(start)).expand(1.5);
 		EntityHitResult eh = ProjectileUtil.raycast(p, start, end, box,
-				e -> e != p && (canTrap(e) || e instanceof GhostJailerEntity || e instanceof com.phantompowers.entity.CrateKingEntity || isGhostPlayer(e)), start.squaredDistanceTo(end));
+				e -> e != p && (canTrap(e) || e instanceof GhostJailerEntity || e instanceof com.phantompowers.entity.CrateKingEntity || e instanceof com.phantompowers.entity.VoltageEntity || isGhostPlayer(e)), start.squaredDistanceTo(end));
 		return eh == null ? null : eh.getEntity();
 	}
 

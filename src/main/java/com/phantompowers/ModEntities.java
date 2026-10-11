@@ -4,6 +4,7 @@ import com.phantompowers.entity.CrateKingEntity;
 import com.phantompowers.entity.CrateProjectileEntity;
 import com.phantompowers.entity.FriendlyGhostEntity;
 import com.phantompowers.entity.GliderEntity;
+import com.phantompowers.entity.VoltageEntity;
 import com.phantompowers.entity.GhostJailerEntity;
 import com.phantompowers.entity.HostileGhostEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -43,6 +44,11 @@ public final class ModEntities {
 			EntityType.Builder.<CrateProjectileEntity>create(CrateProjectileEntity::new, SpawnGroup.MISC)
 					.dimensions(0.6f, 0.6f).maxTrackingRange(6).trackingTickInterval(10).build("crate_projectile"));
 
+	public static final EntityType<VoltageEntity> VOLTAGE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("voltage"),
+			EntityType.Builder.create(VoltageEntity::new, SpawnGroup.MONSTER)
+					.dimensions(0.9f, 2.9f).maxTrackingRange(12).makeFireImmune().build("voltage"));
+
 	private ModEntities() {}
 
 	public static void init() {
@@ -50,5 +56,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(FRIENDLY_GHOST, FriendlyGhostEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(GHOST_JAILER, GhostJailerEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(CRATE_KING, CrateKingEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());
 	}
 }
