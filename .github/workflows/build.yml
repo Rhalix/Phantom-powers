@@ -38,6 +38,42 @@ jobs:
           done
           exit 1
 
+      - name: Test the mod in a real server
+        shell: bash
+        run: |
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          printf "online-mode=false\nspawn-protection=0\n" > run/server.properties
+          mkfifo cmds
+          (sleep 100000 > cmds &)
+          gradle runServer --no-daemon < cmds > server.log 2>&1 &
+          exec 3> cmds
+          ok=0
+          for i in $(seq 1 120); do
+            if grep -q "Done (" server.log; then ok=1; break; fi
+            if ! pgrep -f runServer > /dev/null && ! pgrep java > /dev/null; then break; fi
+            sleep 5
+          done
+          if [ $ok = 1 ]; then
+            echo "execute in phantom:ghost_zone run forceload add 0 0 64 64" >&3
+            sleep 40
+            echo "stop" >&3
+            sleep 20
+          fi
+          pkill -f java || true
+          grep -nE "ERROR|Exception|Caused by|at com\.phantompowers|Mixin|mixin|phantom" server.log \
+            | grep -vE "^\s*$" | head -120 > problems.txt || true
+          if [ $ok != 1 ] || grep -qE "ERROR|Exception" problems.txt; then
+            [ -s problems.txt ] || tail -80 server.log > problems.txt
+            split -l 25 problems.txt sp_
+            for f in sp_*; do
+              msg=$(sed -e 's/%/%25/g' "$f" | awk '{printf "%s%%0A", $0}')
+              echo "::error title=Server test ($f)::$msg"
+            done
+            exit 1
+          fi
+          echo "::notice title=Server test passed::$(grep -c . server.log) log lines, no errors"
+
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
