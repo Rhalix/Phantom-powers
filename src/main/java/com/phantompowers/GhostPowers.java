@@ -6,6 +6,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.FallingBlockEntity;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -49,22 +51,24 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail"};
-	public static final int[] COSTS = {0, 3, 5, 8};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12};
 
-	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4;
+	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
 	private static final float POSSESS_START_COST = 15f;
 	private static final float WAIL_COST = 60f;
+	private static final float TORNADO_COST = 80f;
 
 	public static final DustParticleEffect GREEN = new DustParticleEffect(new Vector3f(0.25f, 1.0f, 0.4f), 1.3f);
 	private static final DustParticleEffect PALE = new DustParticleEffect(new Vector3f(0.75f, 1.0f, 0.85f), 1.0f);
 
 	private static final List<PhasedBlock> PHASED = new ArrayList<>();
 	private static final List<WailWave> WAVES = new ArrayList<>();
+	private static final List<Tornado> TORNADOES = new ArrayList<>();
 
 	private GhostPowers() {}
 
@@ -80,6 +84,7 @@ public final class GhostPowers {
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
+			case A_TORNADO -> { if (ready(p, d, st, TORNADO)) tornado(p, d); }
 			default -> { }
 		}
 		st.markDirty();
@@ -475,6 +480,144 @@ public final class GhostPowers {
 		}
 	}
 
+	// ---------------------------------------------------------------- tornado
+
+	private static void tornado(ServerPlayerEntity p, GhostData d) {
+		if (d.tornadoCooldown > 0) {
+			bar(p, "The tornado needs to recharge... (" + (d.tornadoCooldown / 20 + 1) + "s)", Formatting.RED);
+			return;
+		}
+		if (!useEnergy(p, d, TORNADO_COST)) return;
+		d.tornadoCooldown = 1200;
+		ServerWorld w = p.getServerWorld();
+		Vec3d look = p.getRotationVec(1f);
+		Vec3d flat = new Vec3d(look.x, 0, look.z);
+		if (flat.lengthSquared() < 1.0E-4) flat = new Vec3d(0, 0, 1);
+		flat = flat.normalize();
+		TORNADOES.add(new Tornado(w, p.getUuid(), p.getPos().add(flat.multiply(6)), flat));
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 3.0f, 0.5f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.PLAYERS, 3.0f, 0.4f);
+		bar(p, "WAIL TORNADO!", Formatting.GREEN);
+
+		endForm(p, d);
+		d.exhaust = 160;
+		p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 160, 0, false, false, true));
+		p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 140, 1, false, false, true));
+	}
+
+	/** A giant spinning column of wail energy that roams forward, sucking up mobs and ripping up blocks. */
+	private static final class Tornado {
+		final ServerWorld world;
+		final UUID owner;
+		final Vec3d dir;
+		Vec3d pos;
+		int age;
+		int lifted;
+
+		Tornado(ServerWorld world, UUID owner, Vec3d pos, Vec3d dir) {
+			this.world = world;
+			this.owner = owner;
+			this.pos = pos;
+			this.dir = dir;
+		}
+
+		boolean tick() {
+			age++;
+			Entity ownerEntity = world.getServer().getPlayerManager().getPlayer(owner);
+			if (age > 200) {
+				finalBurst(ownerEntity);
+				return true;
+			}
+
+			// Drift forward and hug the ground
+			pos = pos.add(dir.multiply(0.12));
+			BlockPos bp = BlockPos.ofFloored(pos);
+			for (int dy = 4; dy >= -10; dy--) {
+				BlockPos q = bp.up(dy);
+				if (!world.getBlockState(q).getCollisionShape(world, q).isEmpty()) {
+					pos = new Vec3d(pos.x, q.getY() + 1, pos.z);
+					break;
+				}
+			}
+
+			// The spinning funnel
+			double spin = age * 0.45;
+			for (int h = 0; h < 15; h++) {
+				double r = 0.5 + h * 0.38;
+				for (int k = 0; k < 3; k++) {
+					double a = spin + h * 0.55 + k * (Math.PI * 2 / 3);
+					double x = pos.x + Math.cos(a) * r;
+					double z = pos.z + Math.sin(a) * r;
+					world.spawnParticles(k == 0 ? PALE : GREEN, x, pos.y + h, z, 1, 0, 0, 0, 0);
+				}
+			}
+			if (age % 4 == 0) {
+				world.spawnParticles(ParticleTypes.SONIC_BOOM, pos.x, pos.y + 1 + world.random.nextInt(12), pos.z, 1, 0, 0, 0, 0);
+				world.spawnParticles(ParticleTypes.CLOUD, pos.x, pos.y + 0.5, pos.z, 6, 1.2, 0.2, 1.2, 0.05);
+			}
+			if (age % 20 == 1) {
+				world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.PLAYERS, 2.5f, 0.6f);
+				world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.PLAYERS, 1.5f, 0.5f);
+			}
+
+			// Suck in and spin mobs, players and items
+			Box box = new Box(pos.x - 9, pos.y - 2, pos.z - 9, pos.x + 9, pos.y + 18, pos.z + 9);
+			for (Entity e : world.getOtherEntities(ownerEntity, box)) {
+				if (e.isSpectator() || !(e instanceof LivingEntity || e instanceof ItemEntity)) continue;
+				if (e instanceof PlayerEntity pl && pl.isCreative()) continue;
+				Vec3d to = new Vec3d(pos.x - e.getX(), 0, pos.z - e.getZ());
+				double dist = to.length();
+				if (dist > 9) continue;
+				Vec3d in = dist > 0.01 ? to.multiply(1.0 / dist) : Vec3d.ZERO;
+				Vec3d around = new Vec3d(-in.z, 0, in.x);
+				double pull = 0.14 * (1 - dist / 10);
+				double lift = e.getY() < pos.y + 12 ? 0.13 : -0.03;
+				Vec3d v = e.getVelocity().add(in.x * pull + around.x * 0.2 + dir.x * 0.04, lift, in.z * pull + around.z * 0.2 + dir.z * 0.04);
+				if (v.length() > 1.4) v = v.normalize().multiply(1.4);
+				e.setVelocity(v);
+				e.velocityModified = true;
+				e.fallDistance = 0;
+				if (age % 10 == 0 && dist < 4 && e instanceof LivingEntity) {
+					DamageSource src = ownerEntity != null
+							? world.getDamageSources().indirectMagic(ownerEntity, ownerEntity)
+							: world.getDamageSources().magic();
+					e.damage(src, 3.0f);
+				}
+			}
+
+			// Rip up the ground and fling it
+			if (age % 2 == 0 && lifted < 90) {
+				for (int i = 0; i < 3; i++) {
+					BlockPos q = BlockPos.ofFloored(pos).add(world.random.nextInt(7) - 3, world.random.nextInt(3) - 1, world.random.nextInt(7) - 3);
+					BlockState s = world.getBlockState(q);
+					if (s.isAir() || s.hasBlockEntity() || !s.getFluidState().isEmpty()) continue;
+					if (s.isOf(ModBlocks.GHOST_PORTAL) || s.isOf(Blocks.BLACK_CONCRETE) || s.isOf(Blocks.IRON_BLOCK)) continue;
+					float hardness = s.getHardness(world, q);
+					if (hardness < 0 || hardness > 2.0f) continue;
+					FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, q, s);
+					fb.setVelocity((world.random.nextDouble() - 0.5) * 0.6, 0.9 + world.random.nextDouble() * 0.5, (world.random.nextDouble() - 0.5) * 0.6);
+					fb.velocityModified = true;
+					lifted++;
+				}
+			}
+			return false;
+		}
+
+		private void finalBurst(Entity ownerEntity) {
+			world.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y + 2, pos.z, 1, 0, 0, 0, 0);
+			world.spawnParticles(GREEN, pos.x, pos.y + 4, pos.z, 120, 3, 4, 3, 0);
+			world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 3.0f, 0.7f);
+			Box box = new Box(pos.x - 9, pos.y - 2, pos.z - 9, pos.x + 9, pos.y + 20, pos.z + 9);
+			for (Entity e : world.getOtherEntities(ownerEntity, box)) {
+				if (e.isSpectator() || !(e instanceof LivingEntity || e instanceof ItemEntity)) continue;
+				Vec3d out = new Vec3d(e.getX() - pos.x, 0, e.getZ() - pos.z);
+				out = out.lengthSquared() < 1.0E-4 ? dir : out.normalize();
+				e.setVelocity(out.x * 1.6, 0.7, out.z * 1.6);
+				e.velocityModified = true;
+			}
+		}
+	}
+
 	// ------------------------------------------------------------------- tick
 
 	public static void tick(MinecraftServer server) {
@@ -485,11 +628,13 @@ public final class GhostPowers {
 		tickTempPhases();
 		tickPhasedBlocks();
 		WAVES.removeIf(WailWave::tick);
+		TORNADOES.removeIf(Tornado::tick);
 	}
 
 	private static void tickPlayer(ServerPlayerEntity p, GhostData d, GhostState st) {
 		if (d.blastCooldown > 0) d.blastCooldown--;
 		if (d.wailCooldown > 0) d.wailCooldown--;
+		if (d.tornadoCooldown > 0) d.tornadoCooldown--;
 		if (d.exhaust > 0) d.exhaust--;
 
 		if (d.powers && d.transformed && p.isAlive()) {
@@ -653,6 +798,7 @@ public final class GhostPowers {
 		for (PhasedBlock b : PHASED) b.restore();
 		PHASED.clear();
 		WAVES.clear();
+		TORNADOES.clear();
 		GhostFlags.clearAll();
 	}
 
@@ -678,7 +824,7 @@ public final class GhostPowers {
 		if (!ServerPlayNetworking.canSend(p, SyncPayload.ID)) return;
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null,
-				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.exhaust));
+				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust));
 	}
 
 	private static boolean useEnergy(ServerPlayerEntity p, GhostData d, float amount) {

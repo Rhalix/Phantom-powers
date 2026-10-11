@@ -26,6 +26,7 @@ public class GhostData {
 	public int possessTicks;
 	public int blastCooldown;
 	public int wailCooldown;
+	public int tornadoCooldown;
 	public int exhaust;
 	public int syncTimer;
 

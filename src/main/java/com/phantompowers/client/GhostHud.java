@@ -25,7 +25,7 @@ public final class GhostHud {
 		int x = 6;
 		int width = 170;
 		int line = 11;
-		int rows = 9;
+		int rows = 10;
 		int height = rows * line + 10;
 		int y = ctx.getScaledWindowHeight() / 2 - height / 2;
 
@@ -65,15 +65,16 @@ public final class GhostHud {
 		y += line + 2;
 
 		// Skills
-		KeyBinding[] keys = {PhantomClient.BLAST, PhantomClient.INTANGIBLE, PhantomClient.POSSESS, PhantomClient.WAIL};
-		for (int i = 0; i < 4; i++) {
+		KeyBinding[] keys = {PhantomClient.BLAST, PhantomClient.INTANGIBLE, PhantomClient.POSSESS, PhantomClient.WAIL, PhantomClient.TORNADO};
+		for (int i = 0; i < keys.length; i++) {
 			String key = "[" + keyName(keys[i]) + "] ";
 			String text;
 			int color;
 			if (ClientGhost.has(i)) {
 				text = key + GhostPowers.NAMES[i];
-				if (i == GhostPowers.WAIL && ClientGhost.wailCooldown > 0) {
-					text += " (" + (ClientGhost.wailCooldown / 20 + 1) + "s)";
+				int cd = i == GhostPowers.WAIL ? ClientGhost.wailCooldown : i == GhostPowers.TORNADO ? ClientGhost.tornadoCooldown : 0;
+				if (cd > 0) {
+					text += " (" + (cd / 20 + 1) + "s)";
 					color = GRAY;
 				} else {
 					color = ClientGhost.transformed ? WHITE : GRAY;

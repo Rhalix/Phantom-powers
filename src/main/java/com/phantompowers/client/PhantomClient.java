@@ -27,6 +27,7 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding INTANGIBLE;
 	public static KeyBinding POSSESS;
 	public static KeyBinding WAIL;
+	public static KeyBinding TORNADO;
 
 	@Override
 	public void onInitializeClient() {
@@ -35,6 +36,7 @@ public class PhantomClient implements ClientModInitializer {
 		INTANGIBLE = key("intangible", GLFW.GLFW_KEY_G);
 		POSSESS = key("possess", GLFW.GLFW_KEY_H);
 		WAIL = key("wail", GLFW.GLFW_KEY_B);
+		TORNADO = key("tornado", GLFW.GLFW_KEY_N);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null) return;
@@ -43,6 +45,7 @@ public class PhantomClient implements ClientModInitializer {
 			while (INTANGIBLE.wasPressed()) send(GhostPowers.A_INTANGIBLE);
 			while (POSSESS.wasPressed()) send(GhostPowers.A_POSSESS);
 			while (WAIL.wasPressed()) send(GhostPowers.A_WAIL);
+			while (TORNADO.wasPressed()) send(GhostPowers.A_TORNADO);
 		});
 
 		ClientPlayNetworking.registerGlobalReceiver(SyncPayload.ID, (payload, context) -> ClientGhost.update(payload));

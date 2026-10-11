@@ -36,7 +36,7 @@ public final class PhantomCommands {
 					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
 					GhostPowers.grantPowers(p);
 					GhostState st = GhostState.of(p.getServer());
-					st.data(p.getUuid()).unlocked = 0b1111;
+					st.data(p.getUuid()).unlocked = 0b11111;
 					st.markDirty();
 					GhostPowers.syncNow(p);
 					ctx.getSource().sendFeedback(() -> Text.literal("All ghost powers unlocked."), false);

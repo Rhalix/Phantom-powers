@@ -14,6 +14,7 @@ public final class ClientGhost {
 	public static int progress;
 	public static int unlocked;
 	public static int wailCooldown;
+	public static int tornadoCooldown;
 	public static int exhaust;
 
 	private ClientGhost() {}
@@ -28,6 +29,7 @@ public final class ClientGhost {
 		progress = p.progress();
 		unlocked = p.unlocked();
 		wailCooldown = p.wailCooldown();
+		tornadoCooldown = p.tornadoCooldown();
 		exhaust = p.exhaust();
 		GhostFlags.clientSelfIntangible = intangible;
 	}
@@ -35,7 +37,7 @@ public final class ClientGhost {
 	public static void reset() {
 		powers = transformed = intangible = possessing = false;
 		energy = 0;
-		points = progress = unlocked = wailCooldown = exhaust = 0;
+		points = progress = unlocked = wailCooldown = tornadoCooldown = exhaust = 0;
 	}
 
 	public static boolean has(int skill) {
