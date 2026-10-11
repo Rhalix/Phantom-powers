@@ -23,7 +23,20 @@ jobs:
           gradle-version: "8.10.2"
 
       - name: Build the .jar
-        run: gradle build --stacktrace
+        shell: bash
+        run: |
+          set -o pipefail
+          if gradle build --no-daemon 2>&1 | tee build.log; then exit 0; fi
+          # Report the important error lines as annotations (readable through the API)
+          grep -nE "error:|What went wrong|Exception|Could not|> |warning: \[|Caused by|^\S+\.java:[0-9]+" build.log \
+            | grep -vE "^\s*$" | head -150 > errors.txt || true
+          [ -s errors.txt ] || tail -80 build.log > errors.txt
+          split -l 25 errors.txt part_
+          for f in part_*; do
+            msg=$(sed -e 's/%/%25/g' "$f" | awk '{printf "%s%%0A", $0}')
+            echo "::error title=Build errors ($f)::$msg"
+          done
+          exit 1
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
