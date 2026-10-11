@@ -1,0 +1,255 @@
+package com.phantompowers;
+
+import com.phantompowers.entity.AbstractGhostEntity;
+import com.phantompowers.entity.GhostJailerEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PhantomEntity;
+import net.minecraft.entity.mob.VexEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileUtil;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
+import net.minecraft.world.World;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Point it at a ghost and right-click: the ghost gets sucked inside. It holds as many ghosts as you like,
+ * but each catch wears it down. Sneak + right-click to let them all out. If it breaks, they all escape!
+ */
+public class ThermosItem extends Item {
+	private static final String KEY = "TrappedGhosts";
+	private static final List<Capture> CAPTURES = new ArrayList<>();
+
+	public ThermosItem(Settings settings) {
+		super(settings);
+	}
+
+	private static final class Capture {
+		final ServerPlayerEntity player;
+		final Hand hand;
+		final Entity target;
+		final boolean prevAi;
+		int ticks;
+
+		Capture(ServerPlayerEntity player, Hand hand, Entity target) {
+			this.player = player;
+			this.hand = hand;
+			this.target = target;
+			this.prevAi = target instanceof MobEntity m && m.isAiDisabled();
+		}
+	}
+
+	public static boolean canTrap(Entity e) {
+		if (e instanceof GhostJailerEntity j) return j.getHealth() < j.getMaxHealth() * 0.3f;
+		return e instanceof AbstractGhostEntity || e instanceof VexEntity || e instanceof PhantomEntity;
+	}
+
+	// ------------------------------------------------------------------- use
+
+	@Override
+	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+		ItemStack stack = user.getStackInHand(hand);
+		if (world.isClient) return TypedActionResult.success(stack, true);
+		ServerPlayerEntity p = (ServerPlayerEntity) user;
+
+		if (user.isSneaking()) {
+			int n = releaseAll((ServerWorld) world, stack, p.getPos().add(p.getRotationVec(1f).multiply(2.5)));
+			if (n > 0) {
+				world.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.THERMOS_SUCK, SoundCategory.PLAYERS, 1.0f, 0.6f);
+				p.sendMessage(Text.literal("Released " + n + " ghost" + (n == 1 ? "" : "s") + "!").formatted(Formatting.AQUA), true);
+			} else {
+				p.sendMessage(Text.literal("The Thermos is empty.").formatted(Formatting.GRAY), true);
+			}
+			return TypedActionResult.success(stack);
+		}
+
+		for (Capture c : CAPTURES) if (c.player == p) return TypedActionResult.pass(stack);
+
+		Entity target = aim(p, 18);
+		if (target == null) {
+			p.sendMessage(Text.literal("Point the Thermos at a ghost!").formatted(Formatting.GRAY), true);
+			return TypedActionResult.fail(stack);
+		}
+		if (target instanceof GhostJailerEntity && !canTrap(target)) {
+			p.sendMessage(Text.literal("The Jailer is too strong! Weaken it first.").formatted(Formatting.RED), true);
+			return TypedActionResult.fail(stack);
+		}
+		if (target instanceof MobEntity m) m.setAiDisabled(true);
+		CAPTURES.add(new Capture(p, hand, target));
+		world.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.THERMOS_SUCK, SoundCategory.PLAYERS, 1.2f, 1.0f);
+		p.getItemCooldownManager().set(this, 25);
+		return TypedActionResult.success(stack);
+	}
+
+	/** Ghosts, plus players who are in ghost form. */
+	private static Entity aim(ServerPlayerEntity p, double range) {
+		Vec3d start = p.getEyePos();
+		Vec3d end = start.add(p.getRotationVec(1f).multiply(range));
+		BlockHitResult bh = p.getWorld().raycast(new RaycastContext(start, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, p));
+		if (bh.getType() != HitResult.Type.MISS) end = bh.getPos();
+		Box box = p.getBoundingBox().stretch(end.subtract(start)).expand(1.5);
+		EntityHitResult eh = ProjectileUtil.raycast(p, start, end, box,
+				e -> e != p && (canTrap(e) || e instanceof GhostJailerEntity || isGhostPlayer(e)), start.squaredDistanceTo(end));
+		return eh == null ? null : eh.getEntity();
+	}
+
+	private static boolean isGhostPlayer(Entity e) {
+		return e instanceof ServerPlayerEntity sp && GhostState.of(sp.getServer()).data(sp.getUuid()).transformed;
+	}
+
+	// ------------------------------------------------------------------ tick
+
+	public static void tick() {
+		Iterator<Capture> it = CAPTURES.iterator();
+		while (it.hasNext()) {
+			Capture c = it.next();
+			ServerPlayerEntity p = c.player;
+			Entity t = c.target;
+			ItemStack stack = p.getStackInHand(c.hand);
+			boolean holding = stack.getItem() instanceof ThermosItem;
+			if (p.isRemoved() || !p.isAlive() || !holding || t.isRemoved() || !t.isAlive() || t.getWorld() != p.getWorld()
+					|| t.squaredDistanceTo(p) > 30 * 30) {
+				if (t instanceof MobEntity m) m.setAiDisabled(c.prevAi);
+				it.remove();
+				continue;
+			}
+			ServerWorld w = p.getServerWorld();
+			c.ticks++;
+			Vec3d mouth = p.getEyePos().add(p.getRotationVec(1f).multiply(0.9)).add(0, -0.35, 0);
+			Vec3d center = t.getPos().add(0, t.getHeight() / 2, 0);
+			Vec3d toMouth = mouth.subtract(center);
+
+			// Pull the ghost in, spinning
+			double pull = Math.min(1.0, 0.06 + c.ticks * 0.012);
+			Vec3d next = center.add(toMouth.multiply(pull)).subtract(0, t.getHeight() / 2, 0);
+			if (t instanceof ServerPlayerEntity tp) tp.requestTeleport(next.x, next.y, next.z);
+			else {
+				t.refreshPositionAndAngles(next.x, next.y, next.z, t.getYaw() + 25f, t.getPitch());
+				t.setVelocity(Vec3d.ZERO);
+			}
+
+			// Swirling suction stream
+			double len = toMouth.length();
+			Vec3d dir = len > 0 ? toMouth.multiply(1 / len) : Vec3d.ZERO;
+			Vec3d u = dir.crossProduct(new Vec3d(0, 1, 0));
+			if (u.lengthSquared() < 1.0E-4) u = new Vec3d(1, 0, 0);
+			u = u.normalize();
+			Vec3d v = dir.crossProduct(u).normalize();
+			for (double s = 0; s < len; s += 0.25) {
+				double a = s * 4 + c.ticks * 0.8;
+				double rad = 0.08 + 0.3 * (s / Math.max(1, len));
+				Vec3d pt = mouth.subtract(dir.multiply(s)).add(u.multiply(Math.cos(a) * rad)).add(v.multiply(Math.sin(a) * rad));
+				w.spawnParticles(c.ticks % 2 == 0 ? ParticleTypes.END_ROD : ParticleTypes.SOUL_FIRE_FLAME, pt.x, pt.y, pt.z, 1, 0, 0, 0, 0);
+			}
+			w.spawnParticles(GhostPowers.GREEN, center.x, center.y, center.z, 4, 0.3, 0.4, 0.3, 0);
+
+			if (c.ticks >= 22 || len < 0.9) {
+				it.remove();
+				if (t instanceof ServerPlayerEntity tp) {
+					GhostState st = GhostState.of(tp.getServer());
+					GhostData d = st.data(tp.getUuid());
+					if (d.transformed) GhostPowers.endForm(tp, d);
+					d.exhaust = Math.max(d.exhaust, 120);
+					tp.sendMessage(Text.literal("You got sucked out of ghost form by a Thermos!").formatted(Formatting.RED), false);
+					w.playSound(null, tp.getX(), tp.getY(), tp.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 0.6f);
+					continue;
+				}
+				trap(w, p, c, stack, t);
+			}
+		}
+	}
+
+	private static void trap(ServerWorld w, ServerPlayerEntity p, Capture c, ItemStack stack, Entity t) {
+		if (t instanceof MobEntity m) m.setAiDisabled(c.prevAi);
+		NbtCompound saved = new NbtCompound();
+		if (!t.saveNbt(saved)) return;
+		NbtCompound data = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
+		NbtList list = data.getList(KEY, NbtElement.COMPOUND_TYPE);
+		list.add(saved);
+		data.put(KEY, list);
+		stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(data));
+		t.discard();
+		w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getEyeY() - 0.3, p.getZ(), 1, 0, 0, 0, 0);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.PLAYERS, 1.0f, 1.4f);
+		p.sendMessage(Text.literal("Trapped! (" + list.size() + " ghost" + (list.size() == 1 ? "" : "s") + " inside)").formatted(Formatting.GREEN), true);
+
+		NbtCompound backup = data.copy();
+		stack.damage(1, p, LivingEntity.getSlotForHand(c.hand));
+		if (stack.isEmpty()) {
+			ItemStack ghostsOnly = new ItemStack(ModItems.THERMOS);
+			ghostsOnly.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(backup));
+			int n = releaseAll(w, ghostsOnly, p.getPos().add(0, 1, 0));
+			p.sendMessage(Text.literal("The Thermos cracked! " + n + " ghosts escaped!").formatted(Formatting.RED, Formatting.BOLD), false);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1.0f, 0.8f);
+		}
+	}
+
+	private static int releaseAll(ServerWorld w, ItemStack stack, Vec3d at) {
+		NbtCompound data = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
+		NbtList list = data.getList(KEY, NbtElement.COMPOUND_TYPE);
+		int n = 0;
+		for (int i = 0; i < list.size(); i++) {
+			NbtCompound saved = list.getCompound(i);
+			final double ox = at.x + (w.random.nextDouble() - 0.5) * 2;
+			final double oz = at.z + (w.random.nextDouble() - 0.5) * 2;
+			Entity e = EntityType.loadEntityWithPassengers(saved, w, ent -> {
+				ent.refreshPositionAndAngles(ox, at.y, oz, ent.getYaw(), ent.getPitch());
+				return ent;
+			});
+			if (e != null) {
+				e.setUuid(UUID.randomUUID());
+				if (w.spawnEntity(e)) n++;
+				w.spawnParticles(ParticleTypes.SOUL, e.getX(), e.getY() + 1, e.getZ(), 12, 0.3, 0.5, 0.3, 0.03);
+			}
+		}
+		data.remove(KEY);
+		stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(data));
+		return n;
+	}
+
+	public static int trappedCount(ItemStack stack) {
+		NbtComponent c = stack.get(DataComponentTypes.CUSTOM_DATA);
+		return c == null ? 0 : c.copyNbt().getList(KEY, NbtElement.COMPOUND_TYPE).size();
+	}
+
+	@Override
+	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+		int n = trappedCount(stack);
+		tooltip.add(Text.literal("Ghosts trapped: " + n).formatted(n > 0 ? Formatting.GREEN : Formatting.GRAY));
+		tooltip.add(Text.literal("Right-click a ghost to trap it").formatted(Formatting.DARK_GRAY));
+		tooltip.add(Text.literal("Sneak + right-click to release all").formatted(Formatting.DARK_GRAY));
+	}
+
+	@Override
+	public boolean hasGlint(ItemStack stack) {
+		return trappedCount(stack) > 0;
+	}
+}

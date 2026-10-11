@@ -1,0 +1,74 @@
+{
+  "ghostly_wail": {
+    "sounds": [
+      {
+        "name": "phantom:ghostly_wail",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghostly_wail"
+  },
+  "ghost_sense": {
+    "sounds": [
+      {
+        "name": "phantom:ghost_sense",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghost_sense"
+  },
+  "thermos_suck": {
+    "sounds": [
+      {
+        "name": "phantom:thermos_suck",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.thermos_suck"
+  },
+  "ghost_friendly": {
+    "sounds": [
+      {
+        "name": "phantom:ghost_friendly",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghost_friendly"
+  },
+  "ghost_hostile": {
+    "sounds": [
+      {
+        "name": "phantom:ghost_hostile",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghost_hostile"
+  },
+  "ghost_hurt": {
+    "sounds": [
+      {
+        "name": "phantom:ghost_hurt",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghost_hurt"
+  },
+  "ghost_death": {
+    "sounds": [
+      {
+        "name": "phantom:ghost_death",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghost_death"
+  },
+  "jailer_roar": {
+    "sounds": [
+      {
+        "name": "phantom:jailer_roar",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "subtitles.phantom.jailer_roar"
+  }
+}

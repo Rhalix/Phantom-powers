@@ -2,11 +2,13 @@ package com.phantompowers;
 
 import com.phantompowers.network.BeamPayload;
 import com.phantompowers.network.InvisiblePayload;
+import com.phantompowers.network.GhostSensePayload;
 import com.phantompowers.network.RingPayload;
 import com.phantompowers.network.SkillPayload;
 import com.phantompowers.network.SyncPayload;
 import com.phantompowers.world.FloatingDoorFeature;
 import com.phantompowers.world.GhostRooms;
+import com.phantompowers.world.GhostZoneLife;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -49,7 +51,10 @@ public class PhantomMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModSounds.init();
 		ModBlocks.init();
+		ModEntities.init();
+		ModItems.init();
 		Registry.register(Registries.FEATURE, id("floating_door"), FLOATING_DOOR);
 
 		// Networking
@@ -57,6 +62,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(BeamPayload.ID, BeamPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(InvisiblePayload.ID, InvisiblePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RingPayload.ID, RingPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(GhostSensePayload.ID, GhostSensePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));
@@ -84,6 +90,9 @@ public class PhantomMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			PortalLogic.tick(server);
 			GhostPowers.tick(server);
+			ThermosItem.tick();
+			GhostSense.tick(server);
+			GhostZoneLife.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor

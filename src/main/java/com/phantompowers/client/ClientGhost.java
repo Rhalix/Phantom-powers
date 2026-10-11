@@ -19,6 +19,7 @@ public final class ClientGhost {
 	public static int exhaust;
 	public static int cutscene;
 	public static boolean cutsceneToGhost;
+	public static int level = 1;
 
 	private ClientGhost() {}
 
@@ -37,6 +38,7 @@ public final class ClientGhost {
 		exhaust = p.exhaust();
 		cutscene = p.cutscene();
 		cutsceneToGhost = p.cutsceneToGhost();
+		level = p.level();
 		GhostFlags.clientSelfIntangible = intangible;
 	}
 

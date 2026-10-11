@@ -13,5 +13,21 @@
   "death.attack.phantom.ghost_portal": "%1$s was zapped by the Ghost Portal",
   "death.attack.phantom.ghost_portal.player": "%1$s was zapped by the Ghost Portal",
   "key.phantom.invisible": "Invisibility",
-  "key.phantom.skills": "Open Ghost Skills"
+  "key.phantom.skills": "Open Ghost Skills",
+  "item.phantom.ectoplasm": "Ectoplasm",
+  "item.phantom.thermos": "Thermos",
+  "item.phantom.hostile_ghost_spawn_egg": "Hostile Ghost Spawn Egg",
+  "item.phantom.friendly_ghost_spawn_egg": "Friendly Ghost Spawn Egg",
+  "item.phantom.ghost_jailer_spawn_egg": "Ghost Jailer Spawn Egg",
+  "entity.phantom.hostile_ghost": "Hostile Ghost",
+  "entity.phantom.friendly_ghost": "Friendly Ghost",
+  "entity.phantom.ghost_jailer": "Ghost Jailer",
+  "subtitles.phantom.ghostly_wail": "Ghostly wail",
+  "subtitles.phantom.ghost_sense": "Ghost sense tingles",
+  "subtitles.phantom.thermos_suck": "Thermos whooshes",
+  "subtitles.phantom.ghost_friendly": "Friendly ghost hums",
+  "subtitles.phantom.ghost_hostile": "Ghost moans",
+  "subtitles.phantom.ghost_hurt": "Ghost hurts",
+  "subtitles.phantom.ghost_death": "Ghost fades away",
+  "subtitles.phantom.jailer_roar": "Ghost Jailer roars"
 }

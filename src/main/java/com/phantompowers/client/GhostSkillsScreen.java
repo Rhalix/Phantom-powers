@@ -61,8 +61,10 @@ public class GhostSkillsScreen extends Screen {
 		super.render(ctx, mouseX, mouseY, delta);
 
 		ctx.drawCenteredTextWithShadow(textRenderer, "Ghost Skills", width / 2, top + 8, 0xFF66FF99);
+		int lvl = ClientGhost.level;
+		int hearts = (int) Math.min(20, 2 + (lvl - 1));
 		String pts = ClientGhost.powers
-				? "Stat Points: " + ClientGhost.points + "   (earn 1 every 30s in ghost form)"
+				? "Ghost Level " + lvl + " (+" + hearts + " hearts in ghost form)   Points: " + ClientGhost.points
 				: "You don't have ghost powers yet.";
 		ctx.drawCenteredTextWithShadow(textRenderer, pts, width / 2, top + 22, 0xFFFFEE55);
 

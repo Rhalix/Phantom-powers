@@ -1,5 +1,7 @@
 package com.phantompowers.world;
 
+import com.phantompowers.ModEntities;
+import com.phantompowers.entity.AbstractGhostEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -195,7 +197,24 @@ public final class RoomBuilder {
 		c.set(dx, 1, -1, door.with(DoorBlock.HALF, DoubleBlockHalf.LOWER));
 		c.set(dx, 2, -1, door.with(DoorBlock.HALF, DoubleBlockHalf.UPPER));
 
-		String name = "The " + MOODS[r.nextInt(MOODS.length)] + " " + theme.name();
+		// Some rooms are haunted: friendly ghosts in some, hostile ones in others
+		String haunting = "";
+		if (r.nextInt(10) < 6) {
+			boolean hostile = r.nextBoolean();
+			int n = hostile ? 1 + r.nextInt(3) : 1 + r.nextInt(2);
+			BlockPos home = origin.add(c.W / 2, 2, c.D / 2);
+			for (int i = 0; i < n; i++) {
+				AbstractGhostEntity g = hostile ? ModEntities.HOSTILE_GHOST.create(w) : ModEntities.FRIENDLY_GHOST.create(w);
+				if (g == null) continue;
+				g.refreshPositionAndAngles(home.getX() + r.nextInt(5) - 2 + 0.5, home.getY(), home.getZ() + r.nextInt(5) - 2 + 0.5, r.nextFloat() * 360f, 0f);
+				g.setHome(home, Math.max(2f, Math.min(c.W, c.D) / 2f - 1.5f));
+				g.setPersistent();
+				w.spawnEntity(g);
+			}
+			haunting = hostile ? " (Haunted!)" : " (Friendly spirits)";
+		}
+
+		String name = "The " + MOODS[r.nextInt(MOODS.length)] + " " + theme.name() + haunting;
 		Vec3d entry = new Vec3d(origin.getX() + dx + 0.5, origin.getY() + 1, origin.getZ() + 1.5);
 		return new Result(name, entry, 0f);
 	}

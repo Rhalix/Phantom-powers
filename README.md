@@ -45,10 +45,30 @@ Every floating door in the Ghost Zone leads to **its own room**: libraries, froz
 gardens, treasure vaults, ghost prisons, aquariums and more. Each room is different in size, layout and loot,
 and some have mobs. Use the door behind you to come back out.
 
+## Ghost sense
+When a ghost or hostile mob comes near, a wisp of icy blue breath curls out of your mouth and your screen frosts over.
+
+## Ghosts
+The Ghost Zone is haunted. **Hostile ghosts** hunt you through walls. **Friendly ghosts** float along beside you and give you a gift if you talk to them (right-click).
+Many door rooms are haunted too, some by friendly ghosts and some by hostile ones. Ghosts drop **Ectoplasm**.
+
+## The Thermos
+Craft: iron nugget on top, iron ingot / ectoplasm / iron ingot, iron ingot / redstone / iron ingot.
+Right-click a ghost to suck it inside. It holds as many ghosts as you like, but each catch wears it down. If it breaks, they all escape!
+Sneak + right-click to let them all out. It even yanks other players out of ghost form.
+
+## Ghost Prison and the Ghost Jailer
+Floating prison fortresses are scattered across the Ghost Zone (about one every 640 blocks). Cells hold captured ghosts.
+The **Ghost Jailer** guards it: it chains you back when you run, calls guard ghosts, and hits hard. Beat it to free the prisoners and loot the hall, where a Thermos is always waiting.
+Weaken it below 30% health and you can trap it in a Thermos.
+
+## Ghost level
+Every 2 stat points you earn raises your ghost level. In ghost form you get extra hearts, strength, armor and (from level 5) Resistance, growing with your level.
+
 If a Ghost Portal won't turn on, the chat tells you what's wrong with the frame.
 
 ## Test commands (cheats on)
-`/phantom grant`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
+`/phantom grant`, `/phantom prison`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
 
 ## Multiplayer servers
 Set `allow-flight=true` in `server.properties`, or players floating while intangible may get kicked.

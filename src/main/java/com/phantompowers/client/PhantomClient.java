@@ -6,6 +6,8 @@ import com.phantompowers.ModBlocks;
 import com.phantompowers.PhantomMod;
 import com.phantompowers.network.BeamPayload;
 import com.phantompowers.network.InvisiblePayload;
+import com.phantompowers.ModEntities;
+import com.phantompowers.network.GhostSensePayload;
 import com.phantompowers.network.RingPayload;
 import com.phantompowers.network.SkillPayload;
 import com.phantompowers.network.SyncPayload;
@@ -16,6 +18,8 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.DimensionRenderingRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -63,6 +67,7 @@ public class PhantomClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
 			ClientRings.tick();
+			ClientGhostSense.tick(client);
 			ClientCutscene.tick(client);
 			if (client.player == null) return;
 
@@ -98,6 +103,16 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_GHOSTS.addAll(payload.ghosts());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
+		ClientPlayNetworking.registerGlobalReceiver(GhostSensePayload.ID, (payload, context) -> ClientGhostSense.add(payload));
+
+		// Ghost mobs
+		EntityModelLayerRegistry.registerModelLayer(GhostModel.LAYER, GhostModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.HOSTILE_GHOST,
+				ctx -> new GhostRenderer<>(ctx, PhantomMod.id("textures/entity/hostile_ghost.png"), 1.0f));
+		EntityRendererRegistry.register(ModEntities.FRIENDLY_GHOST,
+				ctx -> new GhostRenderer<>(ctx, PhantomMod.id("textures/entity/friendly_ghost.png"), 0.9f));
+		EntityRendererRegistry.register(ModEntities.GHOST_JAILER,
+				ctx -> new GhostRenderer<>(ctx, PhantomMod.id("textures/entity/ghost_jailer.png"), 1.8f));
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ClientGhost.reset();
 			GhostFlags.clientSelfIntangible = false;
@@ -105,6 +120,7 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_GHOSTS.clear();
 			ClientBeams.clear();
 			ClientRings.clear();
+			ClientGhostSense.clear();
 			ClientCutscene.reset(client);
 		});
 
@@ -124,8 +140,10 @@ public class PhantomClient implements ClientModInitializer {
 		WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
 			ClientBeams.render(ctx);
 			ClientRings.render(ctx);
+			ClientGhostSense.render(ctx);
 		});
 		HudRenderCallback.EVENT.register(ClientCutscene::renderHud);
+		HudRenderCallback.EVENT.register(ClientGhostSense::renderHud);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

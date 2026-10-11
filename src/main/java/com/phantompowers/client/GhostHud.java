@@ -39,7 +39,7 @@ public final class GhostHud {
 		ctx.fill(x - 3, y - 3, x + width, y + height - 2, 0x80000000);
 		ctx.fill(x - 3, y - 3, x - 1, y + height - 2, ClientGhost.transformed ? GREEN : GRAY);
 
-		String status = ClientGhost.transformed ? "GHOST" : "HUMAN [" + PhantomClient.keyName(PhantomClient.TRANSFORM) + "]";
+		String status = (ClientGhost.transformed ? "GHOST" : "HUMAN [" + PhantomClient.keyName(PhantomClient.TRANSFORM) + "]") + "  Lv " + ClientGhost.level;
 		int statusColor = ClientGhost.transformed ? GREEN : GRAY;
 		if (ClientGhost.possessing) status += " - possessing";
 		else if (ClientGhost.intangible) status += " - intangible";

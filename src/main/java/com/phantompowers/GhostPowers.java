@@ -15,6 +15,10 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.ai.brain.MemoryModuleType;
@@ -32,7 +36,9 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -170,6 +176,8 @@ public final class GhostPowers {
 		}
 		d.transformed = true;
 		setFlight(p, true);
+		applyStats(p, d, true);
+		p.heal(statBonusHealth(d));
 		if (rings) sendRings(p, 14);
 		broadcastStates(p.getServer());
 		bar(p, "I'm going ghost!", Formatting.GREEN);
@@ -184,7 +192,56 @@ public final class GhostPowers {
 		releaseHold(p, d, false);
 		stopInvisible(p, d);
 		setFlight(p, false);
+		applyStats(p, d, false);
 		broadcastStates(p.getServer());
+	}
+
+	// ------------------------------------------------------------ ghost level
+
+	/** Ghost level goes up as you earn stat points (one level per 2 points, max 30). */
+	public static int level(GhostData d) {
+		return Math.min(30, 1 + d.totalPoints / 2);
+	}
+
+	public static float statBonusHealth(GhostData d) {
+		return Math.min(40f, 4f + 2f * (level(d) - 1));
+	}
+
+	public static double statBonusDamage(GhostData d) {
+		return Math.min(12.0, 1.0 + 0.5 * (level(d) - 1));
+	}
+
+	public static double statBonusArmor(GhostData d) {
+		return Math.min(14.0, 2.0 + 0.5 * (level(d) - 1));
+	}
+
+	private static final Identifier MOD_HEALTH = PhantomMod.id("ghost_health");
+	private static final Identifier MOD_DAMAGE = PhantomMod.id("ghost_strength");
+	private static final Identifier MOD_ARMOR = PhantomMod.id("ghost_armor");
+	private static final Identifier MOD_TOUGH = PhantomMod.id("ghost_toughness");
+	private static final Identifier MOD_KNOCK = PhantomMod.id("ghost_knockback");
+
+	/** Ghost form: extra health, strength and toughness, growing with your ghost level. */
+	public static void applyStats(ServerPlayerEntity p, GhostData d, boolean on) {
+		int lvl = level(d);
+		setMod(p, EntityAttributes.GENERIC_MAX_HEALTH, MOD_HEALTH, on ? statBonusHealth(d) : 0);
+		setMod(p, EntityAttributes.GENERIC_ATTACK_DAMAGE, MOD_DAMAGE, on ? statBonusDamage(d) : 0);
+		setMod(p, EntityAttributes.GENERIC_ARMOR, MOD_ARMOR, on ? statBonusArmor(d) : 0);
+		setMod(p, EntityAttributes.GENERIC_ARMOR_TOUGHNESS, MOD_TOUGH, on ? Math.min(8.0, lvl * 0.3) : 0);
+		setMod(p, EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, MOD_KNOCK, on ? Math.min(0.6, 0.1 + lvl * 0.02) : 0);
+		if (on && lvl >= 5) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 60, lvl >= 15 ? 1 : 0, true, false, true));
+		}
+		if (!on && p.getHealth() > p.getMaxHealth()) p.setHealth(p.getMaxHealth());
+	}
+
+	private static void setMod(ServerPlayerEntity p, RegistryEntry<EntityAttribute> attr, Identifier id, double value) {
+		EntityAttributeInstance inst = p.getAttributeInstance(attr);
+		if (inst == null) return;
+		EntityAttributeModifier cur = inst.getModifier(id);
+		if (cur != null && cur.value() == value) return;
+		if (cur != null) inst.removeModifier(id);
+		if (value != 0) inst.addTemporaryModifier(new EntityAttributeModifier(id, value, EntityAttributeModifier.Operation.ADD_VALUE));
 	}
 
 	private static void setFlight(ServerPlayerEntity p, boolean on) {
@@ -582,8 +639,8 @@ public final class GhostPowers {
 		d.wailCooldown = 400;
 		WAVES.add(new WailWave(p.getServerWorld(), p.getUuid(), p.getEyePos(), p.getRotationVec(1f)));
 		ServerWorld w = p.getServerWorld();
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 3.0f, 0.8f);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.PLAYERS, 3.0f, 0.6f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 1.0f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 1.0f, 1.4f);
 		bar(p, "GHOSTLY WAIL!", Formatting.GREEN);
 
 		// Like the show: the wail drains you right back to human form.
@@ -689,8 +746,7 @@ public final class GhostPowers {
 		if (flat.lengthSquared() < 1.0E-4) flat = new Vec3d(0, 0, 1);
 		flat = flat.normalize();
 		TORNADOES.add(new Tornado(w, p.getUuid(), p.getPos().add(flat.multiply(6)), flat));
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 3.0f, 0.5f);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.PLAYERS, 3.0f, 0.4f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 0.8f);
 		bar(p, "WAIL TORNADO!", Formatting.GREEN);
 
 		endForm(p, d);
@@ -751,7 +807,7 @@ public final class GhostPowers {
 			}
 			if (age % 20 == 1) {
 				world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.PLAYERS, 2.5f, 0.6f);
-				world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GHAST_SCREAM, SoundCategory.PLAYERS, 1.5f, 0.5f);
+				if (age % 60 == 1) world.playSound(null, pos.x, pos.y, pos.z, ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 2.0f, 0.7f);
 			}
 
 			// Suck in and spin mobs, players and items
@@ -835,11 +891,18 @@ public final class GhostPowers {
 			d.formTicks++;
 			if (d.formTicks % POINT_TICKS == 0) {
 				d.points++;
+				int before = level(d);
+				d.totalPoints++;
+				if (level(d) > before) {
+					p.sendMessage(Text.literal("Ghost Level " + level(d) + "! Your ghost form got stronger.").formatted(Formatting.GREEN, Formatting.BOLD), false);
+					sound(p, SoundEvents.ENTITY_PLAYER_LEVELUP, 0.8f, 0.7f);
+				}
 				st.markDirty();
 				p.sendMessage(Text.literal("+1 Stat Point! (" + d.points + " total)").formatted(Formatting.GREEN), true);
 				sound(p, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.2f);
 			}
 			setFlight(p, true);
+			if (p.age % 40 == 0) applyStats(p, d, true);
 
 			float drain = 0;
 			if (d.intangible) drain += 0.4f;
@@ -978,6 +1041,7 @@ public final class GhostPowers {
 		d.intangible = false;
 		d.cutscene = 0;
 		d.syncTimer = 0;
+		applyStats(p, d, false);
 		broadcastStates(p.getServer());
 		if (d.pendingPowers) {
 			UUID id = p.getUuid();
@@ -993,6 +1057,7 @@ public final class GhostPowers {
 		GhostState st = GhostState.of(p.getServer());
 		GhostData d = st.data(p.getUuid());
 		if (d.transformed) endForm(p, d);
+		else applyStats(p, d, false);
 		d.syncTimer = 0;
 		broadcastStates(p.getServer());
 		if (d.pendingPowers && p.isAlive()) {
@@ -1043,7 +1108,7 @@ public final class GhostPowers {
 		if (!ServerPlayNetworking.canSend(p, SyncPayload.ID)) return;
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
-				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost));
+				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d)));
 	}
 
 	private static boolean useEnergy(ServerPlayerEntity p, GhostData d, float amount) {

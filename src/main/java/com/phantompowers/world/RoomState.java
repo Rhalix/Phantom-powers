@@ -29,6 +29,16 @@ public class RoomState extends PersistentState {
 	}
 
 	private final Map<String, Integer> doors = new HashMap<>();
+	private final java.util.Set<Long> prisons = new java.util.HashSet<>();
+
+	public boolean prisonBuilt(long key) {
+		return prisons.contains(key);
+	}
+
+	public void markPrison(long key) {
+		prisons.add(key);
+		markDirty();
+	}
 	private final List<Room> rooms = new ArrayList<>();
 
 	public static RoomState of(MinecraftServer server) {
@@ -74,6 +84,7 @@ public class RoomState extends PersistentState {
 			list.add(n);
 		}
 		nbt.put("rooms", list);
+		nbt.putLongArray("prisons", prisons.stream().mapToLong(Long::longValue).toArray());
 		return nbt;
 	}
 
@@ -98,6 +109,7 @@ public class RoomState extends PersistentState {
 			r.yaw = n.getFloat("yaw");
 			s.rooms.add(r);
 		}
+		for (long k : nbt.getLongArray("prisons")) s.prisons.add(k);
 		return s;
 	}
 }
