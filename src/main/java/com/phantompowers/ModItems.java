@@ -54,6 +54,9 @@ public final class ModItems {
 	public static final Item CRATE_KING_EGG = Registry.register(Registries.ITEM, PhantomMod.id("crate_king_spawn_egg"),
 			new SpawnEggItem(ModEntities.CRATE_KING, 0xB98A55, 0x7A2FD0, new Item.Settings()));
 
+	public static final Item GHOST_BLASTER = Registry.register(Registries.ITEM, PhantomMod.id("ghost_blaster"),
+			new GhostBlasterItem(new Item.Settings().maxDamage(750).rarity(Rarity.RARE)));
+
 	private ModItems() {}
 
 	public static void init() {
@@ -64,6 +67,7 @@ public final class ModItems {
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
 			e.add(HUNTER_SUIT);
+			e.add(GHOST_BLASTER);
 			e.add(PANDORAS_BOX);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {

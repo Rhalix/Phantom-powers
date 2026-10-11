@@ -75,7 +75,8 @@ public final class GhostFlags {
 
 	/** Should this entity get the glowing see-through ghost look on this client? */
 	public static boolean clientGhostLook(Entity e) {
-		return e instanceof PlayerEntity && !CLIENT_GHOSTS.isEmpty() && CLIENT_GHOSTS.contains(e.getUuid());
+		// Ghost form keeps your own skin; the white suit is drawn on top as a separate layer (not see-through).
+		return false;
 	}
 
 	public static void clearAll() {

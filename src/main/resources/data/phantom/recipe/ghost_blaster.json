@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "IIG",
+    "RE ",
+    "I  "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "E": {
+      "item": "phantom:ectoplasm"
+    }
+  },
+  "result": {
+    "id": "phantom:ghost_blaster",
+    "count": 1
+  }
+}

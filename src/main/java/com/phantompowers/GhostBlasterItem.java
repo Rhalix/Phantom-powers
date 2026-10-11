@@ -77,6 +77,11 @@ public class GhostBlasterItem extends Item {
 	}
 
 	@Override
+	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+		return ingredient.isOf(ModItems.ECTOPLASM);
+	}
+
+	@Override
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 		tooltip.add(Text.literal("Right-click to fire. Extra damage to ghosts.").formatted(Formatting.GRAY));
 		tooltip.add(Text.literal("Stronger and faster with the Ghost Hunter Suit on.").formatted(Formatting.DARK_AQUA));

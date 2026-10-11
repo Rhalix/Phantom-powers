@@ -2,29 +2,43 @@ package com.phantompowers.client;
 
 import com.phantompowers.GhostFlags;
 import com.phantompowers.PhantomMod;
+import net.minecraft.client.model.Dilation;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.model.TexturedModelData;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
+import net.minecraft.client.util.SkinTextures;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 /**
- * Ghost form: a white suit drawn over your own skin, like a layer of armor. Your face,
- * skin color and hairstyle stay yours.
+ * Ghost form: a solid white suit (with gloves and boots) worn over your body like armor.
+ * Your own head, face, skin color and hairstyle stay exactly as they are.
  */
 public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> {
+	public static final EntityModelLayer WIDE = new EntityModelLayer(PhantomMod.id("ghost_suit"), "wide");
+	public static final EntityModelLayer SLIM = new EntityModelLayer(PhantomMod.id("ghost_suit"), "slim");
 	private static final Identifier TEXTURE = PhantomMod.id("textures/entity/ghost_suit.png");
-	private final BipedEntityModel<AbstractClientPlayerEntity> suit;
+
+	private final PlayerEntityModel<AbstractClientPlayerEntity> wide;
+	private final PlayerEntityModel<AbstractClientPlayerEntity> slim;
 
 	public GhostSuitFeature(FeatureRendererContext<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> ctx,
-			BipedEntityModel<AbstractClientPlayerEntity> suit) {
+			ModelPart wideRoot, ModelPart slimRoot) {
 		super(ctx);
-		this.suit = suit;
+		this.wide = new PlayerEntityModel<>(wideRoot, false);
+		this.slim = new PlayerEntityModel<>(slimRoot, true);
+	}
+
+	/** A copy of the player model, puffed out a little so the suit sits on top of the skin and its outer layer. */
+	public static TexturedModelData layer(boolean slimArms) {
+		return TexturedModelData.of(PlayerEntityModel.getTexturedModelData(new Dilation(0.3f), slimArms), 64, 64);
 	}
 
 	@Override
@@ -32,10 +46,16 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 			float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
 		if (GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(player.getUuid())) return;
 		if (player.isInvisible()) return;
-		getContextModel().copyBipedStateTo(suit);
-		suit.setVisible(true);
-		suit.head.visible = false;
-		suit.hat.visible = false;
-		suit.render(matrices, consumers.getBuffer(RenderLayer.getArmorCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
+		PlayerEntityModel<AbstractClientPlayerEntity> m = player.getSkinTextures().model() == SkinTextures.Model.SLIM ? slim : wide;
+		getContextModel().copyBipedStateTo(m);
+		m.setVisible(true);
+		m.head.visible = false;
+		m.hat.visible = false;
+		m.jacket.visible = false;
+		m.leftSleeve.visible = false;
+		m.rightSleeve.visible = false;
+		m.leftPants.visible = false;
+		m.rightPants.visible = false;
+		m.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
 	}
 }

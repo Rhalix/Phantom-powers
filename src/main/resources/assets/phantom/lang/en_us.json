@@ -38,5 +38,6 @@
   "item.phantom.pandoras_box": "Pandora's Box",
   "entity.phantom.crate_king": "The Crate King",
   "item.phantom.crate_king_spawn_egg": "Crate King Spawn Egg",
-  "entity.phantom.crate_projectile": "Thrown Crate"
+  "entity.phantom.crate_projectile": "Thrown Crate",
+  "item.phantom.ghost_blaster": "Ghost Blaster"
 }

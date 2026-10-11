@@ -25,8 +25,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
@@ -152,11 +150,13 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.CRATE_KING, CrateKingRenderer::new);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.WIDE, () -> GhostSuitFeature.layer(false));
+		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.SLIM, () -> GhostSuitFeature.layer(true));
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((type, renderer, helper, ctx) -> {
 			if (renderer instanceof PlayerEntityRenderer playerRenderer) {
 				helper.register(new BackpackFeature(playerRenderer, ctx.getPart(BackpackFeature.LAYER)));
 				helper.register(new GhostSuitFeature(playerRenderer,
-						new BipedEntityModel<>(ctx.getPart(EntityModelLayers.PLAYER_INNER_ARMOR))));
+						ctx.getPart(GhostSuitFeature.WIDE), ctx.getPart(GhostSuitFeature.SLIM)));
 			}
 		});
 		EntityRendererRegistry.register(ModEntities.GHOST_JAILER,
