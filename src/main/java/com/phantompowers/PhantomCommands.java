@@ -106,6 +106,30 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Welcome to the Ghost Prison..."), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("crateking").executes(ctx -> {
+					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
+					ServerWorld zone = p.getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					BlockPos at = p.getServerWorld() == zone ? p.getBlockPos() : BlockPos.ORIGIN;
+					BlockPos keep = GhostZoneLife.nearestCrateKeep(zone, at);
+					GhostZoneLife.ensureCrateKeep(zone, keep);
+					p.teleport(zone, keep.getX() + 0.5, keep.getY(), keep.getZ() + 22.5, 180f, 0f);
+					ctx.getSource().sendFeedback(() -> Text.literal("The Crate King's warehouse..."), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("testcrate").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var king = com.phantompowers.world.CrateKeep.build(zone, new BlockPos(-40000, 110, 40000), net.minecraft.util.math.random.Random.create(2));
+					if (king == null) {
+						ctx.getSource().sendError(Text.literal("Crate test: FAILED"));
+						return 0;
+					}
+					// Force stage two to make sure the transformation works
+					king.setHealth(king.getMaxHealth() * 0.4f);
+					ctx.getSource().sendFeedback(() -> Text.literal("Crate test: OK"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("sense").executes(ctx -> {
 					GhostSense.trigger(ctx.getSource().getPlayerOrThrow());
 					return 1;

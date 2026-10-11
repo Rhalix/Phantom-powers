@@ -29,6 +29,10 @@ public final class GhostZoneLife {
 			BlockPos prison = nearestPrison(zone, p.getBlockPos());
 			double dx = prison.getX() - p.getX(), dz = prison.getZ() - p.getZ();
 			if (dx * dx + dz * dz < 150 * 150) ensurePrison(zone, prison);
+			BlockPos keep = nearestCrateKeep(zone, p.getBlockPos());
+			dx = keep.getX() - p.getX();
+			dz = keep.getZ() - p.getZ();
+			if (dx * dx + dz * dz < 150 * 150) ensureCrateKeep(zone, keep);
 		}
 	}
 
@@ -72,6 +76,25 @@ public final class GhostZoneLife {
 		int x = rx * REGION + 150 + r.nextInt(REGION - 300);
 		int z = rz * REGION + 150 + r.nextInt(REGION - 300);
 		return new BlockPos(x, 108 + r.nextInt(16), z);
+	}
+
+	/** The Crate King's lair sits on the far side of each region from its prison. */
+	public static BlockPos nearestCrateKeep(ServerWorld zone, BlockPos pos) {
+		BlockPos prison = nearestPrison(zone, pos);
+		int rx = Math.floorDiv(prison.getX(), REGION), rz = Math.floorDiv(prison.getZ(), REGION);
+		int cx = rx * REGION + REGION / 2, cz = rz * REGION + REGION / 2;
+		int x = prison.getX() < cx ? prison.getX() + 260 : prison.getX() - 260;
+		int z = prison.getZ() < cz ? prison.getZ() + 200 : prison.getZ() - 200;
+		return new BlockPos(x, prison.getY() - 6, z);
+	}
+
+	public static boolean ensureCrateKeep(ServerWorld zone, BlockPos center) {
+		RoomState rs = RoomState.of(zone.getServer());
+		long key = center.asLong() ^ 0x5C0FFEE5L;
+		if (rs.prisonBuilt(key)) return false;
+		rs.markPrison(key);
+		CrateKeep.build(zone, center, Random.create(key));
+		return true;
 	}
 
 	/** Builds the prison at this spot if nobody has seen it yet. Returns true if it was just built. */

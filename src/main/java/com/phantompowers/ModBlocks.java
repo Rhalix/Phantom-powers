@@ -39,6 +39,14 @@ public final class ModBlocks {
 					.luminance(state -> 6)
 					.sounds(BlockSoundGroup.NYLIUM)));
 
+	public static final Block GHOST_CRATE = Registry.register(Registries.BLOCK, PhantomMod.id("ghost_crate"),
+			new Block(AbstractBlock.Settings.create()
+					.mapColor(MapColor.OAK_TAN)
+					.strength(1.5f)
+					.sounds(BlockSoundGroup.WOOD)));
+	public static final Item GHOST_CRATE_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ghost_crate"),
+			new BlockItem(GHOST_CRATE, new Item.Settings()));
+
 	public static final Item ECTO_STONE_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_stone"),
 			new BlockItem(ECTO_STONE, new Item.Settings()));
 	public static final Item ECTO_GRASS_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_grass"),
@@ -50,6 +58,7 @@ public final class ModBlocks {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(entries -> {
 			entries.add(ECTO_STONE_ITEM);
 			entries.add(ECTO_GRASS_ITEM);
+			entries.add(GHOST_CRATE_ITEM);
 		});
 	}
 }

@@ -49,6 +49,11 @@ public final class ModItems {
 			new ArmorItem(HUNTER_MATERIAL, ArmorItem.Type.CHESTPLATE,
 					new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(30)).rarity(Rarity.RARE)));
 
+	public static final Item PANDORAS_BOX = Registry.register(Registries.ITEM, PhantomMod.id("pandoras_box"),
+			new PandorasBoxItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof()));
+	public static final Item CRATE_KING_EGG = Registry.register(Registries.ITEM, PhantomMod.id("crate_king_spawn_egg"),
+			new SpawnEggItem(ModEntities.CRATE_KING, 0xB98A55, 0x7A2FD0, new Item.Settings()));
+
 	private ModItems() {}
 
 	public static void init() {
@@ -57,11 +62,15 @@ public final class ModItems {
 			e.add(THERMOS);
 			e.add(HOVER_GLIDER);
 		});
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> e.add(HUNTER_SUIT));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
+			e.add(HUNTER_SUIT);
+			e.add(PANDORAS_BOX);
+		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(HOSTILE_GHOST_EGG);
 			e.add(FRIENDLY_GHOST_EGG);
 			e.add(GHOST_JAILER_EGG);
+			e.add(CRATE_KING_EGG);
 		});
 	}
 }

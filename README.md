@@ -54,7 +54,7 @@ Place it, right-click to hop on. It flies where you look: W to fly, S to brake, 
 
 ## Ghost Hunter Suit
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
-Wear it in your **chest armor slot**, then press **U** to deploy it: armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
+Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
 
 A guide in the bottom-right corner of the screen shows the keys for everything you've unlocked.
 
@@ -75,13 +75,18 @@ Floating prison fortresses are scattered across the Ghost Zone (about one every 
 The **Ghost Jailer** guards it: it chains you back when you run, calls guard ghosts, and hits hard. Beat it to free the prisoners and loot the hall, where a Thermos is always waiting.
 Weaken it below 30% health and you can trap it in a Thermos.
 
+## The Crate King
+A box-obsessed ghost boss with a cardboard box for a head lives in a floating warehouse in each region of the Ghost Zone (across from the Ghost Prison).
+Stage one he hurls crates at you. At half health he pulls out **Pandora's Box** and turns evil: dark purple beams, a whirling crate storm, and ghosts pouring out of the box.
+Beat him for **Pandora's Box** (right-click: a dark shockwave that blasts every hostile mob around you, 20s recharge). Weaken him below 20% to trap him in a Thermos.
+
 ## Ghost level
 Every 2 stat points you earn raises your ghost level. In ghost form you get extra hearts, strength, armor and (from level 5) Resistance, growing with your level.
 
 If a Ghost Portal won't turn on, the chat tells you what's wrong with the frame.
 
 ## Test commands (cheats on)
-`/phantom grant`, `/phantom prison`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
+`/phantom grant`, `/phantom prison`, `/phantom crateking`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
 
 ## Multiplayer servers
 Set `allow-flight=true` in `server.properties`, or players floating while intangible may get kicked.

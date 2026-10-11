@@ -33,5 +33,10 @@
   "item.phantom.hover_glider": "Hover Glider",
   "entity.phantom.hover_glider": "Hover Glider",
   "item.phantom.ghost_hunter_suit": "Ghost Hunter Suit",
-  "key.phantom.suit": "Ghost Hunter Suit on/off (hold: cutscene)"
+  "key.phantom.suit": "Ghost Hunter Suit on/off (hold: cutscene)",
+  "block.phantom.ghost_crate": "Ghost Crate",
+  "item.phantom.pandoras_box": "Pandora's Box",
+  "entity.phantom.crate_king": "The Crate King",
+  "item.phantom.crate_king_spawn_egg": "Crate King Spawn Egg",
+  "entity.phantom.crate_projectile": "Thrown Crate"
 }
