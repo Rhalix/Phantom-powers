@@ -6,10 +6,12 @@
   "key.category.phantom": "Phantom Powers",
   "key.phantom.transform": "Go Ghost / Go Human",
   "key.phantom.blast": "Ecto Blast",
-  "key.phantom.intangible": "Intangibility (sneak = aim at target)",
+  "key.phantom.intangible": "Intangibility (sneak + hold = phase what you look at)",
   "key.phantom.possess": "Possession",
   "key.phantom.wail": "Ghostly Wail",
   "key.phantom.tornado": "Wail Tornado",
   "death.attack.phantom.ghost_portal": "%1$s was zapped by the Ghost Portal",
-  "death.attack.phantom.ghost_portal.player": "%1$s was zapped by the Ghost Portal"
+  "death.attack.phantom.ghost_portal.player": "%1$s was zapped by the Ghost Portal",
+  "key.phantom.invisible": "Invisibility",
+  "key.phantom.skills": "Open Ghost Skills"
 }

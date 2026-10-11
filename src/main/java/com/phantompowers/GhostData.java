@@ -21,6 +21,8 @@ public class GhostData {
 
 	// Not saved (reset on restart)
 	public boolean intangible;
+	public boolean invisible;
+	public Entity holding;
 	public Entity possessing;
 	public boolean prevAiDisabled;
 	public int possessTicks;

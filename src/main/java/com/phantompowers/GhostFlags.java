@@ -18,6 +18,10 @@ public final class GhostFlags {
 	public static final Map<UUID, TempPhase> TEMP = new HashMap<>();
 	/** Mobs/players currently being possessed: they float and can't push or be pushed (server side). */
 	public static final Set<UUID> HOSTS = new HashSet<>();
+	/** Invisible ghosts (server side). */
+	public static final Set<UUID> INVISIBLE = new HashSet<>();
+	/** Invisible ghosts, as told to this client. Read from the render thread. */
+	public static final Set<UUID> CLIENT_INVISIBLE = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
 	/** Set on the client from the sync packet: is the local player intangible? */
 	public static volatile boolean clientSelfIntangible;
@@ -46,9 +50,8 @@ public final class GhostFlags {
 		return SELF.contains(id) || TEMP.containsKey(id);
 	}
 
-	/** Floats with no collision: intangible things and possessed hosts. */
-	public static boolean isPhasing(Entity e) {
-		if (isIntangible(e)) return true;
+	/** Possessed hosts: float with no collision while the ghost steers them. */
+	public static boolean isHost(Entity e) {
 		World w = e.getWorld();
 		return w != null && !w.isClient && !HOSTS.isEmpty() && HOSTS.contains(e.getUuid());
 	}
@@ -57,5 +60,6 @@ public final class GhostFlags {
 		SELF.clear();
 		TEMP.clear();
 		HOSTS.clear();
+		INVISIBLE.clear();
 	}
 }

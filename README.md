@@ -26,20 +26,24 @@ The portal now leads to the **Ghost Zone**: a green void full of floating island
 Walk back through the portal there to come home.
 
 ## Controls (change them in Options > Controls > Phantom Powers)
-| Key | Power | Unlock cost |
-|-----|-------|-------------|
+| Key | Power | Cost |
+|-----|-------|------|
 | V | Go ghost / go human (you can fly in ghost form) | - |
-| R | Ecto Blast: green energy beam | free |
-| G | Intangibility: float through walls, can't be hurt. **Sneak + G** turns the mob, player or wall you look at intangible | 3 points |
-| H | Possession: jump into a mob or player and control where it goes. Press H again to leave | 5 points |
-| B | Ghostly Wail: a huge scream that breaks blocks and blasts mobs away. Drains you back to human form | 8 points |
-| N | Wail Tornado: a giant spinning tornado of wail energy that roams forward for 10 seconds, sucking up mobs and ripping up the ground, then explodes outward. Drains you back to human form | 12 points |
+| R | Ecto Blast: a glowing green energy beam | free |
+| G | Intangibility: walk through walls. Floors stay solid; **hold sneak to sink**, fly up to rise. **Sneak + hold G** on a mob, player or wall keeps it intangible until you let go | 3 |
+| H | Possession: take over a mob or player and control where it goes. H again to leave | 5 |
+| B | Ghostly Wail: a huge scream that breaks blocks and blasts mobs away. Drains you back to human form | 8 |
+| N | Wail Tornado: a giant tornado of wail energy that roams forward, sucking up mobs and ripping up the ground | 12 |
+| J | Invisibility: completely invisible to other players, armor and all | 2 |
+| K | Open the **Ghost Skills** screen (also a button on your inventory) | - |
 
-You earn **1 stat point every 30 seconds** you stay in ghost form. Press a locked power's key to unlock it
-once you have enough points. Powers must be unlocked in order. Powers use **ghost energy** (the green bar).
+You earn **1 stat point every 30 seconds** in ghost form. Spend them in the Ghost Skills screen, in any order.
+Powers use **ghost energy** (the green bar).
+
+If a Ghost Portal won't turn on, the chat tells you what's wrong with the frame.
 
 ## Test commands (cheats on)
-`/phantom grant`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
+`/phantom grant`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
 
 ## Multiplayer servers
 Set `allow-flight=true` in `server.properties`, or players floating while intangible may get kicked.

@@ -6,7 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 
 /** Server -> client: the player's ghost status, for the HUD. */
-public record SyncPayload(boolean powers, boolean transformed, boolean intangible, boolean possessing,
+public record SyncPayload(boolean powers, boolean transformed, boolean intangible, boolean possessing, boolean invisible,
 						  float energy, int points, int progress, int unlocked, int wailCooldown, int tornadoCooldown, int exhaust)
 		implements CustomPayload {
 
@@ -19,6 +19,7 @@ public record SyncPayload(boolean powers, boolean transformed, boolean intangibl
 		buf.writeBoolean(transformed);
 		buf.writeBoolean(intangible);
 		buf.writeBoolean(possessing);
+		buf.writeBoolean(invisible);
 		buf.writeFloat(energy);
 		buf.writeVarInt(points);
 		buf.writeVarInt(progress);
@@ -29,7 +30,7 @@ public record SyncPayload(boolean powers, boolean transformed, boolean intangibl
 	}
 
 	private static SyncPayload read(PacketByteBuf buf) {
-		return new SyncPayload(buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
+		return new SyncPayload(buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
 				buf.readFloat(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
 	}
 

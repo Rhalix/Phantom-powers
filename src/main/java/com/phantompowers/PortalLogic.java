@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ButtonBlock;
+import net.minecraft.block.enums.BlockFace;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -75,18 +76,22 @@ public final class PortalLogic {
 		later(() -> tryActivate(p, w, pos));
 	}
 
-	private record Frame(Direction.Axis axis, Set<BlockPos> interior) {}
+	public record Frame(Direction.Axis axis, Set<BlockPos> interior) {}
+
+	private record Scan(Frame frame, String problem, int quality) {}
 
 	/** Looks for a closed frame of iron blocks + black concrete around the button, in either direction. */
-	private static Frame findFrame(ServerWorld w, BlockPos start) {
+	private static Scan findFrame(ServerWorld w, BlockPos start) {
+		Scan best = null;
 		for (Direction.Axis axis : new Direction.Axis[]{Direction.Axis.X, Direction.Axis.Z}) {
-			Frame f = scan(w, start, axis);
-			if (f != null) return f;
+			Scan s = scan(w, start, axis);
+			if (s.frame() != null) return s;
+			if (best == null || s.quality() > best.quality()) best = s;
 		}
-		return null;
+		return best;
 	}
 
-	private static Frame scan(ServerWorld w, BlockPos start, Direction.Axis axis) {
+	private static Scan scan(ServerWorld w, BlockPos start, Direction.Axis axis) {
 		Direction side = axis == Direction.Axis.X ? Direction.EAST : Direction.SOUTH;
 		Direction[] dirs = {side, side.getOpposite(), Direction.UP, Direction.DOWN};
 		Set<BlockPos> interior = new HashSet<>();
@@ -104,17 +109,32 @@ public final class PortalLogic {
 					frame.add(n);
 				} else if (isOpening(s)) {
 					interior.add(n);
-					if (interior.size() > MAX_INTERIOR) return null;
+					if (interior.size() > MAX_INTERIOR) {
+						return new Scan(null, "The opening is too big or not closed in (max " + MAX_INTERIOR + " empty blocks inside).", 1);
+					}
 					queue.add(n);
 				} else {
-					return null; // something else is in the way: not a closed frame
+					String name = s.getBlock().getName().getString();
+					return new Scan(null, "The frame has a gap: found " + name + " at "
+							+ n.getX() + " " + n.getY() + " " + n.getZ() + ". Use only iron blocks and black concrete.", 2);
+				}
+			}
+		}
+		// Corners only touch the opening diagonally, so count them too.
+		for (BlockPos ip : interior) {
+			for (Direction a : new Direction[]{side, side.getOpposite()}) {
+				for (Direction b : new Direction[]{Direction.UP, Direction.DOWN}) {
+					BlockPos c = ip.offset(a).offset(b);
+					if (!interior.contains(c) && isFrame(w.getBlockState(c))) frame.add(c);
 				}
 			}
 		}
 		int iron = 0;
 		for (BlockPos f : frame) if (w.getBlockState(f).isOf(Blocks.IRON_BLOCK)) iron++;
-		if (iron < IRON_NEEDED) return null;
-		return new Frame(axis, interior);
+		if (iron < IRON_NEEDED) {
+			return new Scan(null, "The frame needs at least " + IRON_NEEDED + " iron blocks (found " + iron + ").", 3);
+		}
+		return new Scan(new Frame(axis, interior), null, 4);
 	}
 
 	private static boolean isFrame(BlockState s) {
@@ -125,26 +145,29 @@ public final class PortalLogic {
 		return s.isAir() || s.getBlock() instanceof ButtonBlock;
 	}
 
-	private static void tryActivate(ServerPlayerEntity p, ServerWorld w, BlockPos buttonPos) {
-		if (!(w.getBlockState(buttonPos).getBlock() instanceof ButtonBlock)) return;
-		Frame f = findFrame(w, buttonPos);
-		if (f == null) return;
-
-		// Is the player standing inside the portal opening?
-		boolean inside = false;
-		for (BlockPos ip : f.interior()) {
-			if (p.getWorld() == w && p.getBlockPos().getSquaredDistance(ip) <= 2.5) {
-				inside = true;
-				break;
-			}
+	/** Only explain frame problems for buttons that are clearly part of a portal build. */
+	private static boolean nearFrameBlocks(ServerWorld w, BlockPos pos) {
+		for (Direction d : Direction.values()) {
+			if (isFrame(w.getBlockState(pos.offset(d)))) return true;
 		}
+		return false;
+	}
 
-		// Light it up
+	/** Lights the portal if the button sits inside a valid frame. Returns the frame, or null. */
+	public static Frame lightPortal(ServerWorld w, BlockPos buttonPos, ServerPlayerEntity explainTo) {
+		if (!(w.getBlockState(buttonPos).getBlock() instanceof ButtonBlock)) return null;
+		Scan scan = findFrame(w, buttonPos);
+		if (scan.frame() == null) {
+			if (explainTo != null && scan.problem() != null && nearFrameBlocks(w, buttonPos)) {
+				explainTo.sendMessage(Text.literal("Ghost Portal: " + scan.problem()).formatted(Formatting.YELLOW), false);
+			}
+			return null;
+		}
+		Frame f = scan.frame();
 		BlockState portal = ModBlocks.GHOST_PORTAL.getDefaultState().with(GhostPortalBlock.AXIS, f.axis());
 		for (BlockPos ip : f.interior()) w.setBlockState(ip, portal, Block.NOTIFY_ALL);
 
 		Vec3d center = centerOf(f);
-		Vec3d front = frontOf(w, f);
 		LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(w);
 		if (bolt != null) {
 			bolt.setCosmetic(true);
@@ -154,6 +177,23 @@ public final class PortalLogic {
 		w.playSound(null, center.x, center.y, center.z, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.BLOCKS, 2.0f, 0.6f);
 		w.playSound(null, center.x, center.y, center.z, SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 1.0f, 1.4f);
 		w.spawnParticles(GhostPowers.GREEN, center.x, center.y, center.z, 120, 0.8, 1.2, 0.8, 0);
+		return f;
+	}
+
+	private static void tryActivate(ServerPlayerEntity p, ServerWorld w, BlockPos buttonPos) {
+		if (p.isRemoved()) return;
+		Frame f = lightPortal(w, buttonPos, p);
+		if (f == null) return;
+
+		// Is the player standing in (or right at) the portal opening?
+		boolean inside = false;
+		for (BlockPos ip : f.interior()) {
+			if (p.getWorld() == w && p.getBlockPos().getSquaredDistance(ip) <= 6.0) {
+				inside = true;
+				break;
+			}
+		}
+		Vec3d front = frontOf(w, f);
 
 		GhostState st = GhostState.of(w.getServer());
 		GhostData d = st.data(p.getUuid());
@@ -167,9 +207,35 @@ public final class PortalLogic {
 					w.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(PhantomMod.GHOST_PORTAL_DAMAGE));
 			p.damage(src, Float.MAX_VALUE);
 			if (p.isAlive()) finishGhostRebirth(p); // something saved them: give powers anyway
+		} else if (!d.powers) {
+			p.sendMessage(Text.literal("The Ghost Portal is open! (You have to be standing inside it when it turns on to get ghost powers.)").formatted(Formatting.GREEN), false);
 		} else {
 			p.sendMessage(Text.literal("The Ghost Portal is open! Step inside to enter the Ghost Zone.").formatted(Formatting.GREEN), false);
 		}
+	}
+
+	/** Builds a test portal frame with a button and tries to light it. Used by /phantom testportal. */
+	public static int testPortal(ServerWorld w, BlockPos base) {
+		int x0 = base.getX(), y0 = base.getY(), z0 = base.getZ();
+		BlockPos.Mutable m = new BlockPos.Mutable();
+		for (int x = x0 - 1; x <= x0 + 4; x++)
+			for (int y = y0; y <= y0 + 5; y++)
+				for (int z = z0 - 2; z <= z0 + 2; z++) w.setBlockState(m.set(x, y, z), Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
+		// I I B I / B . . B x3 / I B B I  -> 5 iron, 4 of them in corners
+		BlockState iron = Blocks.IRON_BLOCK.getDefaultState();
+		BlockState black = Blocks.BLACK_CONCRETE.getDefaultState();
+		for (int i = 0; i <= 3; i++) {
+			w.setBlockState(m.set(x0 + i, y0, z0), (i == 0 || i == 3) ? iron : black, Block.NOTIFY_LISTENERS);
+			w.setBlockState(m.set(x0 + i, y0 + 4, z0), (i == 2) ? black : iron, Block.NOTIFY_LISTENERS);
+		}
+		for (int j = 1; j <= 3; j++) {
+			w.setBlockState(m.set(x0, y0 + j, z0), black, Block.NOTIFY_LISTENERS);
+			w.setBlockState(m.set(x0 + 3, y0 + j, z0), black, Block.NOTIFY_LISTENERS);
+		}
+		BlockPos button = new BlockPos(x0 + 1, y0 + 1, z0);
+		w.setBlockState(button, Blocks.STONE_BUTTON.getDefaultState().with(ButtonBlock.FACE, BlockFace.FLOOR), Block.NOTIFY_LISTENERS);
+		Frame f = lightPortal(w, button, null);
+		return f == null ? -1 : f.interior().size();
 	}
 
 	/** Called after the player respawns: put them in front of the portal and give them their powers. */
@@ -258,7 +324,7 @@ public final class PortalLogic {
 		GhostState st = GhostState.of(server);
 		GhostData d = st.data(p.getUuid());
 
-		if (from.getRegistryKey() == GHOST_ZONE) {
+		if (from.getRegistryKey().equals(GHOST_ZONE)) {
 			ServerWorld dest = null;
 			BlockPos spot = d.portalPos;
 			if (d.portalDim != null) {

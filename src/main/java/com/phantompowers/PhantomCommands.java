@@ -7,6 +7,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 
 /** /phantom commands for testing (need cheats / operator). */
 public final class PhantomCommands {
@@ -36,7 +37,7 @@ public final class PhantomCommands {
 					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
 					GhostPowers.grantPowers(p);
 					GhostState st = GhostState.of(p.getServer());
-					st.data(p.getUuid()).unlocked = 0b11111;
+					st.data(p.getUuid()).unlocked = 0b111111;
 					st.markDirty();
 					GhostPowers.syncNow(p);
 					ctx.getSource().sendFeedback(() -> Text.literal("All ghost powers unlocked."), false);
@@ -50,6 +51,17 @@ public final class PhantomCommands {
 					GhostPowers.syncNow(p);
 					ctx.getSource().sendFeedback(() -> Text.literal("Ghost powers removed."), false);
 					return 1;
+				}))
+				.then(CommandManager.literal("testportal").executes(ctx -> {
+					ServerWorld w = ctx.getSource().getWorld();
+					BlockPos base = BlockPos.ofFloored(ctx.getSource().getPosition()).add(3, 0, 3);
+					int n = PortalLogic.testPortal(w, base);
+					if (n > 0) {
+						ctx.getSource().sendFeedback(() -> Text.literal("Portal test: OK (" + n + " portal blocks lit)"), false);
+						return 1;
+					}
+					ctx.getSource().sendError(Text.literal("Portal test: FAILED"));
+					return 0;
 				}))
 				.then(CommandManager.literal("ghostzone").executes(ctx -> {
 					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();

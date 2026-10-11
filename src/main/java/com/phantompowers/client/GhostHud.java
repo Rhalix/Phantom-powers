@@ -7,8 +7,9 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.RenderTickCounter;
 
-/** The ghost powers panel on the left side of the screen. */
+/** A small ghost powers panel on the left side of the screen. */
 public final class GhostHud {
+	private static final float SCALE = 0.65f;
 	private static final int GREEN = 0xFF55FF77;
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int GRAY = 0xFF8A8A8A;
@@ -19,84 +20,57 @@ public final class GhostHud {
 
 	public static void render(DrawContext ctx, RenderTickCounter tickCounter) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (!ClientGhost.powers || mc.player == null || mc.options.hudHidden) return;
+		if (!ClientGhost.powers || mc.player == null || mc.options.hudHidden || mc.currentScreen != null) return;
 		TextRenderer tr = mc.textRenderer;
 
+		KeyBinding[] keys = PhantomClient.skillKeys();
+		int unlockedCount = 0;
+		for (int i = 0; i < keys.length; i++) if (ClientGhost.has(i)) unlockedCount++;
+
+		int line = 10;
+		int width = 120;
+		int height = 34 + unlockedCount * line;
+		int screenH = (int) (ctx.getScaledWindowHeight() / SCALE);
+
+		ctx.getMatrices().push();
+		ctx.getMatrices().scale(SCALE, SCALE, 1f);
 		int x = 6;
-		int width = 170;
-		int line = 11;
-		int rows = 10;
-		int height = rows * line + 10;
-		int y = ctx.getScaledWindowHeight() / 2 - height / 2;
+		int y = screenH / 2 - height / 2;
+		ctx.fill(x - 3, y - 3, x + width, y + height - 2, 0x80000000);
+		ctx.fill(x - 3, y - 3, x - 1, y + height - 2, ClientGhost.transformed ? GREEN : GRAY);
 
-		ctx.fill(x - 4, y - 4, x + width, y + height - 4, 0x99000000);
-		ctx.fill(x - 4, y - 4, x - 2, y + height - 4, ClientGhost.transformed ? GREEN : GRAY);
-
-		// Header
-		if (ClientGhost.transformed) {
-			ctx.drawTextWithShadow(tr, "GHOST FORM", x, y, GREEN);
-		} else {
-			ctx.drawTextWithShadow(tr, "Human form  [" + keyName(PhantomClient.TRANSFORM) + "] go ghost", x, y, GRAY);
-		}
+		String status = ClientGhost.transformed ? "GHOST" : "HUMAN [" + PhantomClient.keyName(PhantomClient.TRANSFORM) + "]";
+		int statusColor = ClientGhost.transformed ? GREEN : GRAY;
+		if (ClientGhost.possessing) status += " - possessing";
+		else if (ClientGhost.intangible) status += " - intangible";
+		else if (ClientGhost.invisible) status += " - invisible";
+		if (ClientGhost.exhaust > 0 && !ClientGhost.transformed) status = "Drained " + (ClientGhost.exhaust / 20 + 1) + "s";
+		ctx.drawTextWithShadow(tr, status, x, y, statusColor);
 		y += line;
 
-		// Status
-		String status = ClientGhost.possessing ? "POSSESSING" : ClientGhost.intangible ? "INTANGIBLE" : "";
-		if (ClientGhost.exhaust > 0 && !ClientGhost.transformed) status = "Drained (" + (ClientGhost.exhaust / 20 + 1) + "s)";
-		if (!status.isEmpty()) ctx.drawTextWithShadow(tr, status, x, y, AQUA);
-		y += line;
+		int filled = (int) (width * 0.9 * Math.max(0, Math.min(1, ClientGhost.energy / GhostPowers.MAX_ENERGY)));
+		ctx.fill(x, y, x + (int) (width * 0.9), y + 4, 0xFF222222);
+		ctx.fill(x, y, x + filled, y + 4, 0xFF33FF66);
+		y += 7;
 
-		// Energy bar
-		ctx.drawTextWithShadow(tr, "Ghost Energy", x, y, WHITE);
-		y += line - 1;
-		int barW = width - 10;
-		int filled = (int) (barW * Math.max(0, Math.min(1, ClientGhost.energy / GhostPowers.MAX_ENERGY)));
-		ctx.fill(x, y, x + barW, y + 5, 0xFF222222);
-		ctx.fill(x, y, x + filled, y + 5, 0xFF33FF66);
-		y += 9;
-
-		// Stat points
-		String pts = "Stat Points: " + ClientGhost.points;
-		if (ClientGhost.transformed) {
-			int secs = (GhostPowers.POINT_TICKS - ClientGhost.progress) / 20;
-			pts += "  (+1 in " + secs + "s)";
-		}
+		String pts = "Points: " + ClientGhost.points;
+		if (ClientGhost.transformed) pts += "  +1 in " + (GhostPowers.POINT_TICKS - ClientGhost.progress) / 20 + "s";
 		ctx.drawTextWithShadow(tr, pts, x, y, YELLOW);
 		y += line + 2;
 
-		// Skills
-		KeyBinding[] keys = {PhantomClient.BLAST, PhantomClient.INTANGIBLE, PhantomClient.POSSESS, PhantomClient.WAIL, PhantomClient.TORNADO};
 		for (int i = 0; i < keys.length; i++) {
-			String key = "[" + keyName(keys[i]) + "] ";
-			String text;
-			int color;
-			if (ClientGhost.has(i)) {
-				text = key + GhostPowers.NAMES[i];
-				int cd = i == GhostPowers.WAIL ? ClientGhost.wailCooldown : i == GhostPowers.TORNADO ? ClientGhost.tornadoCooldown : 0;
-				if (cd > 0) {
-					text += " (" + (cd / 20 + 1) + "s)";
-					color = GRAY;
-				} else {
-					color = ClientGhost.transformed ? WHITE : GRAY;
-				}
-				if (i == GhostPowers.INTANGIBLE) text += "  (sneak: aim)";
-			} else {
-				boolean next = i == 0 || ClientGhost.has(i - 1);
-				boolean afford = ClientGhost.points >= GhostPowers.COSTS[i];
-				text = key + GhostPowers.NAMES[i] + " - " + GhostPowers.COSTS[i] + " pts";
-				if (next && afford) {
-					text = key + "Unlock " + GhostPowers.NAMES[i] + "!";
-					color = YELLOW;
-				} else {
-					color = 0xFF555555;
-				}
+			if (!ClientGhost.has(i)) continue;
+			String text = PhantomClient.keyName(keys[i]) + "  " + GhostPowers.NAMES[i];
+			int cd = i == GhostPowers.WAIL ? ClientGhost.wailCooldown : i == GhostPowers.TORNADO ? ClientGhost.tornadoCooldown : 0;
+			int color = ClientGhost.transformed ? WHITE : GRAY;
+			if (cd > 0) {
+				text += " " + (cd / 20 + 1) + "s";
+				color = GRAY;
 			}
+			if ((i == GhostPowers.INTANGIBLE && ClientGhost.intangible) || (i == GhostPowers.INVISIBLE && ClientGhost.invisible)) color = AQUA;
 			ctx.drawTextWithShadow(tr, text, x, y, color);
 			y += line;
 		}
-	}
-
-	private static String keyName(KeyBinding key) {
-		return key.getBoundKeyLocalizedText().getString().toUpperCase();
+		ctx.getMatrices().pop();
 	}
 }

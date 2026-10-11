@@ -9,6 +9,7 @@ public final class ClientGhost {
 	public static boolean transformed;
 	public static boolean intangible;
 	public static boolean possessing;
+	public static boolean invisible;
 	public static float energy;
 	public static int points;
 	public static int progress;
@@ -24,6 +25,7 @@ public final class ClientGhost {
 		transformed = p.transformed();
 		intangible = p.intangible();
 		possessing = p.possessing();
+		invisible = p.invisible();
 		energy = p.energy();
 		points = p.points();
 		progress = p.progress();
@@ -35,7 +37,7 @@ public final class ClientGhost {
 	}
 
 	public static void reset() {
-		powers = transformed = intangible = possessing = false;
+		powers = transformed = intangible = possessing = invisible = false;
 		energy = 0;
 		points = progress = unlocked = wailCooldown = tornadoCooldown = exhaust = 0;
 	}

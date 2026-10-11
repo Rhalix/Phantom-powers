@@ -1,6 +1,9 @@
 package com.phantompowers;
 
+import com.phantompowers.network.BeamPayload;
+import com.phantompowers.network.InvisiblePayload;
 import com.phantompowers.network.SyncPayload;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -39,6 +42,7 @@ import net.minecraft.world.RaycastContext;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -51,11 +55,21 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado"};
-	public static final int[] COSTS = {0, 3, 5, 8, 12};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5;
+	public static final int SKILL_COUNT = 6;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12, 2};
+	public static final String[] DESCRIPTIONS = {
+			"Fire a beam of green ecto energy.",
+			"Walk through walls. Sneak to sink, fly to rise. Sneak+hold to phase others.",
+			"Take over a mob or player and control where it goes.",
+			"A huge scream that breaks blocks and blasts mobs away.",
+			"A giant tornado of wail energy that rips up the ground.",
+			"Turn completely invisible, armor and all."
+	};
 
-	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5;
+	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
+			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_UNLOCK = 100;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -67,6 +81,8 @@ public final class GhostPowers {
 	private static final DustParticleEffect PALE = new DustParticleEffect(new Vector3f(0.75f, 1.0f, 0.85f), 1.0f);
 
 	private static final List<PhasedBlock> PHASED = new ArrayList<>();
+	/** Blocks a player is currently holding intangible (restored when they let go). */
+	private static final Map<UUID, List<PhasedBlock>> HELD_BLOCKS = new HashMap<>();
 	private static final List<WailWave> WAVES = new ArrayList<>();
 	private static final List<Tornado> TORNADOES = new ArrayList<>();
 
@@ -85,7 +101,11 @@ public final class GhostPowers {
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
 			case A_TORNADO -> { if (ready(p, d, st, TORNADO)) tornado(p, d); }
-			default -> { }
+			case A_INVISIBLE -> { if (ready(p, d, st, INVISIBLE)) toggleInvisible(p, d); }
+			case A_INTANGIBLE_RELEASE -> releaseHold(p, d, true);
+			default -> {
+				if (action >= A_UNLOCK && action < A_UNLOCK + SKILL_COUNT) tryUnlock(p, d, st, action - A_UNLOCK);
+			}
 		}
 		st.markDirty();
 		d.syncTimer = 0;
@@ -97,7 +117,7 @@ public final class GhostPowers {
 			return false;
 		}
 		if (!d.has(skill)) {
-			tryUnlock(p, d, st, skill);
+			bar(p, NAMES[skill] + " is locked. Unlock it in Ghost Skills (press K or open your inventory).", Formatting.YELLOW);
 			return false;
 		}
 		if (!d.transformed) {
@@ -108,12 +128,11 @@ public final class GhostPowers {
 	}
 
 	private static void tryUnlock(ServerPlayerEntity p, GhostData d, GhostState st, int skill) {
-		for (int i = 0; i < skill; i++) {
-			if (!d.has(i)) {
-				bar(p, "Unlock " + NAMES[i] + " first!", Formatting.RED);
-				return;
-			}
+		if (!d.powers) {
+			bar(p, "You don't have ghost powers yet. Activate a Ghost Portal!", Formatting.RED);
+			return;
 		}
+		if (d.has(skill)) return;
 		if (d.points < COSTS[skill]) {
 			bar(p, NAMES[skill] + " needs " + COSTS[skill] + " stat points (you have " + d.points
 					+ "). Stay in ghost form to earn more!", Formatting.YELLOW);
@@ -123,6 +142,7 @@ public final class GhostPowers {
 		d.unlocked |= 1 << skill;
 		st.markDirty();
 		p.sendMessage(Text.literal("New ghost power unlocked: " + NAMES[skill] + "!").formatted(Formatting.GREEN, Formatting.BOLD), false);
+		syncNow(p);
 		sound(p, SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
 	}
 
@@ -156,6 +176,8 @@ public final class GhostPowers {
 		d.transformed = false;
 		stopIntangible(p, d, false);
 		stopPossess(p, d, false);
+		releaseHold(p, d, false);
+		stopInvisible(p, d);
 		setFlight(p, false);
 	}
 
@@ -201,13 +223,13 @@ public final class GhostPowers {
 		Entity hit = aimEntity(p, d, 32);
 		Vec3d end = hit != null ? hit.getBoundingBox().getCenter() : aimBlockPos(p, 32);
 
-		double len = start.distanceTo(end);
-		for (double t = 0.8; t < len; t += 0.35) {
-			Vec3d v = start.add(dir.multiply(t));
-			w.spawnParticles(GREEN, v.x, v.y, v.z, 1, 0.03, 0.03, 0.03, 0);
+		Vec3d right = dir.crossProduct(new Vec3d(0, 1, 0));
+		if (right.lengthSquared() < 1.0E-4) right = new Vec3d(1, 0, 0);
+		Vec3d from = start.add(dir.multiply(0.6)).add(right.normalize().multiply(0.3)).add(0, -0.25, 0);
+		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z);
+		for (ServerPlayerEntity viewer : PlayerLookup.around(w, start, 96)) {
+			if (ServerPlayNetworking.canSend(viewer, BeamPayload.ID)) ServerPlayNetworking.send(viewer, beam);
 		}
-		w.spawnParticles(GREEN, end.x, end.y, end.z, 20, 0.3, 0.3, 0.3, 0);
-		w.spawnParticles(ParticleTypes.HAPPY_VILLAGER, end.x, end.y, end.z, 8, 0.3, 0.3, 0.3, 0);
 		sound(p, SoundEvents.ENTITY_BLAZE_SHOOT, 0.8f, 1.7f);
 
 		if (hit != null) {
@@ -220,7 +242,7 @@ public final class GhostPowers {
 
 	private static void intangibility(ServerPlayerEntity p, GhostData d) {
 		if (p.isSneaking()) {
-			phaseTarget(p, d);
+			if (d.holding == null && !HELD_BLOCKS.containsKey(p.getUuid())) phaseTarget(p, d);
 			return;
 		}
 		if (d.intangible) {
@@ -233,7 +255,7 @@ public final class GhostPowers {
 		}
 		d.intangible = true;
 		GhostFlags.SELF.add(p.getUuid());
-		bar(p, "Intangible! You can float through walls. Press G again to stop.", Formatting.AQUA);
+		bar(p, "Intangible! Walk through walls. Sneak to sink through the floor, fly up to rise. G again to stop.", Formatting.AQUA);
 		sound(p, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 1.2f);
 		p.getServerWorld().spawnParticles(PALE, p.getX(), p.getY() + 1, p.getZ(), 30, 0.4, 0.8, 0.4, 0);
 	}
@@ -247,7 +269,7 @@ public final class GhostPowers {
 		d.syncTimer = 0;
 	}
 
-	/** Sneak + G: make the mob, player or blocks you're looking at intangible for a few seconds. */
+	/** Sneak + hold G: keep the mob, player or wall you're looking at intangible for as long as you hold on. */
 	private static void phaseTarget(ServerPlayerEntity p, GhostData d) {
 		if (d.energy < PHASE_TARGET_COST) {
 			bar(p, "Not enough ghost energy!", Formatting.RED);
@@ -257,10 +279,11 @@ public final class GhostPowers {
 		Entity target = aimEntity(p, d, 16);
 		if (target != null && !(target instanceof EnderDragonEntity)) {
 			d.energy -= PHASE_TARGET_COST;
-			GhostFlags.TEMP.put(target.getUuid(), new GhostFlags.TempPhase(target, 60));
+			GhostFlags.TEMP.put(target.getUuid(), new GhostFlags.TempPhase(target, 600));
+			d.holding = target;
 			w.spawnParticles(PALE, target.getX(), target.getY() + target.getHeight() / 2, target.getZ(), 30, 0.4, 0.6, 0.4, 0);
 			sound(p, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 0.8f);
-			bar(p, target.getName().getString() + " is intangible!", Formatting.AQUA);
+			bar(p, "Holding " + target.getName().getString() + " intangible. Let go of the key to release.", Formatting.AQUA);
 			if (target instanceof ServerPlayerEntity tp) {
 				tp.sendMessage(Text.literal(p.getName().getString() + " turned you intangible!").formatted(Formatting.AQUA), true);
 				syncNow(tp);
@@ -275,20 +298,100 @@ public final class GhostPowers {
 			return;
 		}
 		int phased = 0;
+		List<PhasedBlock> held = new ArrayList<>();
 		BlockPos hitPos = bh.getBlockPos();
 		for (BlockPos pos : new BlockPos[]{hitPos.down(), hitPos, hitPos.up()}) {
 			BlockState s = w.getBlockState(pos);
 			if (s.isAir() || s.hasBlockEntity() || s.isOf(ModBlocks.GHOST_PORTAL)) continue;
 			if (s.getHardness(w, pos) < 0) continue;
-			PHASED.add(new PhasedBlock(w, pos.toImmutable(), s, 100));
+			held.add(new PhasedBlock(w, pos.toImmutable(), s, 600));
 			w.setBlockState(pos, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
 			w.spawnParticles(PALE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 12, 0.3, 0.3, 0.3, 0);
 			phased++;
 		}
 		if (phased > 0) {
+			HELD_BLOCKS.put(p.getUuid(), held);
 			d.energy -= PHASE_TARGET_COST;
 			sound(p, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 0.8f);
-			bar(p, "The wall is intangible for 5 seconds!", Formatting.AQUA);
+			bar(p, "Holding the wall intangible. Let go of the key to make it solid again.", Formatting.AQUA);
+		}
+	}
+
+	/** Let go of whatever you're holding intangible. */
+	public static void releaseHold(ServerPlayerEntity p, GhostData d, boolean message) {
+		boolean released = false;
+		if (d.holding != null) {
+			Entity e = d.holding;
+			d.holding = null;
+			GhostFlags.TempPhase tp = GhostFlags.TEMP.get(e.getUuid());
+			if (tp != null) tp.ticks = 0; // expires next tick (pushes them out of walls)
+			released = true;
+		}
+		List<PhasedBlock> blocks = HELD_BLOCKS.remove(p.getUuid());
+		if (blocks != null) {
+			for (PhasedBlock b : blocks) b.restore();
+			released = true;
+		}
+		if (released && message) bar(p, "Released.", Formatting.GRAY);
+	}
+
+	private static void tickHold(ServerPlayerEntity p, GhostData d) {
+		boolean holding = d.holding != null || HELD_BLOCKS.containsKey(p.getUuid());
+		if (!holding) return;
+		if (d.holding != null) {
+			Entity e = d.holding;
+			if (e.isRemoved() || !e.isAlive() || e.getWorld() != p.getWorld() || e.squaredDistanceTo(p) > 20 * 20
+					|| !GhostFlags.TEMP.containsKey(e.getUuid())) {
+				releaseHold(p, d, true);
+				return;
+			}
+		}
+		List<PhasedBlock> blocks = HELD_BLOCKS.get(p.getUuid());
+		if (blocks != null && (blocks.get(0).world() != p.getWorld() || blocks.get(0).pos().getSquaredDistance(p.getPos()) > 20 * 20)) {
+			releaseHold(p, d, true);
+			return;
+		}
+		d.energy -= 0.3f;
+		if (d.energy <= 0) {
+			d.energy = 0;
+			releaseHold(p, d, false);
+			bar(p, "Out of ghost energy, you lost your grip!", Formatting.RED);
+		}
+	}
+
+	// ----------------------------------------------------------- invisibility
+
+	private static void toggleInvisible(ServerPlayerEntity p, GhostData d) {
+		if (d.invisible) {
+			stopInvisible(p, d);
+			bar(p, "You're visible again.", Formatting.GRAY);
+			return;
+		}
+		if (d.energy < 10) {
+			bar(p, "Not enough ghost energy!", Formatting.RED);
+			return;
+		}
+		d.invisible = true;
+		GhostFlags.INVISIBLE.add(p.getUuid());
+		broadcastInvisible(p.getServer());
+		p.getServerWorld().spawnParticles(PALE, p.getX(), p.getY() + 1, p.getZ(), 30, 0.4, 0.8, 0.4, 0);
+		sound(p, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 1.0f, 1.3f);
+		bar(p, "Invisible! Press J again to reappear.", Formatting.AQUA);
+	}
+
+	public static void stopInvisible(ServerPlayerEntity p, GhostData d) {
+		if (!d.invisible) return;
+		d.invisible = false;
+		GhostFlags.INVISIBLE.remove(p.getUuid());
+		p.removeStatusEffect(StatusEffects.INVISIBILITY);
+		broadcastInvisible(p.getServer());
+		d.syncTimer = 0;
+	}
+
+	public static void broadcastInvisible(MinecraftServer server) {
+		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE));
+		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
+			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}
 	}
 
@@ -648,7 +751,8 @@ public final class GhostPowers {
 			setFlight(p, true);
 
 			float drain = 0;
-			if (d.intangible) drain += 0.5f;
+			if (d.intangible) drain += 0.4f;
+			if (d.invisible) drain += 0.25f;
 			if (d.possessing != null) drain += 0.4f;
 			if (drain > 0) {
 				d.energy -= drain;
@@ -656,13 +760,17 @@ public final class GhostPowers {
 					d.energy = 0;
 					stopIntangible(p, d, false);
 					stopPossess(p, d, false);
+					stopInvisible(p, d);
 					bar(p, "Out of ghost energy!", Formatting.RED);
 				}
 			} else {
 				d.energy = Math.min(MAX_ENERGY, d.energy + 0.3f);
 			}
 
-			if (p.age % 6 == 0 && d.possessing == null) {
+			if (d.invisible) {
+				p.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 10, 0, false, false, false));
+			}
+			if (p.age % 6 == 0 && d.possessing == null && !d.invisible) {
 				ServerWorld w = p.getServerWorld();
 				w.spawnParticles(GREEN, p.getX(), p.getY() + p.getHeight() * 0.5, p.getZ(), 2, 0.3, 0.5, 0.3, 0);
 			}
@@ -674,6 +782,7 @@ public final class GhostPowers {
 		}
 
 		tickPossession(p, d);
+		tickHold(p, d);
 
 		if (--d.syncTimer <= 0) {
 			d.syncTimer = 2;
@@ -711,6 +820,11 @@ public final class GhostPowers {
 	}
 
 	private static void tickPhasedBlocks() {
+		HELD_BLOCKS.values().removeIf(list -> {
+			if (--list.get(0).ticks()[0] > 0) return false;
+			for (PhasedBlock b : list) b.restore();
+			return true;
+		});
 		Iterator<PhasedBlock> it = PHASED.iterator();
 		while (it.hasNext()) {
 			PhasedBlock b = it.next();
@@ -745,6 +859,12 @@ public final class GhostPowers {
 		d.intangible = false;
 		GhostFlags.SELF.remove(p.getUuid());
 		GhostFlags.TEMP.remove(p.getUuid());
+		releaseHold(p, d, false);
+		if (d.invisible) {
+			d.invisible = false;
+			GhostFlags.INVISIBLE.remove(p.getUuid());
+			broadcastInvisible(p.getServer());
+		}
 		if (d.possessing != null) {
 			Entity t = d.possessing;
 			d.possessing = null;
@@ -780,6 +900,7 @@ public final class GhostPowers {
 		GhostData d = st.data(p.getUuid());
 		if (d.transformed) endForm(p, d);
 		d.syncTimer = 0;
+		broadcastInvisible(p.getServer());
 		if (d.pendingPowers && p.isAlive()) {
 			PortalLogic.later(() -> PortalLogic.finishGhostRebirth(p));
 		}
@@ -797,6 +918,8 @@ public final class GhostPowers {
 	public static void onServerStopping() {
 		for (PhasedBlock b : PHASED) b.restore();
 		PHASED.clear();
+		for (List<PhasedBlock> list : HELD_BLOCKS.values()) for (PhasedBlock b : list) b.restore();
+		HELD_BLOCKS.clear();
 		WAVES.clear();
 		TORNADOES.clear();
 		GhostFlags.clearAll();
@@ -823,7 +946,7 @@ public final class GhostPowers {
 	private static void sync(ServerPlayerEntity p, GhostData d) {
 		if (!ServerPlayNetworking.canSend(p, SyncPayload.ID)) return;
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
-		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null,
+		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
 				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust));
 	}
 
