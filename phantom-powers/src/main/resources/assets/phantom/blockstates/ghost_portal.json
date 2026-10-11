@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "phantom:block/ghost_portal_ns"
+    },
+    "axis=z": {
+      "model": "phantom:block/ghost_portal_ew"
+    }
+  }
+}
