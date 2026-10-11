@@ -22,7 +22,7 @@ public final class ModBlocks {
 					.nonOpaque()
 					.dropsNothing()
 					.pistonBehavior(PistonBehavior.BLOCK)
-					.mapColor(MapColor.BRIGHT_GREEN)));
+					.mapColor(MapColor.LIME)));
 
 	public static final Block ECTO_STONE = Registry.register(Registries.BLOCK, PhantomMod.id("ecto_stone"),
 			new Block(AbstractBlock.Settings.create()
@@ -33,7 +33,7 @@ public final class ModBlocks {
 
 	public static final Block ECTO_GRASS = Registry.register(Registries.BLOCK, PhantomMod.id("ecto_grass"),
 			new Block(AbstractBlock.Settings.create()
-					.mapColor(MapColor.BRIGHT_GREEN)
+					.mapColor(MapColor.LIME)
 					.strength(1.5f, 6.0f)
 					.requiresTool()
 					.luminance(state -> 6)
