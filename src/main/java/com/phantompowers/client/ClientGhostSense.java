@@ -26,7 +26,7 @@ import java.util.List;
 public final class ClientGhostSense {
 	private static final int LIFE = 40;
 	private static final int POINTS = 30;
-	private static final DustParticleEffect ICE = new DustParticleEffect(new Vector3f(0.65f, 0.88f, 1.0f), 0.8f);
+	private static final DustParticleEffect ICE = new DustParticleEffect(new Vector3f(0.65f, 0.88f, 1.0f), 0.45f);
 
 	private static final class Wisp {
 		final int entityId;
@@ -62,7 +62,7 @@ public final class ClientGhostSense {
 		}
 		for (Wisp w : WISPS) {
 			Entity e = mc.world.getEntityById(w.entityId);
-			if (e == null || w.age > 22) continue;
+			if (e == null || w.age > 22 || w.age % 2 == 1) continue;
 			Vec3d mouth = mouth(e, 1f);
 			Vec3d look = e.getRotationVec(1f);
 			for (int i = 0; i < 2; i++) {
@@ -108,16 +108,16 @@ public final class ClientGhostSense {
 				for (int i = 0; i <= POINTS; i++) {
 					float s = (float) i / POINTS;
 					if (s > grow) break;
-					float len = 1.6f * s;
+					float len = 0.75f * s;
 					double a = s * 10.0 - (w.age + partial) * 0.45 + strand * Math.PI;
-					double rad = 0.025 + 0.2 * s;
+					double rad = 0.015 + 0.08 * s;
 					Vec3d pt = mouth.add(look.multiply(len))
-							.add(0, 0.35 * s * s + 0.15 * t, 0)
+							.add(0, 0.15 * s * s + 0.06 * t, 0)
 							.add(right.multiply(Math.cos(a) * rad))
 							.add(up.multiply(Math.sin(a) * rad));
 					if (prev != null) {
 						int alpha = (int) (200 * fade * (1f - s * 0.8f));
-						float width = 0.035f * (1f - s * 0.6f) + 0.01f;
+						float width = 0.018f * (1f - s * 0.6f) + 0.006f;
 						strip(vc, m, prev, pt, up, width, alpha);
 						strip(vc, m, prev, pt, right, width, alpha);
 					}
@@ -152,8 +152,8 @@ public final class ClientGhostSense {
 		if (selfFrost <= 0) return;
 		int w = ctx.getScaledWindowWidth();
 		int h = ctx.getScaledWindowHeight();
-		float strength = Math.min(1f, selfFrost / 10f) * 0.55f;
-		int steps = 14;
+		float strength = Math.min(1f, selfFrost / 10f) * 0.3f;
+		int steps = 7;
 		for (int i = 0; i < steps; i++) {
 			int alpha = (int) (strength * 255 * (1f - (float) i / steps) * (1f - (float) i / steps));
 			int color = (alpha << 24) | 0xCFEFFF;

@@ -20,6 +20,7 @@ public final class HunterSuit {
 	private static final Identifier TOUGH = PhantomMod.id("suit_toughness");
 	private static final Identifier DAMAGE = PhantomMod.id("suit_damage");
 	private static final Identifier SPEED = PhantomMod.id("suit_speed");
+	private static final Identifier KNOCK = PhantomMod.id("suit_knockback");
 
 	private HunterSuit() {}
 
@@ -61,8 +62,11 @@ public final class HunterSuit {
 	}
 
 	private static void apply(ServerPlayerEntity p, boolean on) {
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR, ARMOR, on ? 6.0 : 0);
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR_TOUGHNESS, TOUGH, on ? 3.0 : 0);
+		// The pack counts as a netherite chestplate; deployed, the whole suit adds up to
+		// a full set of netherite armor (20 armor, 12 toughness, 0.4 knockback resistance).
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR, ARMOR, on ? 12.0 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR_TOUGHNESS, TOUGH, on ? 9.0 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, KNOCK, on ? 0.3 : 0);
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_ATTACK_DAMAGE, DAMAGE, on ? 2.0 : 0);
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_MOVEMENT_SPEED, SPEED, on ? 0.015 : 0);
 		if (!on) p.removeStatusEffect(StatusEffects.NIGHT_VISION);

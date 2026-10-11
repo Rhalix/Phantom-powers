@@ -42,12 +42,12 @@ public final class ModItems {
 				m.put(ArmorItem.Type.CHESTPLATE, 8);
 				m.put(ArmorItem.Type.HELMET, 3);
 				m.put(ArmorItem.Type.BODY, 8);
-			}), 12, SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE, () -> Ingredient.ofItems(ECTOPLASM),
-					List.of(new ArmorMaterial.Layer(PhantomMod.id("ghost_hunter"))), 2.0f, 0.05f));
+			}), 15, SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE, () -> Ingredient.ofItems(ECTOPLASM),
+					List.of(new ArmorMaterial.Layer(PhantomMod.id("ghost_hunter"))), 3.0f, 0.1f));
 
 	public static final Item HUNTER_SUIT = Registry.register(Registries.ITEM, PhantomMod.id("ghost_hunter_suit"),
 			new ArmorItem(HUNTER_MATERIAL, ArmorItem.Type.CHESTPLATE,
-					new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(30)).rarity(Rarity.RARE)));
+					new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(37)).rarity(Rarity.RARE).fireproof()));
 
 	public static final Item PANDORAS_BOX = Registry.register(Registries.ITEM, PhantomMod.id("pandoras_box"),
 			new PandorasBoxItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof()));
