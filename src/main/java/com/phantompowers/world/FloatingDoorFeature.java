@@ -29,7 +29,7 @@ public class FloatingDoorFeature extends Feature<DefaultFeatureConfig> {
 
 		for (int dx = -1; dx <= 1; dx++) {
 			for (int dz = -1; dz <= 1; dz++) {
-				for (int dy = -1; dy <= 2; dy++) {
+				for (int dy = -3; dy <= 2; dy++) {
 					if (!world.isAir(origin.add(dx, dy, dz))) return false;
 				}
 			}
@@ -40,9 +40,14 @@ public class FloatingDoorFeature extends Feature<DefaultFeatureConfig> {
 		BlockState lower = door.getDefaultState().with(DoorBlock.FACING, facing).with(DoorBlock.HALF, DoubleBlockHalf.LOWER);
 		BlockState upper = lower.with(DoorBlock.HALF, DoubleBlockHalf.UPPER);
 
-		world.setBlockState(origin.down(), ModBlocks.ECTO_STONE.getDefaultState(), Block.NOTIFY_LISTENERS);
-		if (random.nextBoolean()) world.setBlockState(origin.down().offset(facing), ModBlocks.ECTO_STONE.getDefaultState(), Block.NOTIFY_LISTENERS);
-		if (random.nextInt(3) == 0) world.setBlockState(origin.down(2), ModBlocks.ECTO_GRASS.getDefaultState(), Block.NOTIFY_LISTENERS);
+		// A small floating rock to stand on in front of the door
+		for (int dx = -1; dx <= 1; dx++) {
+			for (int dz = -1; dz <= 1; dz++) {
+				world.setBlockState(origin.add(dx, -1, dz), ModBlocks.ECTO_GRASS.getDefaultState(), Block.NOTIFY_LISTENERS);
+				if (random.nextInt(3) != 0) world.setBlockState(origin.add(dx, -2, dz), ModBlocks.ECTO_STONE.getDefaultState(), Block.NOTIFY_LISTENERS);
+			}
+		}
+		if (random.nextBoolean()) world.setBlockState(origin.down(3), ModBlocks.ECTO_STONE.getDefaultState(), Block.NOTIFY_LISTENERS);
 		world.setBlockState(origin, lower, Block.NOTIFY_LISTENERS);
 		world.setBlockState(origin.up(), upper, Block.NOTIFY_LISTENERS);
 		return true;

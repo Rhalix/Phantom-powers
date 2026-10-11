@@ -5,6 +5,7 @@ import com.phantompowers.network.InvisiblePayload;
 import com.phantompowers.network.SkillPayload;
 import com.phantompowers.network.SyncPayload;
 import com.phantompowers.world.FloatingDoorFeature;
+import com.phantompowers.world.GhostRooms;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -17,6 +18,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ButtonBlock;
+import net.minecraft.block.DoorBlock;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -59,8 +61,16 @@ public class PhantomMod implements ModInitializer {
 
 		// Pressing a button inside a Ghost Portal frame
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+			BlockState clicked = world.getBlockState(hit.getBlockPos());
+			// Doors in the Ghost Zone lead to their own rooms
+			if (clicked.getBlock() instanceof DoorBlock && !player.isSneaking() && GhostRooms.isDoorWorld(world)) {
+				if (!world.isClient && hand == Hand.MAIN_HAND && player instanceof ServerPlayerEntity sp) {
+					GhostRooms.queueUse(sp, (ServerWorld) world, hit.getBlockPos(), clicked);
+				}
+				return ActionResult.SUCCESS;
+			}
 			if (!world.isClient && hand == Hand.MAIN_HAND && player instanceof ServerPlayerEntity sp) {
-				BlockState state = world.getBlockState(hit.getBlockPos());
+				BlockState state = clicked;
 				if (state.getBlock() instanceof ButtonBlock && !state.get(ButtonBlock.POWERED)) {
 					PortalLogic.onButtonPressed(sp, (ServerWorld) world, hit.getBlockPos());
 				}

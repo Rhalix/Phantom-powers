@@ -57,6 +57,8 @@ jobs:
           if [ $ok = 1 ]; then
             echo "phantom testportal" >&3
             sleep 3
+            echo "phantom testrooms" >&3
+            sleep 8
             echo "execute in phantom:ghost_zone run forceload add 0 0 64 64" >&3
             sleep 40
             echo "stop" >&3
@@ -66,6 +68,7 @@ jobs:
           grep -nE "ERROR|Exception|Caused by|at com\.phantompowers|Mixin|mixin|phantom" server.log \
             | grep -vE "^\s*$" | head -120 > problems.txt || true
           grep -q "Portal test: OK" server.log || { echo "Portal test did not pass" >> problems.txt; grep -n "Portal test" server.log >> problems.txt; ok=0; }
+          grep -q "Room test: OK" server.log || { echo "Room test did not pass" >> problems.txt; grep -n -A3 "Room test\|testrooms" server.log >> problems.txt; ok=0; }
           if [ $ok != 1 ] || grep -qE "ERROR|Exception" problems.txt; then
             [ -s problems.txt ] || tail -80 server.log > problems.txt
             split -l 25 problems.txt sp_
@@ -75,7 +78,7 @@ jobs:
             done
             exit 1
           fi
-          detail=$(grep -iE "Done \(|Portal test|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          detail=$(grep -iE "Done \(|Portal test|Room test|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
           echo "::notice title=Server test passed::$detail"
 
       - name: Upload jar

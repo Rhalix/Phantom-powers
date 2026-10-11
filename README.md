@@ -40,6 +40,11 @@ Walk back through the portal there to come home.
 You earn **1 stat point every 30 seconds** in ghost form. Spend them in the Ghost Skills screen, in any order.
 Powers use **ghost energy** (the green bar).
 
+## Ghost Zone doors
+Every floating door in the Ghost Zone leads to **its own room**: libraries, frozen halls, ember chambers,
+gardens, treasure vaults, ghost prisons, aquariums and more. Each room is different in size, layout and loot,
+and some have mobs. Use the door behind you to come back out.
+
 If a Ghost Portal won't turn on, the chat tells you what's wrong with the frame.
 
 ## Test commands (cheats on)

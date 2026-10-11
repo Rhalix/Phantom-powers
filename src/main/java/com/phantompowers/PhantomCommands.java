@@ -6,6 +6,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import com.phantompowers.world.GhostRooms;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
@@ -62,6 +63,16 @@ public final class PhantomCommands {
 					}
 					ctx.getSource().sendError(Text.literal("Portal test: FAILED"));
 					return 0;
+				}))
+				.then(CommandManager.literal("testrooms").executes(ctx -> {
+					ServerWorld rooms = ctx.getSource().getServer().getWorld(GhostRooms.ROOMS);
+					if (rooms == null) {
+						ctx.getSource().sendError(Text.literal("Room test: FAILED (no rooms dimension)"));
+						return 0;
+					}
+					int n = GhostRooms.testBuildAll(rooms);
+					ctx.getSource().sendFeedback(() -> Text.literal("Room test: OK (" + n + " rooms built)"), false);
+					return 1;
 				}))
 				.then(CommandManager.literal("ghostzone").executes(ctx -> {
 					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
