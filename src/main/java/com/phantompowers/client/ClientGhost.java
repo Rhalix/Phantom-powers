@@ -20,6 +20,7 @@ public final class ClientGhost {
 	public static int cutscene;
 	public static boolean cutsceneToGhost;
 	public static int level = 1;
+	public static int cutsceneKind;
 
 	private ClientGhost() {}
 
@@ -39,6 +40,7 @@ public final class ClientGhost {
 		cutscene = p.cutscene();
 		cutsceneToGhost = p.cutsceneToGhost();
 		level = p.level();
+		cutsceneKind = p.cutsceneKind();
 		GhostFlags.clientSelfIntangible = intangible;
 	}
 

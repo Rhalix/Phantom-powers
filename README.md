@@ -32,7 +32,7 @@ Walk back through the portal there to come home.
 | R | Ecto Blast: a glowing green energy beam | free |
 | G | Intangibility: walk through walls. Floors stay solid; **hold sneak to sink**, fly up to rise. **Sneak + hold G** on a mob, player or wall keeps it intangible until you let go | 3 |
 | H | Possession: take over a mob or player and control where it goes. H again to leave | 5 |
-| B | Ghostly Wail: a huge scream that breaks blocks and blasts mobs away. Drains you back to human form | 8 |
+| B | Ghostly Wail: **hold** to keep screaming (up to 10s). Shockwaves break blocks and damage and blast mobs away. Drains you back to human form | 8 |
 | N | Wail Tornado: a giant tornado of wail energy that roams forward, sucking up mobs and ripping up the ground | 12 |
 | J | Invisibility: completely invisible to other players, armor and all | 2 |
 | K | Open the **Ghost Skills** screen (also a button on your inventory) | - |
@@ -44,6 +44,19 @@ Powers use **ghost energy** (the green bar).
 Every floating door in the Ghost Zone leads to **its own room**: libraries, frozen halls, ember chambers,
 gardens, treasure vaults, ghost prisons, aquariums and more. Each room is different in size, layout and loot,
 and some have mobs. Use the door behind you to come back out.
+
+## Ghost form look
+In ghost form you wear a glowing white suit, with white hair and red eyes. Everyone sees it.
+
+## Hover Glider
+Craft: iron ingot / ectoplasm / iron ingot over redstone / firework rocket / redstone.
+Place it, right-click to hop on. It flies where you look: W to fly, S to brake, A/D to strafe, **right-click to fire twin lasers**, sneak to hop off. Sneak + right-click it to pick it up.
+
+## Ghost Hunter Suit
+Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
+Wear it in your **chest armor slot**, then press **U** to deploy it: armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
+
+A guide in the bottom-right corner of the screen shows the keys for everything you've unlocked.
 
 ## Ghost sense
 When a ghost or hostile mob comes near, a wisp of icy blue breath curls out of your mouth and your screen frosts over.

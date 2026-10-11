@@ -1,6 +1,5 @@
 package com.phantompowers.client;
 
-import com.phantompowers.GhostPowers;
 import com.phantompowers.network.BeamPayload;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
@@ -8,7 +7,9 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import org.joml.Vector3f;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
@@ -22,11 +23,13 @@ public final class ClientBeams {
 	private static final class Beam {
 		final Vec3d from;
 		final Vec3d to;
+		final int color;
 		int age;
 
-		Beam(Vec3d from, Vec3d to) {
+		Beam(Vec3d from, Vec3d to, int color) {
 			this.from = from;
 			this.to = to;
+			this.color = color;
 		}
 	}
 
@@ -35,7 +38,9 @@ public final class ClientBeams {
 	private ClientBeams() {}
 
 	public static void add(BeamPayload p) {
-		Beam b = new Beam(new Vec3d(p.x1(), p.y1(), p.z1()), new Vec3d(p.x2(), p.y2(), p.z2()));
+		Beam b = new Beam(new Vec3d(p.x1(), p.y1(), p.z1()), new Vec3d(p.x2(), p.y2(), p.z2()), p.color());
+		DustParticleEffect dust = new DustParticleEffect(new Vector3f(((p.color() >> 16) & 255) / 255f,
+				((p.color() >> 8) & 255) / 255f, (p.color() & 255) / 255f), 1.2f);
 		BEAMS.add(b);
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.world == null) return;
@@ -45,10 +50,10 @@ public final class ClientBeams {
 		Vec3d dir = len > 0 ? d.multiply(1 / len) : Vec3d.ZERO;
 		for (double t = 0; t < len; t += 0.5) {
 			Vec3d v = b.from.add(dir.multiply(t));
-			mc.world.addParticle(GhostPowers.GREEN, v.x, v.y, v.z, 0, 0, 0);
+			mc.world.addParticle(dust, v.x, v.y, v.z, 0, 0, 0);
 		}
 		for (int i = 0; i < 16; i++) {
-			mc.world.addParticle(GhostPowers.GREEN, b.to.x, b.to.y, b.to.z,
+			mc.world.addParticle(dust, b.to.x, b.to.y, b.to.z,
 					(Math.random() - 0.5) * 0.4, Math.random() * 0.3, (Math.random() - 0.5) * 0.4);
 		}
 		mc.world.addParticle(ParticleTypes.FLASH, b.to.x, b.to.y, b.to.z, 0, 0, 0);
@@ -76,9 +81,10 @@ public final class ClientBeams {
 		for (Beam b : BEAMS) {
 			float fade = Math.max(0f, 1f - (b.age + partial) / LIFE);
 			float grow = Math.min(1f, (b.age + partial + 1) / 2f);
-			box(vc, m, b.from, b.to, 0.05f * grow, 230, 255, 235, (int) (255 * fade));
-			box(vc, m, b.from, b.to, 0.13f * grow, 60, 255, 120, (int) (170 * fade));
-			box(vc, m, b.from, b.to, 0.24f * grow, 30, 220, 90, (int) (70 * fade));
+			int cr = (b.color >> 16) & 255, cg = (b.color >> 8) & 255, cbl = b.color & 255;
+			box(vc, m, b.from, b.to, 0.05f * grow, 200 + cr / 5, 200 + cg / 5, 200 + cbl / 5, (int) (255 * fade));
+			box(vc, m, b.from, b.to, 0.13f * grow, cr, cg, cbl, (int) (170 * fade));
+			box(vc, m, b.from, b.to, 0.24f * grow, cr * 3 / 4, cg * 3 / 4, cbl * 3 / 4, (int) (70 * fade));
 		}
 		ms.pop();
 	}

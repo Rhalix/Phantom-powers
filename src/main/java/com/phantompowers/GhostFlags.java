@@ -20,6 +20,20 @@ public final class GhostFlags {
 	public static final Set<UUID> HOSTS = new HashSet<>();
 	/** Players currently inside a possessed body (server side): hostile mobs leave them alone. */
 	public static final Set<UUID> POSSESSORS = new HashSet<>();
+	/** Players wearing the deployed Ghost Hunter Suit, as told to this client. */
+	public static final Set<UUID> CLIENT_SUITED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	public static final net.minecraft.util.Identifier GHOST_SKIN = net.minecraft.util.Identifier.of("phantom", "textures/entity/ghost_form.png");
+	public static final net.minecraft.util.Identifier SUIT_SKIN = net.minecraft.util.Identifier.of("phantom", "textures/entity/hunter_suit.png");
+
+	/** The skin to draw this player with instead of their own, or null. */
+	public static net.minecraft.util.Identifier clientSkinOverride(Entity e) {
+		if (!(e instanceof PlayerEntity)) return null;
+		UUID id = e.getUuid();
+		if (!CLIENT_GHOSTS.isEmpty() && CLIENT_GHOSTS.contains(id)) return GHOST_SKIN;
+		if (!CLIENT_SUITED.isEmpty() && CLIENT_SUITED.contains(id)) return SUIT_SKIN;
+		return null;
+	}
+
 	/** Players in ghost form, as told to this client (for the ghost look). */
 	public static final Set<UUID> CLIENT_GHOSTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Invisible ghosts (server side). */

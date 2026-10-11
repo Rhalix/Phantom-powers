@@ -22,11 +22,13 @@ public final class ClientRings {
 	private static final class Rings {
 		final int entityId;
 		final int duration;
+		final int style;
 		int age;
 
-		Rings(int entityId, int duration) {
+		Rings(int entityId, int duration, int style) {
 			this.entityId = entityId;
 			this.duration = Math.max(4, duration);
+			this.style = style;
 		}
 	}
 
@@ -37,7 +39,7 @@ public final class ClientRings {
 
 	public static void add(RingPayload p) {
 		ACTIVE.removeIf(r -> r.entityId == p.entityId());
-		ACTIVE.add(new Rings(p.entityId(), p.duration()));
+		ACTIVE.add(new Rings(p.entityId(), p.duration(), p.style()));
 	}
 
 	public static void tick() {
@@ -66,6 +68,11 @@ public final class ClientRings {
 			Vec3d pos = e.getLerpedPos(partial);
 			float h = e.getHeight();
 			float t = Math.min(1f, (r.age + partial) / r.duration);
+			if (r.style == 1) {
+				suitWrap(consumers, m, pos, h, t, r.age + partial);
+				vc = consumers.getBuffer(RenderLayer.getLightning());
+				continue;
+			}
 			// First 20%: one ring grows at the waist. Then it splits and the halves sweep apart.
 			float appear = Math.min(1f, t / 0.2f);
 			float split = Math.max(0f, (t - 0.2f) / 0.8f);
@@ -80,6 +87,43 @@ public final class ClientRings {
 			if (split > 0) ring(vc, m, pos.x, pos.y + down, pos.z, radius, alpha);
 		}
 		ms.pop();
+	}
+
+	/**
+	 * Ghost Hunter Suit deploying: dark armor bands with glowing cyan edges spiral up around the body,
+	 * each one tightening onto you as it passes.
+	 */
+	private static void suitWrap(VertexConsumerProvider consumers, Matrix4f m, Vec3d pos, float h, float t, float time) {
+		// Two passes, one per render layer: switching layers mid-draw isn't allowed.
+		for (int pass = 0; pass < 2; pass++) {
+			VertexConsumer vc = consumers.getBuffer(pass == 0 ? RenderLayer.getDebugQuads() : RenderLayer.getLightning());
+			float fade = t > 0.85f ? (1f - t) / 0.15f : 1f;
+			int a = (int) (235 * fade);
+			for (int k = 0; k < 5; k++) {
+				float lt = Math.max(0f, Math.min(1f, (t - k * 0.1f) / 0.55f));
+				if (lt <= 0f || lt >= 1f) continue;
+				double y = pos.y + 0.05 + (h - 0.1) * lt;
+				float radius = 0.62f - 0.22f * lt;
+				double spin = time * 0.35 + k * 1.3;
+				int segs = 28;
+				double arc = Math.PI * 2 * (0.55 + 0.45 * lt);
+				for (int i = 0; i < segs; i++) {
+					double a1 = spin + arc * i / segs, a2 = spin + arc * (i + 1) / segs;
+					float c1 = (float) Math.cos(a1), s1 = (float) Math.sin(a1), c2 = (float) Math.cos(a2), s2 = (float) Math.sin(a2);
+					float x = (float) pos.x, z = (float) pos.z, yb = (float) y - 0.09f, yt = (float) y + 0.09f;
+					if (pass == 0) {
+						quad(vc, m, x + c1 * radius, yb, z + s1 * radius, x + c1 * radius, yt, z + s1 * radius,
+								x + c2 * radius, yt, z + s2 * radius, x + c2 * radius, yb, z + s2 * radius, 22, 24, 30, a);
+					} else {
+						float r2 = radius + 0.012f;
+						quad(vc, m, x + c1 * r2, yt, z + s1 * r2, x + c1 * r2, yt + 0.025f, z + s1 * r2,
+								x + c2 * r2, yt + 0.025f, z + s2 * r2, x + c2 * r2, yt, z + s2 * r2, 90, 225, 255, a);
+						quad(vc, m, x + c1 * r2, yb - 0.025f, z + s1 * r2, x + c1 * r2, yb, z + s1 * r2,
+								x + c2 * r2, yb, z + s2 * r2, x + c2 * r2, yb - 0.025f, z + s2 * r2, 90, 225, 255, a);
+					}
+				}
+			}
+		}
 	}
 
 	/** A flat glowing band plus a thin outer wall, so it reads as a solid ring from any angle. */

@@ -1,5 +1,6 @@
 package com.phantompowers;
 
+import com.phantompowers.entity.GliderEntity;
 import com.phantompowers.network.BeamPayload;
 import com.phantompowers.network.InvisiblePayload;
 import com.phantompowers.network.RingPayload;
@@ -61,6 +62,8 @@ import java.util.UUID;
 public final class GhostPowers {
 	public static final float MAX_ENERGY = 100f;
 	public static final int CUTSCENE_TICKS = 50;
+	private static final int MIN_WAIL_TICKS = 20;
+	private static final int MAX_WAIL_TICKS = 200;
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
@@ -78,7 +81,8 @@ public final class GhostPowers {
 	};
 
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
-			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8, A_UNLOCK = 100;
+			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
+			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12, A_UNLOCK = 100;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -110,6 +114,10 @@ public final class GhostPowers {
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
+			case A_WAIL_RELEASE -> d.wailHeld = false;
+			case A_SUIT -> { if (d.cutscene == 0) HunterSuit.toggle(p, d, true); }
+			case A_SUIT_CUTSCENE -> startSuitCutscene(p, d);
+			case A_GLIDER_FIRE -> { if (p.getVehicle() instanceof GliderEntity glider) glider.fire(p); }
 			case A_TORNADO -> { if (ready(p, d, st, TORNADO)) tornado(p, d); }
 			case A_INVISIBLE -> { if (ready(p, d, st, INVISIBLE)) toggleInvisible(p, d); }
 			case A_INTANGIBLE_RELEASE -> releaseHold(p, d, true);
@@ -174,6 +182,7 @@ public final class GhostPowers {
 			bar(p, "Too drained from the wail... (" + (d.exhaust / 20 + 1) + "s)", Formatting.RED);
 			return;
 		}
+		if (d.suitOn) HunterSuit.toggle(p, d, false);
 		d.transformed = true;
 		setFlight(p, true);
 		applyStats(p, d, true);
@@ -235,7 +244,7 @@ public final class GhostPowers {
 		if (!on && p.getHealth() > p.getMaxHealth()) p.setHealth(p.getMaxHealth());
 	}
 
-	private static void setMod(ServerPlayerEntity p, RegistryEntry<EntityAttribute> attr, Identifier id, double value) {
+	public static void setMod(ServerPlayerEntity p, RegistryEntry<EntityAttribute> attr, Identifier id, double value) {
 		EntityAttributeInstance inst = p.getAttributeInstance(attr);
 		if (inst == null) return;
 		EntityAttributeModifier cur = inst.getModifier(id);
@@ -260,7 +269,11 @@ public final class GhostPowers {
 
 	/** The two glowing transformation rings, drawn by every nearby client. */
 	private static void sendRings(ServerPlayerEntity p, int duration) {
-		RingPayload ring = new RingPayload(p.getId(), duration);
+		sendRings(p, duration, 0);
+	}
+
+	public static void sendRings(ServerPlayerEntity p, int duration, int style) {
+		RingPayload ring = new RingPayload(p.getId(), duration, style);
 		for (ServerPlayerEntity viewer : PlayerLookup.around(p.getServerWorld(), p.getPos(), 96)) {
 			if (ServerPlayNetworking.canSend(viewer, RingPayload.ID)) ServerPlayNetworking.send(viewer, ring);
 		}
@@ -277,13 +290,30 @@ public final class GhostPowers {
 			bar(p, "Too drained from the wail... (" + (d.exhaust / 20 + 1) + "s)", Formatting.RED);
 			return;
 		}
+		if (!d.transformed && d.suitOn) HunterSuit.toggle(p, d, false);
 		d.cutscene = CUTSCENE_TICKS;
+		d.cutsceneKind = 0;
 		d.cutsceneToGhost = !d.transformed;
 		d.cutsceneAnchor = p.getPos();
 		sendRings(p, CUTSCENE_TICKS - 8);
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 1.0f, 0.8f);
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.PLAYERS, 1.0f, 1.2f);
+		syncNow(p);
+	}
+
+	/** Hold U: the suit-up cutscene. */
+	private static void startSuitCutscene(ServerPlayerEntity p, GhostData d) {
+		if (d.cutscene > 0) return;
+		if (!d.suitOn && !HunterSuit.canDeploy(p, d)) return;
+		d.cutscene = CUTSCENE_TICKS;
+		d.cutsceneKind = 1;
+		d.cutsceneToGhost = !d.suitOn;
+		d.cutsceneAnchor = p.getPos();
+		sendRings(p, CUTSCENE_TICKS - 8, 1);
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 1.0f, 1.3f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE.value(), SoundCategory.PLAYERS, 1.0f, 0.8f);
 		syncNow(p);
 	}
 
@@ -302,7 +332,9 @@ public final class GhostPowers {
 			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 3, 0.5, 0.8, 0.5, 0);
 		}
 		if (d.cutscene == 8) {
-			if (d.cutsceneToGhost != d.transformed) toggleTransform(p, d, false);
+			if (d.cutsceneKind == 1) {
+				if (d.cutsceneToGhost != d.suitOn) HunterSuit.toggle(p, d, false);
+			} else if (d.cutsceneToGhost != d.transformed) toggleTransform(p, d, false);
 			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 60, 0.6, 1.0, 0.6, 0.02);
 			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1, p.getZ(), 1, 0, 0, 0, 0);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, SoundCategory.PLAYERS, 1.2f, 1.0f);
@@ -329,7 +361,7 @@ public final class GhostPowers {
 		Vec3d right = dir.crossProduct(new Vec3d(0, 1, 0));
 		if (right.lengthSquared() < 1.0E-4) right = new Vec3d(1, 0, 0);
 		Vec3d from = start.add(dir.multiply(0.6)).add(right.normalize().multiply(0.3)).add(0, -0.25, 0);
-		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z);
+		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z, 0x33FF77);
 		for (ServerPlayerEntity viewer : PlayerLookup.around(w, start, 96)) {
 			if (ServerPlayNetworking.canSend(viewer, BeamPayload.ID)) ServerPlayNetworking.send(viewer, beam);
 		}
@@ -384,6 +416,7 @@ public final class GhostPowers {
 			d.energy -= PHASE_TARGET_COST;
 			GhostFlags.TEMP.put(target.getUuid(), new GhostFlags.TempPhase(target, 600));
 			d.holding = target;
+			phaseSelfForHold(p, d);
 			if (target instanceof MobEntity mob) {
 				d.heldPrevAi = mob.isAiDisabled();
 				mob.setAiDisabled(true);
@@ -418,6 +451,7 @@ public final class GhostPowers {
 		}
 		if (phased > 0) {
 			HELD_BLOCKS.put(p.getUuid(), held);
+			phaseSelfForHold(p, d);
 			d.energy -= PHASE_TARGET_COST;
 			sound(p, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 0.8f);
 			bar(p, "Holding the wall intangible. Let go of the key to make it solid again.", Formatting.AQUA);
@@ -440,7 +474,20 @@ public final class GhostPowers {
 			for (PhasedBlock b : blocks) b.restore();
 			released = true;
 		}
+		if (d.holdMadeIntangible) {
+			d.holdMadeIntangible = false;
+			stopIntangible(p, d, false);
+		}
 		if (released && message) bar(p, "Released.", Formatting.GRAY);
+	}
+
+	/** Whoever you phase, you phase with them. */
+	private static void phaseSelfForHold(ServerPlayerEntity p, GhostData d) {
+		if (d.intangible) return;
+		d.intangible = true;
+		d.holdMadeIntangible = true;
+		GhostFlags.SELF.add(p.getUuid());
+		d.syncTimer = 0;
 	}
 
 	private static void tickHold(ServerPlayerEntity p, GhostData d) {
@@ -475,7 +522,7 @@ public final class GhostPowers {
 			releaseHold(p, d, true);
 			return;
 		}
-		d.energy -= 0.3f;
+		d.energy -= 0.12f;
 		if (d.energy <= 0) {
 			d.energy = 0;
 			releaseHold(p, d, false);
@@ -519,7 +566,11 @@ public final class GhostPowers {
 		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
 			if (st.data(pl.getUuid()).transformed) ghosts.add(pl.getUuid());
 		}
-		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts);
+		List<UUID> suited = new ArrayList<>();
+		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
+			if (st.data(pl.getUuid()).suitOn) suited.add(pl.getUuid());
+		}
+		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited);
 		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
 			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}
@@ -631,23 +682,50 @@ public final class GhostPowers {
 	// ------------------------------------------------------------------- wail
 
 	private static void wail(ServerPlayerEntity p, GhostData d) {
+		if (d.wailTicks > 0) return;
 		if (d.wailCooldown > 0) {
 			bar(p, "Your voice needs to recover... (" + (d.wailCooldown / 20 + 1) + "s)", Formatting.RED);
 			return;
 		}
-		if (!useEnergy(p, d, WAIL_COST)) return;
-		d.wailCooldown = 400;
-		WAVES.add(new WailWave(p.getServerWorld(), p.getUuid(), p.getEyePos(), p.getRotationVec(1f)));
+		if (d.energy < 20) {
+			bar(p, "Not enough ghost energy!", Formatting.RED);
+			return;
+		}
+		d.wailHeld = true;
+		d.wailTicks = 1;
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 1.0f);
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 1.0f, 1.4f);
-		bar(p, "GHOSTLY WAIL!", Formatting.GREEN);
+		bar(p, "GHOSTLY WAIL! (hold B to keep wailing)", Formatting.GREEN);
+	}
 
-		// Like the show: the wail drains you right back to human form.
-		endForm(p, d);
-		d.exhaust = 100;
-		p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 120, 0, false, false, true));
-		p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1, false, false, true));
+	/** While B is held the wail keeps going: a new shockwave every few ticks, draining energy. */
+	private static void tickWail(ServerPlayerEntity p, GhostData d) {
+		if (d.wailTicks <= 0) return;
+		ServerWorld w = p.getServerWorld();
+		boolean keepGoing = d.transformed && p.isAlive() && d.energy > 0
+				&& (d.wailHeld || d.wailTicks < MIN_WAIL_TICKS) && d.wailTicks < MAX_WAIL_TICKS;
+		if (!keepGoing) {
+			int lasted = d.wailTicks;
+			d.wailTicks = 0;
+			d.wailHeld = false;
+			d.wailCooldown = 160 + lasted;
+			// Like the show: the wail drains you right back to human form.
+			endForm(p, d);
+			d.exhaust = 60 + lasted / 2;
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 120, 0, false, false, true));
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 80, 1, false, false, true));
+			return;
+		}
+		if (d.wailTicks % 5 == 1) {
+			WAVES.add(new WailWave(w, p.getUuid(), p.getEyePos(), p.getRotationVec(1f)));
+		}
+		if (d.wailTicks % 56 == 0) {
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 0.95f + w.random.nextFloat() * 0.1f);
+		}
+		d.energy = Math.max(0, d.energy - 0.55f);
+		p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 5, 2, false, false, false));
+		d.wailTicks++;
 	}
 
 	private static final class WailWave {
@@ -694,7 +772,7 @@ public final class GhostPowers {
 			for (int dx = -radius; dx <= radius; dx++) {
 				for (int dy = -radius; dy <= radius; dy++) {
 					for (int dz = -radius; dz <= radius; dz++) {
-						if (broken >= 500) break;
+						if (broken >= 150) break;
 						m.set(o.getX() + dx, o.getY() + dy, o.getZ() + dz);
 						Vec3d diff = new Vec3d(m.getX() + 0.5 - origin.x, m.getY() + 0.5 - origin.y, m.getZ() + 0.5 - origin.z);
 						double dist = diff.length();
@@ -723,7 +801,7 @@ public final class GhostPowers {
 				DamageSource src = ownerEntity != null
 						? world.getDamageSources().sonicBoom(ownerEntity)
 						: world.getDamageSources().magic();
-				e.damage(src, 10.0f);
+				e.damage(src, 5.0f);
 				e.addVelocity(dir.x * 2.0, 0.4 + Math.max(0, dir.y), dir.z * 2.0);
 				e.velocityModified = true;
 			}
@@ -827,11 +905,11 @@ public final class GhostPowers {
 				e.setVelocity(v);
 				e.velocityModified = true;
 				e.fallDistance = 0;
-				if (age % 10 == 0 && dist < 4 && e instanceof LivingEntity) {
+				if (age % 8 == 0 && dist < 5.5 && e instanceof LivingEntity) {
 					DamageSource src = ownerEntity != null
 							? world.getDamageSources().indirectMagic(ownerEntity, ownerEntity)
 							: world.getDamageSources().magic();
-					e.damage(src, 3.0f);
+					e.damage(src, 5.0f);
 				}
 			}
 
@@ -864,6 +942,10 @@ public final class GhostPowers {
 				out = out.lengthSquared() < 1.0E-4 ? dir : out.normalize();
 				e.setVelocity(out.x * 1.6, 0.7, out.z * 1.6);
 				e.velocityModified = true;
+				if (e instanceof LivingEntity) {
+					e.damage(ownerEntity != null ? world.getDamageSources().indirectMagic(ownerEntity, ownerEntity)
+							: world.getDamageSources().magic(), 8.0f);
+				}
 			}
 		}
 	}
@@ -905,8 +987,8 @@ public final class GhostPowers {
 			if (p.age % 40 == 0) applyStats(p, d, true);
 
 			float drain = 0;
-			if (d.intangible) drain += 0.4f;
-			if (d.invisible) drain += 0.25f;
+			if (d.intangible) drain += 0.15f;
+			if (d.invisible) drain += 0.1f;
 			if (drain > 0) {
 				d.energy -= drain;
 				if (d.energy <= 0) {
@@ -937,6 +1019,8 @@ public final class GhostPowers {
 		tickPossession(p, d);
 		tickHold(p, d);
 		tickCutscene(p, d);
+		tickWail(p, d);
+		HunterSuit.tick(p, d);
 
 		if (--d.syncTimer <= 0) {
 			d.syncTimer = 2;
@@ -1040,6 +1124,8 @@ public final class GhostPowers {
 		d.transformed = false;
 		d.intangible = false;
 		d.cutscene = 0;
+		d.wailTicks = 0;
+		d.suitOn = false;
 		d.syncTimer = 0;
 		applyStats(p, d, false);
 		broadcastStates(p.getServer());
@@ -1073,6 +1159,8 @@ public final class GhostPowers {
 		GhostFlags.HOSTS.remove(p.getUuid());
 		GhostFlags.POSSESSORS.remove(p.getUuid());
 		d.cutscene = 0;
+		d.wailTicks = 0;
+		if (d.suitOn) HunterSuit.toggle(p, d, false);
 		st.markDirty();
 	}
 
@@ -1108,7 +1196,7 @@ public final class GhostPowers {
 		if (!ServerPlayNetworking.canSend(p, SyncPayload.ID)) return;
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
-				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d)));
+				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d), d.cutsceneKind));
 	}
 
 	private static boolean useEnergy(ServerPlayerEntity p, GhostData d, float amount) {

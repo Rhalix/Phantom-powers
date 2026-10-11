@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin {
 	@Unique
-	private static final int GHOST_TINT = 0xB4A8FFCC;
+	private static final int GHOST_TINT = 0xE8FFFFFF;
 	@Unique
 	private static final int FULL_BRIGHT = 0xF000F0;
 	@Unique

@@ -6,7 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 
 /** Server -> client: draw an Ecto Blast beam between two points. */
-public record BeamPayload(float x1, float y1, float z1, float x2, float y2, float z2) implements CustomPayload {
+public record BeamPayload(float x1, float y1, float z1, float x2, float y2, float z2, int color) implements CustomPayload {
 	public static final CustomPayload.Id<BeamPayload> ID = new CustomPayload.Id<>(PhantomMod.id("beam"));
 	public static final PacketCodec<PacketByteBuf, BeamPayload> CODEC =
 			PacketCodec.<PacketByteBuf, BeamPayload>of(BeamPayload::write, BeamPayload::read);
@@ -18,10 +18,11 @@ public record BeamPayload(float x1, float y1, float z1, float x2, float y2, floa
 		buf.writeFloat(x2);
 		buf.writeFloat(y2);
 		buf.writeFloat(z2);
+		buf.writeInt(color);
 	}
 
 	private static BeamPayload read(PacketByteBuf buf) {
-		return new BeamPayload(buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat());
+		return new BeamPayload(buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readInt());
 	}
 
 	@Override

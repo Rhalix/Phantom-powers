@@ -53,8 +53,15 @@ public final class ClientCutscene {
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 
 		if (shown > 6) {
-			String line = ClientGhost.cutsceneToGhost ? "I'M GOING GHOST!" : "Going human...";
-			int color = ClientGhost.cutsceneToGhost ? 0xFF66FF99 : 0xFFDDDDDD;
+			String line;
+			int color;
+			if (ClientGhost.cutsceneKind == 1) {
+				line = ClientGhost.cutsceneToGhost ? "SUIT UP!" : "Suit down...";
+				color = ClientGhost.cutsceneToGhost ? 0xFF66E8FF : 0xFFDDDDDD;
+			} else {
+				line = ClientGhost.cutsceneToGhost ? "I'M GOING GHOST!" : "Going human...";
+				color = ClientGhost.cutsceneToGhost ? 0xFFFFFFFF : 0xFFDDDDDD;
+			}
 			ctx.getMatrices().push();
 			ctx.getMatrices().translate(w / 2f, h - bar / 2f - 6, 0);
 			ctx.getMatrices().scale(2f, 2f, 1f);

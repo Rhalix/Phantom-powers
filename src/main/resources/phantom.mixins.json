@@ -13,6 +13,7 @@
   },
   "client": [
     "client.EntityRenderDispatcherMixin",
-    "client.LivingEntityRendererMixin"
+    "client.LivingEntityRendererMixin",
+    "client.PlayerEntityRendererMixin"
   ]
 }

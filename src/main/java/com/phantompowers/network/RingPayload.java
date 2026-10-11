@@ -6,7 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 
 /** Server -> client: draw transformation rings around an entity for a number of ticks. */
-public record RingPayload(int entityId, int duration) implements CustomPayload {
+public record RingPayload(int entityId, int duration, int style) implements CustomPayload {
 	public static final CustomPayload.Id<RingPayload> ID = new CustomPayload.Id<>(PhantomMod.id("rings"));
 	public static final PacketCodec<PacketByteBuf, RingPayload> CODEC =
 			PacketCodec.<PacketByteBuf, RingPayload>of(RingPayload::write, RingPayload::read);
@@ -14,10 +14,11 @@ public record RingPayload(int entityId, int duration) implements CustomPayload {
 	private void write(PacketByteBuf buf) {
 		buf.writeVarInt(entityId);
 		buf.writeVarInt(duration);
+		buf.writeVarInt(style);
 	}
 
 	private static RingPayload read(PacketByteBuf buf) {
-		return new RingPayload(buf.readVarInt(), buf.readVarInt());
+		return new RingPayload(buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
 	}
 
 	@Override

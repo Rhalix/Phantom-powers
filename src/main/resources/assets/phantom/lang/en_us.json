@@ -8,7 +8,7 @@
   "key.phantom.blast": "Ecto Blast",
   "key.phantom.intangible": "Intangibility (sneak + hold = phase what you look at)",
   "key.phantom.possess": "Possession",
-  "key.phantom.wail": "Ghostly Wail",
+  "key.phantom.wail": "Ghostly Wail (hold to keep wailing)",
   "key.phantom.tornado": "Wail Tornado",
   "death.attack.phantom.ghost_portal": "%1$s was zapped by the Ghost Portal",
   "death.attack.phantom.ghost_portal.player": "%1$s was zapped by the Ghost Portal",
@@ -29,5 +29,9 @@
   "subtitles.phantom.ghost_hostile": "Ghost moans",
   "subtitles.phantom.ghost_hurt": "Ghost hurts",
   "subtitles.phantom.ghost_death": "Ghost fades away",
-  "subtitles.phantom.jailer_roar": "Ghost Jailer roars"
+  "subtitles.phantom.jailer_roar": "Ghost Jailer roars",
+  "item.phantom.hover_glider": "Hover Glider",
+  "entity.phantom.hover_glider": "Hover Glider",
+  "item.phantom.ghost_hunter_suit": "Ghost Hunter Suit",
+  "key.phantom.suit": "Ghost Hunter Suit on/off (hold: cutscene)"
 }

@@ -1,6 +1,7 @@
 package com.phantompowers;
 
 import com.phantompowers.entity.FriendlyGhostEntity;
+import com.phantompowers.entity.GliderEntity;
 import com.phantompowers.entity.GhostJailerEntity;
 import com.phantompowers.entity.HostileGhostEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -24,6 +25,11 @@ public final class ModEntities {
 			PhantomMod.id("ghost_jailer"),
 			EntityType.Builder.create(GhostJailerEntity::new, SpawnGroup.MONSTER)
 					.dimensions(1.3f, 3.4f).maxTrackingRange(12).makeFireImmune().build("ghost_jailer"));
+
+	public static final EntityType<GliderEntity> GLIDER = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("hover_glider"),
+			EntityType.Builder.<GliderEntity>create(GliderEntity::new, SpawnGroup.MISC)
+					.dimensions(1.6f, 0.3f).maxTrackingRange(10).build("hover_glider"));
 
 	private ModEntities() {}
 
