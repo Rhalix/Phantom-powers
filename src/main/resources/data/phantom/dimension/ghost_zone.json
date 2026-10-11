@@ -1,0 +1,11 @@
+{
+  "type": "phantom:ghost_zone",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "phantom:ghost_zone",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "phantom:ghost_zone"
+    }
+  }
+}

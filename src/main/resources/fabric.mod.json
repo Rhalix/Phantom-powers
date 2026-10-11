@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "phantom",
+  "version": "${version}",
+  "name": "Phantom Powers",
+  "description": "Build a Ghost Portal, get zapped, and come back with ghost powers: ecto blasts, intangibility, possession and the Ghostly Wail. Includes the Ghost Zone dimension.",
+  "authors": ["You"],
+  "license": "All-Rights-Reserved",
+  "icon": "assets/phantom/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.phantompowers.PhantomMod"],
+    "client": ["com.phantompowers.client.PhantomClient"]
+  },
+  "mixins": ["phantom.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
