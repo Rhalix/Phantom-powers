@@ -40,6 +40,18 @@ public class RoomState extends PersistentState {
 		markDirty();
 	}
 	private final List<Room> rooms = new ArrayList<>();
+	private final Map<Long, Long> bossTimes = new HashMap<>();
+
+	/** Has enough time passed since this lair's boss last appeared? */
+	public boolean bossReady(long key, long now, long wait) {
+		Long last = bossTimes.get(key);
+		return last == null || now - last >= wait;
+	}
+
+	public void markBoss(long key, long now) {
+		bossTimes.put(key, now);
+		markDirty();
+	}
 
 	public static RoomState of(MinecraftServer server) {
 		return server.getOverworld().getPersistentStateManager().getOrCreate(TYPE, "phantom_rooms");
@@ -85,6 +97,8 @@ public class RoomState extends PersistentState {
 		}
 		nbt.put("rooms", list);
 		nbt.putLongArray("prisons", prisons.stream().mapToLong(Long::longValue).toArray());
+		nbt.putLongArray("bossKeys", bossTimes.keySet().stream().mapToLong(Long::longValue).toArray());
+		nbt.putLongArray("bossTimes", bossTimes.values().stream().mapToLong(Long::longValue).toArray());
 		return nbt;
 	}
 
@@ -110,6 +124,8 @@ public class RoomState extends PersistentState {
 			s.rooms.add(r);
 		}
 		for (long k : nbt.getLongArray("prisons")) s.prisons.add(k);
+		long[] bk = nbt.getLongArray("bossKeys"), bt = nbt.getLongArray("bossTimes");
+		for (int i = 0; i < Math.min(bk.length, bt.length); i++) s.bossTimes.put(bk[i], bt[i]);
 		return s;
 	}
 }

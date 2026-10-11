@@ -30,6 +30,19 @@ public final class ControlsHud {
 			lines.add(new Line(name(mc.options.useKey), "fire lasers"));
 			lines.add(new Line(name(mc.options.sneakKey), "hop off"));
 		}
+		var held = mc.player.getMainHandStack();
+		String use = name(mc.options.useKey), sneak = name(mc.options.sneakKey);
+		if (held.isOf(com.phantompowers.ModItems.GHOST_BLASTER)) lines.add(new Line(use, "fire the Ghost Blaster"));
+		if (held.isOf(com.phantompowers.ModItems.THUNDER_GUITAR)) {
+			lines.add(new Line(use, "Power Chord (sound blast)"));
+			lines.add(new Line(sneak + "+" + use, "Lightning Riff"));
+		}
+		if (held.isOf(com.phantompowers.ModItems.THERMOS)) {
+			lines.add(new Line(use, "trap the ghost you aim at"));
+			lines.add(new Line(sneak + "+" + use, "release all ghosts"));
+		}
+		if (held.isOf(com.phantompowers.ModItems.PANDORAS_BOX)) lines.add(new Line(use, "dark shockwave"));
+		if (held.getItem() instanceof com.phantompowers.EssenceItem) lines.add(new Line(use + " (hold)", "eat: gain this ghost's power"));
 		if (ClientGhost.powers) {
 			lines.add(new Line(name(PhantomClient.TRANSFORM), ClientGhost.transformed ? "go human (hold: cutscene)" : "go ghost (hold: cutscene)"));
 			KeyBinding[] keys = PhantomClient.skillKeys();

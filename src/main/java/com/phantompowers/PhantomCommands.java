@@ -85,7 +85,7 @@ public final class PhantomCommands {
 						ctx.getSource().sendError(Text.literal("Prison test: FAILED (no Ghost Zone)"));
 						return 0;
 					}
-					GhostJailerEntity j = GhostPrison.build(zone, new BlockPos(40000, 112, 40000), net.minecraft.util.math.random.Random.create(1));
+					GhostJailerEntity j = GhostPrison.buildDesign(zone, new BlockPos(40000, 112, 40000), net.minecraft.util.math.random.Random.create(1), false);
 					int ghosts = zone.getEntitiesByClass(AbstractGhostEntity.class,
 							new net.minecraft.util.math.Box(new BlockPos(40000, 112, 40000)).expand(40), g -> true).size();
 					if (j == null) {
@@ -128,6 +128,39 @@ public final class PhantomCommands {
 					// Force stage two to make sure the transformation works
 					king.setHealth(king.getMaxHealth() * 0.4f);
 					ctx.getSource().sendFeedback(() -> Text.literal("Crate test: OK"), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("voltage").executes(ctx -> {
+					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
+					ServerWorld zone = p.getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					BlockPos at = p.getServerWorld() == zone ? p.getBlockPos() : BlockPos.ORIGIN;
+					BlockPos stage = GhostZoneLife.nearestStage(zone, at);
+					GhostZoneLife.ensureStage(zone, stage);
+					p.teleport(zone, stage.getX() + 0.5, stage.getY(), stage.getZ() + 18.5, 180f, 0f);
+					ctx.getSource().sendFeedback(() -> Text.literal("Voltage's concert stage... get ready to rock."), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("teststage").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var v = com.phantompowers.world.ConcertStage.build(zone, new BlockPos(40000, 110, -40000), net.minecraft.util.math.random.Random.create(3));
+					var spire = GhostPrison.buildDesign(zone, new BlockPos(-40000, 110, -40000), net.minecraft.util.math.random.Random.create(4), true);
+					if (v == null || spire == null) {
+						ctx.getSource().sendError(Text.literal("Stage test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Stage test: OK"), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("breakout").executes(ctx -> {
+					ServerWorld ow = ctx.getSource().getServer().getOverworld();
+					var boss = GhostZoneLife.breakout(ow, BlockPos.ofFloored(ctx.getSource().getPosition()));
+					if (boss == null) {
+						ctx.getSource().sendError(Text.literal("Breakout test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Breakout test: OK (" + boss.getName().getString() + ")"), false);
 					return 1;
 				}))
 				.then(CommandManager.literal("sense").executes(ctx -> {

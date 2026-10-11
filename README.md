@@ -46,7 +46,7 @@ gardens, treasure vaults, ghost prisons, aquariums and more. Each room is differ
 and some have mobs. Use the door behind you to come back out.
 
 ## Ghost form look
-In ghost form you wear a glowing white suit, with white hair and red eyes. Everyone sees it.
+In ghost form a solid white suit with gloves and boots appears over your body. Your face, skin and hair stay your own.
 
 ## Hover Glider
 Craft: iron ingot / ectoplasm / iron ingot over redstone / firework rocket / redstone.
@@ -54,7 +54,7 @@ Place it, right-click to hop on. It flies where you look: W to fly, S to brake, 
 
 ## Ghost Hunter Suit
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
-Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
+It's as strong as a full set of netherite armor when deployed. Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
 
 A guide in the bottom-right corner of the screen shows the keys for everything you've unlocked.
 
@@ -80,13 +80,31 @@ A box-obsessed ghost boss with a cardboard box for a head lives in a floating wa
 Stage one he hurls crates at you. At half health he pulls out **Pandora's Box** and turns evil: dark purple beams, a whirling crate storm, and ghosts pouring out of the box.
 Beat him for **Pandora's Box** (right-click: a dark shockwave that blasts every hostile mob around you, 20s recharge). Weaken him below 20% to trap him in a Thermos.
 
+## Voltage and the Thunder Guitar
+A punk-rock ghost with crackling electric hair plays a concert stage in every region of the Ghost Zone. Her power chords blast sound, her solos call down lightning, and her fans fight for her. Below 40% she goes into an **Encore**.
+Beat her for the **Thunder Guitar**: a strong melee weapon. Right-click for a **Power Chord** (sound blast), sneak + right-click for a **Lightning Riff** (strikes up to 3 hostile mobs).
+
+## Ghost Blaster
+Craft: iron ingot, iron ingot, glass pane / redstone block, ectoplasm / iron ingot (bottom-left). Right-click to fire. Double damage to ghosts, and stronger and faster with the Ghost Hunter Suit deployed. Repair with ectoplasm.
+
+## Eating ghosts
+Ghosts and bosses drop their **essence**. Eat it to take their power until you die:
+Hostile Ghost (strength + night vision), Friendly Ghost (constant healing), Ghost Jailer (toughness, your hits chain enemies), Crate King (a crate-armor shield that comes back), Voltage (speed, every 4th hit calls lightning).
+
+## Room ghosts
+Every door room has its own ghost: Librarian Specter, Frost Wraith, Cinder Spirit, Bloom Sprite, Miser Ghost, Shackled Soul, Gearwork Ghost, Box Hoarder, Cloud Wisp, Drowned Phantom and Spirit Monk. Some are friendly and give gifts, others attack with their own tricks.
+
+## Bosses come back, and break out
+Every region of the Ghost Zone has a Ghost Prison (two designs: the Big House and the Spire), a Crate King warehouse and a Voltage stage. Prisons shine a **green beacon beam** you can see from far away. A beaten boss returns to its lair one Minecraft day later.
+Sometimes at night a boss **breaks out into the Overworld** near you. It fades away at sunrise if nobody's around.
+
 ## Ghost level
 Every 2 stat points you earn raises your ghost level. In ghost form you get extra hearts, strength, armor and (from level 5) Resistance, growing with your level.
 
 If a Ghost Portal won't turn on, the chat tells you what's wrong with the frame.
 
 ## Test commands (cheats on)
-`/phantom grant`, `/phantom prison`, `/phantom crateking`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
+`/phantom grant`, `/phantom prison`, `/phantom crateking`, `/phantom voltage`, `/phantom breakout`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
 
 ## Multiplayer servers
 Set `allow-flight=true` in `server.properties`, or players floating while intangible may get kicked.
