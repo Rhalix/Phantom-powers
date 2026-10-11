@@ -34,7 +34,7 @@ public final class ControlsHud {
 		String use = name(mc.options.useKey), sneak = name(mc.options.sneakKey);
 		if (held.isOf(com.phantompowers.ModItems.GHOST_BLASTER)) lines.add(new Line(use, "fire the Ghost Blaster"));
 		if (held.isOf(com.phantompowers.ModItems.THUNDER_GUITAR)) {
-			lines.add(new Line(use, "Power Chord (sound blast)"));
+			lines.add(new Line(use, "Power Chord (giant sound wave)"));
 			lines.add(new Line(sneak + "+" + use, "Lightning Riff"));
 		}
 		if (held.isOf(com.phantompowers.ModItems.THERMOS)) {

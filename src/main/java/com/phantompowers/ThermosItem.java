@@ -108,8 +108,22 @@ public class ThermosItem extends Item {
 		if (target instanceof MobEntity m) m.setAiDisabled(true);
 		CAPTURES.add(new Capture(p, hand, target));
 		world.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.THERMOS_SUCK, SoundCategory.PLAYERS, 1.2f, 1.0f);
+		scream((ServerWorld) world, target);
 		p.getItemCooldownManager().set(this, 25);
 		return TypedActionResult.success(stack);
+	}
+
+	/** The ghost begs as it gets pulled in: "No, no, NOOOO!" */
+	public static void scream(ServerWorld w, Entity t) {
+		boolean boss = t instanceof GhostJailerEntity || t instanceof com.phantompowers.entity.CrateKingEntity
+				|| t instanceof com.phantompowers.entity.VoltageEntity;
+		float pitch = boss ? 0.72f : 0.9f + w.random.nextFloat() * 0.3f;
+		w.playSound(null, t.getX(), t.getY(), t.getZ(), ModSounds.GHOST_NONONO, SoundCategory.HOSTILE, 1.6f, pitch);
+		Text line = Text.literal("<").append(t.getDisplayName()).append("> ")
+				.append(Text.literal("No... no... NOOOOO!").formatted(Formatting.LIGHT_PURPLE, Formatting.ITALIC));
+		for (ServerPlayerEntity sp : w.getPlayers()) {
+			if (sp != t && sp.squaredDistanceTo(t) < 32 * 32) sp.sendMessage(line, false);
+		}
 	}
 
 	/** Ghosts, plus players who are in ghost form. */

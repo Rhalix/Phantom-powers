@@ -46,11 +46,11 @@ gardens, treasure vaults, ghost prisons, aquariums and more. Each room is differ
 and some have mobs. Use the door behind you to come back out.
 
 ## Ghost form look
-In ghost form a solid white suit with gloves and boots appears over your body. Your face, skin and hair stay your own.
+In ghost form a solid white suit with black stripes (collar, belt, side stripes, cuffs and boot bands) appears over your body. Your face, skin color and hairstyle stay your own, but your **hair turns white** and your **eyes glow red**.
 
 ## Hover Glider
 Craft: iron ingot / ectoplasm / iron ingot over redstone / firework rocket / redstone.
-Place it, right-click to hop on. It flies where you look: W to fly, S to brake, A/D to strafe, **right-click to fire twin lasers**, sneak to hop off. Sneak + right-click it to pick it up.
+Place it, right-click to hop on. You ride it standing up in a surfer stance with your arms out. It flies where you look: W to fly, S to brake, A/D to strafe, **right-click to fire twin lasers**, sneak to hop off. Sneak + right-click it to pick it up.
 
 ## Ghost Hunter Suit
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
@@ -67,22 +67,22 @@ Many door rooms are haunted too, some by friendly ghosts and some by hostile one
 
 ## The Thermos
 Craft: iron nugget on top, iron ingot / ectoplasm / iron ingot, iron ingot / redstone / iron ingot.
-Right-click a ghost to suck it inside. It holds as many ghosts as you like, but each catch wears it down. If it breaks, they all escape!
+Right-click a ghost to suck it inside (it begs "No... no... NOOOO!" as it gets pulled in). It holds as many ghosts as you like, but each catch wears it down. If it breaks, they all escape!
 Sneak + right-click to let them all out. It even yanks other players out of ghost form.
 
 ## Ghost Prison and the Ghost Jailer
 Floating prison fortresses are scattered across the Ghost Zone (about one every 640 blocks). Cells hold captured ghosts.
-The **Ghost Jailer** guards it: it chains you back when you run, calls guard ghosts, and hits hard. Beat it to free the prisoners and loot the hall, where a Thermos is always waiting.
+The **Ghost Jailer** guards it: it chains you back when you run, calls guard ghosts, and hits hard. It also marks the ground and comes crashing down in a **Prison Slam** shockwave (jump over the ring to dodge it), locks you in an **iron-bar cage** for a few seconds, and **blinks behind you** in a puff of smoke. Below half health it goes into **Lockdown**: faster, and its chains hit everyone nearby. Beat it to free the prisoners and loot the hall, where a Thermos is always waiting.
 Weaken it below 30% health and you can trap it in a Thermos.
 
 ## The Crate King
 A box-obsessed ghost boss with a cardboard box for a head lives in a floating warehouse in each region of the Ghost Zone (across from the Ghost Prison).
-Stage one he hurls crates at you. At half health he pulls out **Pandora's Box** and turns evil: dark purple beams, a whirling crate storm, and ghosts pouring out of the box.
+Stage one he hurls crates at you, makes **crates rain** from the sky and does a **Big Box Slam** shockwave. At half health he pulls out **Pandora's Box** and turns evil: dark purple beams, a whirling crate storm, and ghosts pouring out of the box. He also **boxes you in** with crate walls, and **Pandora's Vortex** drags everyone toward him before it explodes.
 Beat him for **Pandora's Box** (right-click: a dark shockwave that blasts every hostile mob around you, 20s recharge). Weaken him below 20% to trap him in a Thermos.
 
 ## Voltage and the Thunder Guitar
-A punk-rock ghost with crackling electric hair plays a concert stage in every region of the Ghost Zone. Her power chords blast sound, her solos call down lightning, and her fans fight for her. Below 40% she goes into an **Encore**.
-Beat her for the **Thunder Guitar**: a strong melee weapon. Right-click for a **Power Chord** (sound blast), sneak + right-click for a **Lightning Riff** (strikes up to 3 hostile mobs).
+A punk-rock ghost with crackling electric hair plays a concert stage in every region of the Ghost Zone. Her power chords blast huge sound waves, her solos call down lightning, and her fans fight for her. Her **Amp Blast** sends three sound shockwaves rolling across the floor, and she **Stage Dives** onto you with a lightning crash. Below 40% she goes into an **Encore** and electrifies the floor in rings of lightning.
+Beat her for the **Thunder Guitar** (a double-cutaway electric guitar with a lightning-bolt sunburst, gold knobs and a whammy bar): a strong melee weapon. Right-click for a **Power Chord** (a giant glowing cone of sound waves, 16 blocks long), sneak + right-click for a **Lightning Riff** (strikes up to 3 hostile mobs).
 
 ## Ghost Blaster
 Craft: iron ingot, iron ingot, glass pane / redstone block, ectoplasm / iron ingot (bottom-left). Right-click to fire. Double damage to ghosts, and stronger and faster with the Ghost Hunter Suit deployed. Repair with ectoplasm.

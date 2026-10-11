@@ -25,7 +25,15 @@ public abstract class PlayerEntityRendererMixin {
 			at = @At("HEAD"), cancellable = true)
 	private void phantom$skin(AbstractClientPlayerEntity player, CallbackInfoReturnable<Identifier> cir) {
 		Identifier skin = GhostFlags.clientSkinOverride(player);
-		if (skin != null) cir.setReturnValue(skin);
+		if (skin != null) {
+			cir.setReturnValue(skin);
+			return;
+		}
+		// Ghost form: same skin, but white hair and red eyes
+		if (!GhostFlags.CLIENT_GHOSTS.isEmpty() && GhostFlags.CLIENT_GHOSTS.contains(player.getUuid())) {
+			Identifier ghost = com.phantompowers.client.GhostSkins.skin(player.getSkinTextures().texture());
+			if (ghost != null) cir.setReturnValue(ghost);
+		}
 	}
 
 	@Inject(method = "renderArm", at = @At("HEAD"))

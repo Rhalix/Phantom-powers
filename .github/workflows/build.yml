@@ -70,6 +70,7 @@ jobs:
             echo "phantom testcrate" >&3
             echo "phantom teststage" >&3
             echo "phantom breakout" >&3
+            echo "phantom testbosses" >&3
             echo "execute in phantom:ghost_zone run summon phantom:voltage 24 120 24 {Health:90f}" >&3
             echo "execute in phantom:ghost_zone run summon phantom:room_ghost 10 120 10" >&3
             echo "execute in phantom:ghost_zone run summon phantom:crate_king 20 120 20 {Health:120f}" >&3
@@ -91,6 +92,9 @@ jobs:
           grep -q "Summoned new Room Ghost\|Summoned new Librarian Specter" server.log || { echo "Room ghost summon failed" >> problems.txt; grep -n "room_ghost" server.log >> problems.txt; ok=0; }
           grep -q "opened Pandora's Box" server.log || { echo "Crate King stage two never triggered" >> problems.txt; ok=0; }
           grep -q "Summoned new Ghost Jailer" server.log || { echo "Summon test did not pass" >> problems.txt; grep -n -B1 -A2 "summon" server.log >> problems.txt; ok=0; }
+          grep -q "Boss test: OK" server.log || { echo "Boss moves test failed" >> problems.txt; grep -n -A5 "testbosses\|Boss test" server.log >> problems.txt; ok=0; }
+          grep -q "Boss cleanup: OK" server.log || { echo "Boss cage cleanup failed" >> problems.txt; grep -n "Boss cleanup" server.log >> problems.txt; ok=0; }
+          grep -q "Lockdown" server.log || { echo "Jailer lockdown never triggered" >> problems.txt; ok=0; }
           grep -q "Room test: OK" server.log || { echo "Room test did not pass" >> problems.txt; grep -n -A3 "Room test\|testrooms" server.log >> problems.txt; ok=0; }
           if [ $ok != 1 ] || grep -qE "ERROR|Exception" problems.txt; then
             [ -s problems.txt ] || tail -80 server.log > problems.txt
@@ -101,7 +105,7 @@ jobs:
             done
             exit 1
           fi
-          detail=$(grep -iE "Done \(|Portal test|Room test|Prison test|Crate test|Stage test|Breakout|Encore|Pandora|Summoned|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          detail=$(grep -iE "Done \(|Portal test|Room test|Prison test|Crate test|Stage test|Boss test|Boss cleanup|Breakout|Encore|Pandora|Summoned|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
           echo "::notice title=Server test passed::$detail"
 
       - name: Test the game client starts

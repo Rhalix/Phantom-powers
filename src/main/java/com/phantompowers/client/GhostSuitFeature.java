@@ -57,5 +57,10 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 		m.leftPants.visible = false;
 		m.rightPants.visible = false;
 		m.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
+		// Glowing red eyes
+		Identifier eyes = GhostSkins.eyes(player.getSkinTextures().texture());
+		if (eyes != null) {
+			getContextModel().head.render(matrices, consumers.getBuffer(RenderLayer.getEyes(eyes)), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
+		}
 	}
 }

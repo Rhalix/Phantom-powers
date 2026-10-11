@@ -153,6 +153,45 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Stage test: OK"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testbosses").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var log = org.slf4j.LoggerFactory.getLogger("phantom");
+					BlockPos[] spots = {new BlockPos(16, 190, 40), new BlockPos(32, 190, 40), new BlockPos(48, 190, 40)};
+					java.util.List<net.minecraft.entity.decoration.ArmorStandEntity> stands = new java.util.ArrayList<>();
+					for (BlockPos sp : spots) {
+						var stand = net.minecraft.entity.EntityType.ARMOR_STAND.create(zone);
+						if (stand == null) return 0;
+						stand.setNoGravity(true);
+						stand.refreshPositionAndAngles(sp.getX() + 0.5, sp.getY(), sp.getZ() + 0.5, 0, 0);
+						zone.spawnEntity(stand);
+						stands.add(stand);
+					}
+					var jailer = com.phantompowers.ModEntities.GHOST_JAILER.create(zone);
+					var king = com.phantompowers.ModEntities.CRATE_KING.create(zone);
+					var volt = com.phantompowers.ModEntities.VOLTAGE.create(zone);
+					if (jailer == null || king == null || volt == null) return 0;
+					jailer.refreshPositionAndAngles(16.5, 190, 46.5, 0, 0);
+					king.refreshPositionAndAngles(32.5, 190, 46.5, 0, 0);
+					volt.refreshPositionAndAngles(48.5, 190, 46.5, 0, 0);
+					zone.spawnEntity(jailer);
+					zone.spawnEntity(king);
+					zone.spawnEntity(volt);
+					jailer.testMoves(zone, stands.get(0));
+					king.testMoves(zone, stands.get(1));
+					volt.testMoves(zone, stands.get(2));
+					ThermosItem.scream(zone, jailer);
+					int placed = 0;
+					for (BlockPos sp : spots) placed += countCage(zone, sp);
+					final int n = placed;
+					ctx.getSource().sendFeedback(() -> Text.literal("Boss test: OK (" + n + " cage blocks)"), false);
+					com.phantompowers.entity.BossMoves.later(170, () -> {
+						int left = 0;
+						for (BlockPos sp : spots) left += countCage(zone, sp);
+						log.info(left == 0 ? "Boss cleanup: OK" : "Boss cleanup: FAILED (" + left + " cage blocks left)");
+					});
+					return 1;
+				}))
 				.then(CommandManager.literal("breakout").executes(ctx -> {
 					ServerWorld ow = ctx.getSource().getServer().getOverworld();
 					var boss = GhostZoneLife.breakout(ow, BlockPos.ofFloored(ctx.getSource().getPosition()));
@@ -184,5 +223,14 @@ public final class PhantomCommands {
 					PortalLogic.sendToGhostZone(p, zone);
 					return 1;
 				})));
+	}
+
+	private static int countCage(ServerWorld w, BlockPos center) {
+		int n = 0;
+		for (BlockPos p : BlockPos.iterate(center.add(-3, -3, -3), center.add(3, 5, 3))) {
+			var st = w.getBlockState(p);
+			if (st.isOf(net.minecraft.block.Blocks.IRON_BARS) || st.isOf(net.minecraft.block.Blocks.SPRUCE_PLANKS)) n++;
+		}
+		return n;
 	}
 }

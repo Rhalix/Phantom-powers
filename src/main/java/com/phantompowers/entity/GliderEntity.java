@@ -76,7 +76,8 @@ public class GliderEntity extends Entity {
 
 	@Override
 	protected Vec3d getPassengerAttachmentPos(Entity passenger, net.minecraft.entity.EntityDimensions dimensions, float scaleFactor) {
-		return new Vec3d(0, dimensions.height(), 0);
+		// Players are normally lowered into a sitting spot; lift them so they stand on the deck
+		return new Vec3d(0, dimensions.height() + (passenger instanceof PlayerEntity ? 0.6 : 0), 0);
 	}
 
 	@Override

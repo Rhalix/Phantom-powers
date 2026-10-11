@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * Voltage's lightning guitar. Swing it like a weapon, or play it:
- * right-click for a Power Chord (a blast of sound in front of you),
+ * right-click for a Power Chord (a giant cone of sound waves),
  * sneak + right-click for a Lightning Riff (lightning strikes the nearest hostile mobs).
  */
 public class ThunderGuitarItem extends Item {
@@ -72,23 +72,12 @@ public class ThunderGuitarItem extends Item {
 			user.getItemCooldownManager().set(this, 100);
 		} else {
 			Vec3d look = user.getRotationVec(1f);
-			Vec3d from = user.getEyePos();
-			int hit = 0;
-			for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, user.getBoundingBox().expand(9), e -> e != user && e.isAlive())) {
-				Vec3d d = e.getPos().add(0, e.getHeight() / 2, 0).subtract(from);
-				double len = d.length();
-				if (len > 9 || len < 0.1 || d.multiply(1 / len).dotProduct(look) < 0.7) continue;
-				e.damage(w.getDamageSources().indirectMagic(user, user), 8f);
-				e.addVelocity(look.x * 1.5, 0.4, look.z * 1.5);
-				e.velocityModified = true;
-				hit++;
-			}
-			for (int i = 1; i <= 8; i++) {
-				Vec3d p = from.add(look.multiply(i));
-				double r = 0.3 + i * 0.25;
-				w.spawnParticles(ParticleTypes.NOTE, p.x, p.y, p.z, 2, r * 0.5, r * 0.5, r * 0.5, 1.0);
-				w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, p.x, p.y, p.z, 3, r * 0.4, r * 0.4, r * 0.4, 0.05);
-			}
+			Vec3d from = user.getEyePos().add(0, -0.3, 0);
+			// A huge cone of sound: 16 blocks long and wide at the end
+			com.phantompowers.entity.BossMoves.coneHit(w, user, from, look, 16, 0.55,
+					w.getDamageSources().indirectMagic(user, user), 10f, 1.8, e -> e != user);
+			com.phantompowers.entity.BossMoves.soundWave(w, from.add(look.multiply(0.6)), look, 16f, 0xFF55FF);
+			w.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 0.8f, 1.6f);
 			strum(w, user, 0.8f);
 			user.getItemCooldownManager().set(this, 30);
 		}
@@ -111,7 +100,7 @@ public class ThunderGuitarItem extends Item {
 
 	@Override
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-		tooltip.add(Text.literal("Right-click: Power Chord (sound blast)").formatted(Formatting.LIGHT_PURPLE));
+		tooltip.add(Text.literal("Right-click: Power Chord (giant sound wave)").formatted(Formatting.LIGHT_PURPLE));
 		tooltip.add(Text.literal("Sneak + right-click: Lightning Riff").formatted(Formatting.YELLOW));
 		tooltip.add(Text.literal("Hits hard as a melee weapon too").formatted(Formatting.DARK_GRAY));
 	}

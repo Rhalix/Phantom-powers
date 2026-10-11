@@ -70,5 +70,14 @@
       }
     ],
     "subtitle": "subtitles.phantom.jailer_roar"
+  },
+  "ghost_nonono": {
+    "sounds": [
+      {
+        "name": "phantom:ghost_nonono",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "subtitles.phantom.ghost_nonono"
   }
 }

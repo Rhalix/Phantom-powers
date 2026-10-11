@@ -63,6 +63,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(InvisiblePayload.ID, InvisiblePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RingPayload.ID, RingPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(GhostSensePayload.ID, GhostSensePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShockwavePayload.ID, com.phantompowers.network.ShockwavePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));
@@ -93,6 +94,7 @@ public class PhantomMod implements ModInitializer {
 			ThermosItem.tick();
 			GhostSense.tick(server);
 			GhostZoneLife.tick(server);
+			com.phantompowers.entity.BossMoves.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor
@@ -122,7 +124,10 @@ public class PhantomMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
 				GhostPowers.onLeave(handler.player));
 
-		ServerLifecycleEvents.SERVER_STOPPING.register(server -> GhostPowers.onServerStopping());
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			GhostPowers.onServerStopping();
+			com.phantompowers.entity.BossMoves.restoreAll();
+		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
 				PhantomCommands.register(dispatcher));

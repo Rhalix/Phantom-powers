@@ -7,6 +7,7 @@ import com.phantompowers.network.BeamPayload;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
@@ -42,6 +43,8 @@ import org.joml.Vector3f;
  * The Crate King: a ghost obsessed with boxes, wearing a big cardboard box for a head.
  * Stage one he hurls crates at you. At half health he pulls out Pandora's Box and turns evil:
  * dark beams, a whirling crate storm, and ghosts pouring out of the box.
+ * Other tricks: Crate Rain from the sky, the Big Box Slam shockwave, boxing you in,
+ * and (when evil) Pandora's Vortex that drags everyone in before it explodes.
  */
 public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> EVIL = DataTracker.registerData(CrateKingEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -55,6 +58,10 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 	private int stormCooldown = 140;
 	private int summonCooldown = 200;
 	private int boxOpen;
+	private int rainCooldown = 120;
+	private int slamCooldown = 180;
+	private int prisonCooldown = 220;
+	private int vortexCooldown = 200;
 
 	public CrateKingEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -113,6 +120,23 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 		if (!isEvil() && getHealth() <= getMaxHealth() * 0.5f) unbox(w);
 		LivingEntity target = getTarget();
 		if (target == null || !target.isAlive()) return;
+
+		if (--rainCooldown <= 0) {
+			rainCooldown = isEvil() ? 120 : 170;
+			crateRain(w, target);
+		}
+		if (--slamCooldown <= 0 && squaredDistanceTo(target) < 20 * 20) {
+			slamCooldown = isEvil() ? 150 : 210;
+			boxSlam(w, target);
+		}
+		if (isEvil() && --prisonCooldown <= 0 && squaredDistanceTo(target) < 20 * 20) {
+			prisonCooldown = 280;
+			boxIn(w, target);
+		}
+		if (isEvil() && --vortexCooldown <= 0) {
+			vortexCooldown = 260;
+			vortex(w);
+		}
 
 		if (!isEvil()) {
 			if (--throwCooldown <= 0) {
@@ -187,6 +211,86 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 		}
 		w.spawnParticles(DARK, getX(), getY() + 2, getZ(), 60, 1.0, 0.8, 1.0, 0.05);
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.0f, 0.5f);
+	}
+
+	/** Crates rain down out of the sky around the target. */
+	public void crateRain(ServerWorld w, LivingEntity target) {
+		Vec3d spot = BossMoves.ground(w, target.getPos());
+		BossMoves.warn(w, spot, 4.0, 18, isEvil() ? 0x9933FF : 0xFFAA33);
+		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOST_HOSTILE, SoundCategory.HOSTILE, 2.0f, 0.7f);
+		int count = isEvil() ? 12 : 8;
+		for (int i = 0; i < count; i++) {
+			final int k = i;
+			BossMoves.later(10 + i * 2, () -> {
+				if (!isAlive()) return;
+				double a = random.nextDouble() * Math.PI * 2, r = k == 0 ? 0 : random.nextDouble() * 4;
+				CrateProjectileEntity crate = new CrateProjectileEntity(ModEntities.CRATE_PROJECTILE, this, w, isEvil() ? 7f : 5f);
+				crate.setPosition(spot.x + Math.cos(a) * r, spot.y + 14, spot.z + Math.sin(a) * r);
+				crate.setVelocity(0, -1, 0, 1.2f, 0f);
+				w.spawnEntity(crate);
+			});
+		}
+	}
+
+	/** Jumps up and lands like a ton of bricks: a shockwave rolls out. */
+	public void boxSlam(ServerWorld w, LivingEntity target) {
+		Vec3d spot = BossMoves.ground(w, getPos().add(target.getPos().subtract(getPos()).multiply(0.5)));
+		int color = isEvil() ? 0x9933FF : 0xFFAA33;
+		BossMoves.warn(w, spot, 2.5, 16, color);
+		addVelocity(0, 1.2, 0);
+		velocityModified = true;
+		BossMoves.later(16, () -> {
+			if (!isAlive()) return;
+			refreshPositionAndAngles(spot.x, spot.y + 0.1, spot.z, getYaw(), 0);
+			BossMoves.groundWave(w, this, spot, isEvil() ? 11 : 8, isEvil() ? 10f : 7f, color);
+			w.spawnParticles(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK, net.minecraft.block.Blocks.OAK_PLANKS.getDefaultState()),
+					spot.x, spot.y + 0.5, spot.z, 60, 2, 0.4, 2, 0.2);
+		});
+	}
+
+	/** Boxes the target in with wooden crate walls. */
+	public void boxIn(ServerWorld w, LivingEntity target) {
+		boxOpen = 12;
+		if (BossMoves.cage(w, target, net.minecraft.block.Blocks.SPRUCE_PLANKS, 70) > 0 && target instanceof ServerPlayerEntity p) {
+			p.sendMessage(Text.literal("The Crate King: \"You're BOXED IN!\"").formatted(Formatting.GOLD, Formatting.BOLD), true);
+		}
+	}
+
+	/** Pandora's Vortex: pulls everyone toward the box, then blows them away. */
+	public void vortex(ServerWorld w) {
+		boxOpen = 40;
+		w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_PORTAL_TRIGGER, SoundCategory.HOSTILE, 2.0f, 0.7f);
+		for (int t = 0; t < 40; t += 2) {
+			final int tt = t;
+			BossMoves.later(Math.max(1, t), () -> {
+				if (!isAlive()) return;
+				Vec3d c = getPos().add(0, 2, 0);
+				for (int i = 0; i < 16; i++) {
+					double a = i * Math.PI * 2 / 16 + tt * 0.3;
+					double r = 8 - (tt % 8);
+					w.spawnParticles(DARK, c.x + Math.cos(a) * r, c.y - 1 + (i % 4) * 0.5, c.z + Math.sin(a) * r, 1, 0, 0, 0, 0);
+				}
+				for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(14), e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity))) {
+					Vec3d pull = c.subtract(e.getPos()).normalize().multiply(0.16);
+					e.addVelocity(pull.x, pull.y * 0.5, pull.z);
+					e.velocityModified = true;
+				}
+			});
+		}
+		BossMoves.later(42, () -> {
+			if (!isAlive()) return;
+			Vec3d spot = BossMoves.ground(w, getPos());
+			BossMoves.groundWave(w, this, spot, 9, 10f, 0x9933FF);
+			w.spawnParticles(DARK, getX(), getY() + 2, getZ(), 120, 1.5, 1.5, 1.5, 0.2);
+		});
+	}
+
+	/** Used by the CI test: try every move once. */
+	public void testMoves(ServerWorld w, LivingEntity target) {
+		crateRain(w, target);
+		boxSlam(w, target);
+		boxIn(w, target);
+		vortex(w);
 	}
 
 	/** Stage two: he pulls out Pandora's Box and turns evil. */

@@ -41,7 +41,8 @@ import net.minecraft.world.World;
 /**
  * Voltage: a punk-rock ghost with crackling electric hair and a lightning guitar.
  * Power chords blast sound waves, her solos call down lightning, and her fans show up to fight for her.
- * Below 40% health she goes into an Encore: faster, louder, wilder.
+ * Amp Blasts send rolling sound shockwaves along the ground, and she Stage Dives onto you with a lightning crash.
+ * Below 40% health she goes into an Encore: faster, louder, wilder, and the floor itself gets electrified.
  */
 public class VoltageEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> ENCORE = DataTracker.registerData(VoltageEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -51,6 +52,9 @@ public class VoltageEntity extends AbstractGhostEntity implements Monster {
 	private int boltCooldown = 80;
 	private int fanCooldown = 200;
 	private int strum;
+	private int ampCooldown = 120;
+	private int diveCooldown = 200;
+	private int floorCooldown = 140;
 
 	public VoltageEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -121,6 +125,18 @@ public class VoltageEntity extends AbstractGhostEntity implements Monster {
 			lightning(w, target.getPos());
 			if (isEncore()) lightning(w, target.getPos().add(random.nextInt(7) - 3, 0, random.nextInt(7) - 3));
 		}
+		if (--ampCooldown <= 0 && squaredDistanceTo(target) < 18 * 18) {
+			ampCooldown = (int) (170 * speed);
+			ampBlast(w);
+		}
+		if (--diveCooldown <= 0 && squaredDistanceTo(target) < 24 * 24) {
+			diveCooldown = (int) (220 * speed);
+			stageDive(w, target);
+		}
+		if (isEncore() && --floorCooldown <= 0) {
+			floorCooldown = 150;
+			electricFloor(w);
+		}
 		if (--fanCooldown <= 0) {
 			fanCooldown = (int) (260 * speed);
 			for (int i = 0; i < 2; i++) {
@@ -149,15 +165,65 @@ public class VoltageEntity extends AbstractGhostEntity implements Monster {
 			e.addVelocity(dir.x * 1.3, 0.35, dir.z * 1.3);
 			e.velocityModified = true;
 		}
-		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) to.x, (float) to.y, (float) to.z, 0xFF66FF);
-		for (ServerPlayerEntity viewer : PlayerLookup.around(w, from, 96)) {
-			if (ServerPlayNetworking.canSend(viewer, BeamPayload.ID)) ServerPlayNetworking.send(viewer, beam);
-		}
-		for (int i = 0; i < 6; i++) {
-			Vec3d p = from.add(dir.multiply(1.5 + i * 2));
-			w.spawnParticles(ParticleTypes.NOTE, p.x, p.y, p.z, 2, 0.4, 0.4, 0.4, 1.0);
-		}
+		BossMoves.soundWave(w, from, dir, 16f, isEncore() ? 0xFF33CC : 0xFF66FF);
 		playChord(w, 0.8f);
+	}
+
+	/** Her amps boom: three sound shockwaves roll out across the floor. Jump over them! */
+	public void ampBlast(ServerWorld w) {
+		strum = 12;
+		for (int i = 0; i < 3; i++) {
+			BossMoves.later(1 + i * 12, () -> {
+				if (!isAlive()) return;
+				Vec3d spot = BossMoves.ground(w, getPos());
+				BossMoves.groundWave(w, this, spot, 13, isEncore() ? 7f : 5f, 0xFF66FF);
+				playChord(w, 0.6f);
+			});
+		}
+	}
+
+	/** Leaps off the stage and crashes down on the target in a burst of lightning. */
+	public void stageDive(ServerWorld w, LivingEntity target) {
+		Vec3d spot = BossMoves.ground(w, target.getPos());
+		BossMoves.warn(w, spot, 3.0, 20, 0xFFEE55);
+		strum = 10;
+		addVelocity(0, 1.4, 0);
+		velocityModified = true;
+		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
+			p.sendMessage(Text.literal("Voltage: \"STAGE DIVE!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
+		}
+		BossMoves.later(20, () -> {
+			if (!isAlive()) return;
+			refreshPositionAndAngles(spot.x, spot.y + 0.1, spot.z, getYaw(), 0);
+			lightning(w, spot);
+			BossMoves.groundWave(w, this, spot, 8, isEncore() ? 11f : 9f, 0xFFEE55);
+		});
+	}
+
+	/** Encore only: lightning bursts out of the floor in rings around her. */
+	public void electricFloor(ServerWorld w) {
+		strum = 14;
+		for (int ring = 0; ring < 3; ring++) {
+			final double r = 4 + ring * 4;
+			final int n = 5 + ring * 3;
+			BossMoves.later(1 + ring * 10, () -> {
+				if (!isAlive()) return;
+				double off = random.nextDouble() * Math.PI;
+				for (int i = 0; i < n; i++) {
+					double a = off + i * Math.PI * 2 / n;
+					Vec3d at = BossMoves.ground(w, getPos().add(Math.cos(a) * r, 0, Math.sin(a) * r));
+					lightning(w, at);
+				}
+			});
+		}
+	}
+
+	/** Used by the CI test: try every move once. */
+	public void testMoves(ServerWorld w, LivingEntity target) {
+		powerChord(w, target);
+		ampBlast(w);
+		stageDive(w, target);
+		electricFloor(w);
 	}
 
 	private void lightning(ServerWorld w, Vec3d at) {

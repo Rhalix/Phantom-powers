@@ -76,6 +76,7 @@ public class PhantomClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
 			ClientRings.tick();
+			ClientShockwaves.tick();
 			ClientGhostSense.tick(client);
 			ClientCutscene.tick(client);
 			if (client.player == null) return;
@@ -136,6 +137,7 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_SUITED.addAll(payload.suited());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShockwavePayload.ID, (payload, context) -> ClientShockwaves.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(GhostSensePayload.ID, (payload, context) -> ClientGhostSense.add(payload));
 
 		// Ghost mobs
@@ -172,6 +174,7 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_SUITED.clear();
 			ClientBeams.clear();
 			ClientRings.clear();
+			ClientShockwaves.clear();
 			ClientGhostSense.clear();
 			ClientCutscene.reset(client);
 		});
@@ -193,6 +196,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientBeams.render(ctx);
 			ClientRings.render(ctx);
 			ClientGhostSense.render(ctx);
+			ClientShockwaves.render(ctx);
 		});
 		HudRenderCallback.EVENT.register(ClientCutscene::renderHud);
 		HudRenderCallback.EVENT.register(ClientGhostSense::renderHud);
