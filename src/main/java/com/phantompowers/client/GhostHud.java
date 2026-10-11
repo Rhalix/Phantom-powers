@@ -20,7 +20,7 @@ public final class GhostHud {
 
 	public static void render(DrawContext ctx, RenderTickCounter tickCounter) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (!ClientGhost.powers || mc.player == null || mc.options.hudHidden || mc.currentScreen != null) return;
+		if (!ClientGhost.powers || mc.player == null || mc.options.hudHidden || mc.currentScreen != null || ClientGhost.cutscene > 0) return;
 		TextRenderer tr = mc.textRenderer;
 
 		KeyBinding[] keys = PhantomClient.skillKeys();

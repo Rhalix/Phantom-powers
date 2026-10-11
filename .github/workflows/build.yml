@@ -81,6 +81,33 @@ jobs:
           detail=$(grep -iE "Done \(|Portal test|Room test|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
           echo "::notice title=Server test passed::$detail"
 
+      - name: Test the game client starts
+        shell: bash
+        run: |
+          sudo apt-get update -qq > /dev/null && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils > /dev/null
+          export LIBGL_ALWAYS_SOFTWARE=1
+          xvfb-run -a -s "-screen 0 1280x720x24" gradle runClient --no-daemon > client.log 2>&1 &
+          ok=0
+          for i in $(seq 1 100); do
+            if grep -q "blocks.png-atlas" client.log; then ok=1; break; fi
+            if grep -qE "Minecraft Crash Report|MixinApplyError|InvalidInjectionException|MixinTransformerError" client.log; then break; fi
+            sleep 5
+          done
+          sleep 25
+          pkill -f java || true
+          grep -nE "Crash|Mixin.*(error|fail)|InvalidInjection|Exception.*phantom|phantom.*(ERROR|Exception)|at com\.phantompowers|Caused by" client.log | head -100 > cproblems.txt || true
+          if [ $ok != 1 ] || [ -s cproblems.txt ]; then
+            [ -s cproblems.txt ] || tail -60 client.log > cproblems.txt
+            split -l 25 cproblems.txt cp_
+            for f in cp_*; do
+              msg=$(sed -e 's/%/%25/g' "$f" | awk '{printf "%s%%0A", $0}')
+              echo "::error title=Client test ($f)::$msg"
+            done
+            exit 1
+          fi
+          detail=$(grep -E "Loading [0-9]+ mods|phantom|blocks.png-atlas|OpenGL|Backend library" client.log | head -12 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::notice title=Client test passed::$detail"
+
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:

@@ -23,6 +23,10 @@ public class GhostData {
 	public boolean intangible;
 	public boolean invisible;
 	public Entity holding;
+	public boolean heldPrevAi;
+	public int cutscene;
+	public boolean cutsceneToGhost;
+	public net.minecraft.util.math.Vec3d cutsceneAnchor;
 	public Entity possessing;
 	public boolean prevAiDisabled;
 	public int possessTicks;

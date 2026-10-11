@@ -6,6 +6,7 @@ import com.phantompowers.ModBlocks;
 import com.phantompowers.PhantomMod;
 import com.phantompowers.network.BeamPayload;
 import com.phantompowers.network.InvisiblePayload;
+import com.phantompowers.network.RingPayload;
 import com.phantompowers.network.SkillPayload;
 import com.phantompowers.network.SyncPayload;
 import net.fabricmc.api.ClientModInitializer;
@@ -45,6 +46,8 @@ public class PhantomClient implements ClientModInitializer {
 	}
 
 	private static boolean intangibleHeld;
+	private static int transformHeld;
+	private static final int HOLD_TICKS = 10;
 
 	@Override
 	public void onInitializeClient() {
@@ -59,8 +62,19 @@ public class PhantomClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
+			ClientRings.tick();
+			ClientCutscene.tick(client);
 			if (client.player == null) return;
-			while (TRANSFORM.wasPressed()) send(GhostPowers.A_TRANSFORM);
+
+			// V: tap = quick change, hold = transformation cutscene
+			while (TRANSFORM.wasPressed()) { }
+			if (TRANSFORM.isPressed()) {
+				transformHeld++;
+				if (transformHeld == HOLD_TICKS) send(GhostPowers.A_TRANSFORM_CUTSCENE);
+			} else {
+				if (transformHeld > 0 && transformHeld < HOLD_TICKS) send(GhostPowers.A_TRANSFORM);
+				transformHeld = 0;
+			}
 			while (BLAST.wasPressed()) send(GhostPowers.A_BLAST);
 			while (INTANGIBLE.wasPressed()) send(GhostPowers.A_INTANGIBLE);
 			while (POSSESS.wasPressed()) send(GhostPowers.A_POSSESS);
@@ -80,12 +94,18 @@ public class PhantomClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(InvisiblePayload.ID, (payload, context) -> {
 			GhostFlags.CLIENT_INVISIBLE.clear();
 			GhostFlags.CLIENT_INVISIBLE.addAll(payload.players());
+			GhostFlags.CLIENT_GHOSTS.clear();
+			GhostFlags.CLIENT_GHOSTS.addAll(payload.ghosts());
 		});
+		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ClientGhost.reset();
 			GhostFlags.clientSelfIntangible = false;
 			GhostFlags.CLIENT_INVISIBLE.clear();
+			GhostFlags.CLIENT_GHOSTS.clear();
 			ClientBeams.clear();
+			ClientRings.clear();
+			ClientCutscene.reset(client);
 		});
 
 		// "Ghost Skills" tab on the inventory screen
@@ -101,7 +121,11 @@ public class PhantomClient implements ClientModInitializer {
 		});
 
 		HudRenderCallback.EVENT.register(GhostHud::render);
-		WorldRenderEvents.AFTER_ENTITIES.register(ClientBeams::render);
+		WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
+			ClientBeams.render(ctx);
+			ClientRings.render(ctx);
+		});
+		HudRenderCallback.EVENT.register(ClientCutscene::renderHud);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

@@ -5,12 +5,14 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityMixin",
-    "PlayerEntityMixin"
+    "PlayerEntityMixin",
+    "MobEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "client.EntityRenderDispatcherMixin"
+    "client.EntityRenderDispatcherMixin",
+    "client.LivingEntityRendererMixin"
   ]
 }

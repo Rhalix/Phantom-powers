@@ -2,6 +2,7 @@ package com.phantompowers;
 
 import com.phantompowers.network.BeamPayload;
 import com.phantompowers.network.InvisiblePayload;
+import com.phantompowers.network.RingPayload;
 import com.phantompowers.network.SkillPayload;
 import com.phantompowers.network.SyncPayload;
 import com.phantompowers.world.FloatingDoorFeature;
@@ -55,6 +56,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(BeamPayload.ID, BeamPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(InvisiblePayload.ID, InvisiblePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(RingPayload.ID, RingPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));

@@ -18,6 +18,10 @@ public final class GhostFlags {
 	public static final Map<UUID, TempPhase> TEMP = new HashMap<>();
 	/** Mobs/players currently being possessed: they float and can't push or be pushed (server side). */
 	public static final Set<UUID> HOSTS = new HashSet<>();
+	/** Players currently inside a possessed body (server side): hostile mobs leave them alone. */
+	public static final Set<UUID> POSSESSORS = new HashSet<>();
+	/** Players in ghost form, as told to this client (for the ghost look). */
+	public static final Set<UUID> CLIENT_GHOSTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Invisible ghosts (server side). */
 	public static final Set<UUID> INVISIBLE = new HashSet<>();
 	/** Invisible ghosts, as told to this client. Read from the render thread. */
@@ -56,10 +60,16 @@ public final class GhostFlags {
 		return w != null && !w.isClient && !HOSTS.isEmpty() && HOSTS.contains(e.getUuid());
 	}
 
+	/** Should this entity get the glowing see-through ghost look on this client? */
+	public static boolean clientGhostLook(Entity e) {
+		return e instanceof PlayerEntity && !CLIENT_GHOSTS.isEmpty() && CLIENT_GHOSTS.contains(e.getUuid());
+	}
+
 	public static void clearAll() {
 		SELF.clear();
 		TEMP.clear();
 		HOSTS.clear();
 		INVISIBLE.clear();
+		POSSESSORS.clear();
 	}
 }
