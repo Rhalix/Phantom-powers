@@ -22,6 +22,8 @@ public final class GhostFlags {
 	public static final Set<UUID> POSSESSORS = new HashSet<>();
 	/** Players wearing the deployed Ghost Hunter Suit, as told to this client. */
 	public static final Set<UUID> CLIENT_SUITED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	/** Ghost-form players who are flying right now, as told to this client. */
+	public static final Set<UUID> CLIENT_FLYING = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	public static final net.minecraft.util.Identifier GHOST_SKIN = net.minecraft.util.Identifier.of("phantom", "textures/entity/ghost_form.png");
 	public static final net.minecraft.util.Identifier SUIT_SKIN = net.minecraft.util.Identifier.of("phantom", "textures/entity/hunter_suit.png");
 

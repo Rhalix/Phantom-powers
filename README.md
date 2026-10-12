@@ -41,7 +41,7 @@ Walk back through the portal there to come home.
 | K | Open the **Ghost Skills** screen (also a button on your inventory) | - |
 
 You earn **1 stat point every 30 seconds** in ghost form. Spend them in the Ghost Skills screen, in any order.
-Powers use **ghost energy** (the green bar). When you fly in ghost form your legs become a **ghost tail** (white with black stripes like your suit) that streams behind you, and you leave a glowing wisp trail. Going ghost plays a **hero pose**: arms thrown wide as the rings pass, then a fist punched to the sky.
+Powers use **ghost energy** (the green bar). Ghost flight is faster than creative flight, and when you fly fast you level out **like Superman**: body stretched along your flight path, one fist punched forward. While flying (not when you jump) your legs become a **ghost tail** (white with black stripes like your suit) that streams behind you, and you leave a glowing wisp trail. Going ghost plays a **hero pose**: arms thrown wide as the rings pass, then a fist punched to the sky.
 
 ## Ghost Zone doors
 Every floating door in the Ghost Zone leads to **its own room**: libraries, frozen halls, ember chambers,

@@ -347,16 +347,20 @@ public final class GhostPowers {
 		if (value != 0) inst.addTemporaryModifier(new EntityAttributeModifier(id, value, EntityAttributeModifier.Operation.ADD_VALUE));
 	}
 
+	private static final float GHOST_FLY_SPEED = 0.08f;
+
 	private static void setFlight(ServerPlayerEntity p, boolean on) {
 		PlayerAbilities a = p.getAbilities();
 		if (on) {
-			if (!a.allowFlying) {
-				a.allowFlying = true;
-				p.sendAbilitiesUpdate();
-			}
+			// Ghost flight is faster than creative flight: fly like Superman
+			boolean changed = !a.allowFlying || (!p.isCreative() && a.getFlySpeed() != GHOST_FLY_SPEED);
+			a.allowFlying = true;
+			if (!p.isCreative()) a.setFlySpeed(GHOST_FLY_SPEED);
+			if (changed) p.sendAbilitiesUpdate();
 		} else if (!p.isCreative() && !p.isSpectator()) {
 			a.allowFlying = false;
 			a.flying = false;
+			a.setFlySpeed(0.05f);
 			p.sendAbilitiesUpdate();
 		}
 	}
@@ -729,7 +733,7 @@ public final class GhostPowers {
 		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
 			if (st.data(pl.getUuid()).suitOn) suited.add(pl.getUuid());
 		}
-		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited);
+		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING));
 		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
 			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}
@@ -1115,11 +1119,19 @@ public final class GhostPowers {
 
 	// ------------------------------------------------------------------- tick
 
+	/** Ghost-form players who are actually flying (not just jumping), for the tail and the Superman pose. */
+	private static final Set<UUID> FLYING = new HashSet<>();
+
 	public static void tick(MinecraftServer server) {
 		GhostState st = GhostState.of(server);
+		boolean flyChanged = false;
 		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 			tickPlayer(p, st.data(p.getUuid()), st);
+			boolean fly = st.data(p.getUuid()).transformed && p.getAbilities().flying && p.isAlive();
+			if (fly ? FLYING.add(p.getUuid()) : FLYING.remove(p.getUuid())) flyChanged = true;
 		}
+		if (FLYING.removeIf(id -> server.getPlayerManager().getPlayer(id) == null)) flyChanged = true;
+		if (flyChanged) broadcastStates(server);
 		tickTempPhases();
 		tickPhasedBlocks();
 		WAVES.removeIf(WailWave::tick);

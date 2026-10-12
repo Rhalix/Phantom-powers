@@ -39,6 +39,26 @@ public abstract class BipedEntityModelMixin {
 		if (hero >= 0f) phantom$heroPose(hero, age);
 		float wail = com.phantompowers.client.ClientRings.wailProgress(entity.getId(), age - (int) age);
 		if (wail >= 0f) phantom$wailPose(wail, age);
+		float lean = com.phantompowers.client.SupermanFlight.lean(entity, age - (int) age);
+		if (lean > 0f) phantom$supermanPose(lean, age);
+	}
+
+	/** Superman flight: head up looking ahead, right fist punched forward, left arm along the side, legs together. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$supermanPose(float l, float age) {
+		float flutter = MathHelper.sin(age * 0.5f) * 0.03f;
+		head.pitch = MathHelper.lerp(l, head.pitch, -1.15f);
+		hat.copyTransform(head);
+		rightArm.pitch = MathHelper.lerp(l, rightArm.pitch, -3.0f + flutter);
+		rightArm.yaw = MathHelper.lerp(l, rightArm.yaw, 0f);
+		rightArm.roll = MathHelper.lerp(l, rightArm.roll, 0.08f);
+		leftArm.pitch = MathHelper.lerp(l, leftArm.pitch, 0.15f - flutter);
+		leftArm.yaw = MathHelper.lerp(l, leftArm.yaw, 0f);
+		leftArm.roll = MathHelper.lerp(l, leftArm.roll, -0.06f);
+		rightLeg.pitch = MathHelper.lerp(l, rightLeg.pitch, 0.05f + flutter);
+		leftLeg.pitch = MathHelper.lerp(l, leftLeg.pitch, 0.12f - flutter);
+		rightLeg.roll = MathHelper.lerp(l, rightLeg.roll, 0.02f);
+		leftLeg.roll = MathHelper.lerp(l, leftLeg.roll, -0.02f);
 	}
 
 	/** The wail finale: head thrown back screaming, arms flung wide and back, the whole body shaking. */

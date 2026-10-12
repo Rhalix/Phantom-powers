@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Server -> client: which players are fully invisible ghosts right now. */
-public record InvisiblePayload(List<UUID> players, List<UUID> ghosts, List<UUID> suited) implements CustomPayload {
+public record InvisiblePayload(List<UUID> players, List<UUID> ghosts, List<UUID> suited, List<UUID> flying) implements CustomPayload {
 	public static final CustomPayload.Id<InvisiblePayload> ID = new CustomPayload.Id<>(PhantomMod.id("invisible"));
 	public static final PacketCodec<PacketByteBuf, InvisiblePayload> CODEC =
 			PacketCodec.<PacketByteBuf, InvisiblePayload>of(InvisiblePayload::write, InvisiblePayload::read);
@@ -22,6 +22,8 @@ public record InvisiblePayload(List<UUID> players, List<UUID> ghosts, List<UUID>
 		for (UUID id : ghosts) buf.writeUuid(id);
 		buf.writeVarInt(suited.size());
 		for (UUID id : suited) buf.writeUuid(id);
+		buf.writeVarInt(flying.size());
+		for (UUID id : flying) buf.writeUuid(id);
 	}
 
 	private static InvisiblePayload read(PacketByteBuf buf) {
@@ -34,7 +36,10 @@ public record InvisiblePayload(List<UUID> players, List<UUID> ghosts, List<UUID>
 		int k = buf.readVarInt();
 		List<UUID> suited = new ArrayList<>(k);
 		for (int i = 0; i < k; i++) suited.add(buf.readUuid());
-		return new InvisiblePayload(list, ghosts, suited);
+		int f = buf.readVarInt();
+		List<UUID> flying = new ArrayList<>(f);
+		for (int i = 0; i < f; i++) flying.add(buf.readUuid());
+		return new InvisiblePayload(list, ghosts, suited, flying);
 	}
 
 	@Override

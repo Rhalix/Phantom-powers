@@ -20,6 +20,7 @@
     "client.HeldItemFeatureRendererMixin",
     "client.MinecraftClientMixin",
     "client.PlayerEntityModelMixin",
-    "client.PlayerEntityRendererMixin"
+    "client.PlayerEntityRendererMixin",
+    "client.PlayerSupermanMixin"
   ]
 }

@@ -74,9 +74,9 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 	public static boolean isTailed(Entity e) {
 		if (!(e instanceof PlayerEntity p) || GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(p.getUuid())) return false;
 		if (p.hasVehicle() || p.isSwimming() || p.isFallFlying()) return false;
-		if (p.isMainPlayer() && p.getAbilities().flying) return true;
-		Integer air = AIR.get(p.getUuid());
-		return air != null && air >= TAIL_AFTER;
+		// Only while really flying (not for jumps or falls)
+		if (p.isMainPlayer()) return p.getAbilities().flying;
+		return GhostFlags.CLIENT_FLYING.contains(p.getUuid());
 	}
 
 	public static void tick(MinecraftClient mc) {

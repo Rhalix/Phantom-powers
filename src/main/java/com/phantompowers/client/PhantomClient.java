@@ -83,6 +83,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientEntityFx.tick();
 			BlasterScope.tick(client);
 			GhostTail.tick(client);
+			SupermanFlight.tick(client);
 			ClientGhostSense.tick(client);
 			ClientCutscene.tick(client);
 			if (client.player == null) return;
@@ -146,6 +147,8 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_GHOSTS.addAll(payload.ghosts());
 			GhostFlags.CLIENT_SUITED.clear();
 			GhostFlags.CLIENT_SUITED.addAll(payload.suited());
+			GhostFlags.CLIENT_FLYING.clear();
+			GhostFlags.CLIENT_FLYING.addAll(payload.flying());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.EntityFxPayload.ID, (payload, context) -> ClientEntityFx.update(payload));
@@ -189,6 +192,7 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_INVISIBLE.clear();
 			GhostFlags.CLIENT_GHOSTS.clear();
 			GhostFlags.CLIENT_SUITED.clear();
+			GhostFlags.CLIENT_FLYING.clear();
 			ClientBeams.clear();
 			ClientRings.clear();
 			ClientShockwaves.clear();
