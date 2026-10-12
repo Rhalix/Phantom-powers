@@ -45,12 +45,16 @@ public class GhostBlasterItem extends Item {
 		ServerPlayerEntity p = (ServerPlayerEntity) user;
 		ServerWorld w = p.getServerWorld();
 		boolean suited = GhostState.of(p.getServer()).data(p.getUuid()).suitOn;
+		// Hold sneak to aim down the scope: longer range, harder hits, beam fires from the eye line
+		boolean scoped = p.isSneaking() && hand == Hand.MAIN_HAND;
+		double range = scoped ? 96 : 48;
 
 		Vec3d look = p.getRotationVec(1f);
 		Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
 		if (right.lengthSquared() < 1.0E-4) right = new Vec3d(1, 0, 0);
-		Vec3d muzzle = p.getEyePos().add(look.multiply(0.8)).add(right.normalize().multiply(hand == Hand.MAIN_HAND ? 0.3 : -0.3)).add(0, -0.2, 0);
-		Vec3d end = p.getEyePos().add(look.multiply(48));
+		Vec3d muzzle = scoped ? p.getEyePos().add(look.multiply(0.9)).add(0, -0.12, 0)
+				: p.getEyePos().add(look.multiply(0.8)).add(right.normalize().multiply(hand == Hand.MAIN_HAND ? 0.3 : -0.3)).add(0, -0.2, 0);
+		Vec3d end = p.getEyePos().add(look.multiply(range));
 		BlockHitResult bh = w.raycast(new RaycastContext(p.getEyePos(), end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, p));
 		if (bh.getType() != HitResult.Type.MISS) end = bh.getPos();
 		Box box = p.getBoundingBox().stretch(end.subtract(p.getEyePos())).expand(1.0);
@@ -61,12 +65,13 @@ public class GhostBlasterItem extends Item {
 			Entity t = eh.getEntity();
 			float dmg = t instanceof AbstractGhostEntity ? 9f : 5f;
 			if (suited) dmg *= 1.5f;
+			if (scoped) dmg *= 1.35f;
 			t.damage(w.getDamageSources().indirectMagic(p, p), dmg);
 			if (t instanceof LivingEntity le) le.takeKnockback(0.4, -look.x, -look.z);
 		}
 		BeamPayload beam = new BeamPayload((float) muzzle.x, (float) muzzle.y, (float) muzzle.z,
 				(float) end.x, (float) end.y, (float) end.z, suited ? 0x55E8FF : 0x77FFAA);
-		for (ServerPlayerEntity viewer : PlayerLookup.around(w, muzzle, 96)) {
+		for (ServerPlayerEntity viewer : PlayerLookup.around(w, muzzle, 128)) {
 			if (ServerPlayNetworking.canSend(viewer, BeamPayload.ID)) ServerPlayNetworking.send(viewer, beam);
 		}
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.PLAYERS, 0.7f, 1.9f);
@@ -84,6 +89,7 @@ public class GhostBlasterItem extends Item {
 	@Override
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 		tooltip.add(Text.literal("Right-click to fire. Extra damage to ghosts.").formatted(Formatting.GRAY));
+		tooltip.add(Text.literal("Hold sneak to aim down the scope (zoom, longer range, more damage).").formatted(Formatting.GREEN));
 		tooltip.add(Text.literal("Stronger and faster with the Ghost Hunter Suit on.").formatted(Formatting.DARK_AQUA));
 		tooltip.add(Text.literal("Repair with ectoplasm in an anvil.").formatted(Formatting.DARK_GRAY));
 	}

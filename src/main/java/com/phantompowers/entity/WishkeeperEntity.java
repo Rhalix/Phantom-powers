@@ -44,10 +44,10 @@ import org.joml.Vector3f;
 import java.util.List;
 
 /**
- * The Wishkeeper: an ancient genie ghost who grants wishes... the wrong way.
- * Say you want to fly and he'll throw you into the sky. Want to be strong? Enjoy being slow.
- * He fires homing wish orbs, vanishes in smoke, and below half health calls up a Wish Storm
- * and grants himself one last wish.
+ * The Wishkeeper: an ancient genie ghost (long black hair, gold circlet, blue veil and silks) who grants
+ * wishes... the wrong way. Say you want to fly and she'll throw you into the sky. Want to be strong? Enjoy being slow.
+ * She fires homing wish orbs, vanishes in smoke, and below half health calls up a Wish Storm
+ * and grants herself one last wish.
  */
 public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> STORM = DataTracker.registerData(WishkeeperEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -90,7 +90,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 		return dataTracker.get(STORM);
 	}
 
-	/** 0..1, how hard he's casting right now (client animation). */
+	/** 0..1, how hard she's casting right now (client animation). */
 	public float casting() {
 		return Math.min(1f, cast / 10f);
 	}
@@ -109,7 +109,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 		super.tick();
 		if (cast > 0) cast--;
 		if (getWorld().isClient) {
-			// Smoke trail where his tail fades away, and glittering gold
+			// Smoke trail where her tail fades away, and glittering gold
 			getWorld().addParticle(ParticleTypes.SMOKE, getX() + (random.nextDouble() - 0.5) * 0.6, getY() + 0.3,
 					getZ() + (random.nextDouble() - 0.5) * 0.6, 0, -0.02, 0);
 			if (random.nextInt(3) == 0) {
@@ -165,7 +165,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 		}
 	}
 
-	/** He "grants" a wish to the target, twisted into a curse. */
+	/** She "grants" a wish to the target, twisted into a curse. */
 	public void twistedWish(ServerWorld w, LivingEntity target) {
 		cast = 20;
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO, SoundCategory.HOSTILE, 2.0f, 1.3f);
@@ -250,7 +250,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_BREEZE_WHIRL, SoundCategory.HOSTILE, 2.0f, 0.6f);
 	}
 
-	/** Wish Storm: smoky copies of himself appear to help. */
+	/** Wish Storm: smoky copies of herself appear to help. */
 	public void summonPhantoms(ServerWorld w, LivingEntity target) {
 		cast = 20;
 		for (int i = 0; i < 2; i++) {
@@ -276,7 +276,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 		}
 		w.spawnParticles(GOLD, getX(), getY() + 2, getZ(), 200, 2, 2, 2, 0.2);
 		w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, getX(), getY() + 2, getZ(), 1, 0, 0, 0, 0);
-		w.playSound(null, getX(), getY(), getZ(), ModSounds.JAILER_ROAR, SoundCategory.HOSTILE, 3.0f, 1.4f);
+		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.5f, 1.5f);
 		org.slf4j.LoggerFactory.getLogger("phantom").info("The Wishkeeper called up a Wish Storm (stage two)");
 		say(w, "\"Enough! I wish for a STORM!\"");
 	}
@@ -347,6 +347,6 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 
 	@Override
 	public float getSoundPitch() {
-		return 0.75f;
+		return 1.35f;
 	}
 }

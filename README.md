@@ -8,19 +8,17 @@ A ghost-powers mod for **Minecraft 1.21.1** with **Fabric**.
 3. Start Minecraft with the Fabric profile.
 
 ## Getting your powers
-1. Build a **Ghost Portal** like the lab portal from the show: a ring of **Ghost Portal Frame** blocks
-   (craft 8 from 4 iron ingots, 4 redstone and 1 copper ingot) around an opening at least 2 wide and 3 tall.
-   **Hazard Plating** (craft 8 from 4 yellow dye, 4 black dye and 1 iron ingot) counts as frame too, for the striped trim.
-   An octagon looks best:
+1. Build a **Ghost Portal** like the lab portal from the show: a small ring of **Ghost Portal Frame** blocks
+   (craft 8 from 4 iron ingots, 4 redstone and 1 copper ingot) around an opening. 2 wide and 3 tall is perfect
+   (just 10 frame blocks; the corners are optional), and the smallest that works is 1 wide and 2 tall.
+   **Hazard Plating** (craft 8 from 4 yellow dye, 4 black dye and 1 iron ingot) counts as frame too, for the striped trim:
 
    ```
-     H H H H H
-   F F . . . F F
-   F . . . . . F
-   F . . . . . F
-   F . . . . . F
-   F F . . . F F
-     H H H H H        F = Ghost Portal Frame, H = Hazard Plating, . = empty
+   H H H H
+   F . . F
+   F . . F
+   F . . F
+   H H H H      F = Ghost Portal Frame, H = Hazard Plating, . = empty (corners optional)
    ```
 2. Put a **button** inside the opening (on the floor or on an inside wall).
 3. Stand **inside** the portal and press the button. The portal turns on and zaps you.
@@ -43,7 +41,7 @@ Walk back through the portal there to come home.
 | K | Open the **Ghost Skills** screen (also a button on your inventory) | - |
 
 You earn **1 stat point every 30 seconds** in ghost form. Spend them in the Ghost Skills screen, in any order.
-Powers use **ghost energy** (the green bar). Going ghost plays a **hero pose**: arms thrown wide as the rings pass, then a fist punched to the sky.
+Powers use **ghost energy** (the green bar). When you fly in ghost form your legs become a **ghost tail** (white with black stripes like your suit) that streams behind you, and you leave a glowing wisp trail. Going ghost plays a **hero pose**: arms thrown wide as the rings pass, then a fist punched to the sky.
 
 ## Ghost Zone doors
 Every floating door in the Ghost Zone leads to **its own room**: libraries, frozen halls, ember chambers,
@@ -91,7 +89,7 @@ A punk-rock ghost girl (spiky pink hair, studded leather jacket, plaid skirt, to
 Beat her for the **Thunder Guitar**. You hold it across your body like a real guitar, and when you use it you strum, slide along the neck and headbang. It's a double-cutaway electric guitar with a lightning-bolt sunburst, gold knobs and a whammy bar: a strong melee weapon. Right-click for a **Power Chord** (a giant glowing cone of sound waves, 16 blocks long, played as a real distorted guitar riff), sneak + right-click for a **Lightning Riff** (strikes up to 3 hostile mobs, with a screaming guitar solo).
 
 ## Ghost Blaster
-A detailed silver sci-fi blaster with glowing green energy cells, cooling coils and a scope.
+A detailed silver sci-fi blaster with glowing green energy cells, cooling coils and a scope. **Hold sneak to aim down the scope**: 4x zoom, a green targeting reticle with a range finder, double the range and 35% more damage.
 Craft: iron ingot, iron ingot, glass pane / redstone block, ectoplasm / iron ingot (bottom-left). Right-click to fire. Double damage to ghosts, and stronger and faster with the Ghost Hunter Suit deployed. Repair with ectoplasm.
 
 ## Eating ghosts
@@ -102,8 +100,8 @@ Hostile Ghost (strength + night vision), Friendly Ghost (constant healing), Ghos
 Every door room has its own ghost: Librarian Specter, Frost Wraith, Cinder Spirit, Bloom Sprite, Miser Ghost, Shackled Soul, Gearwork Ghost, Box Hoarder, Cloud Wisp, Drowned Phantom and Spirit Monk. Some are friendly and give gifts, others attack with their own tricks.
 
 ## The Wishkeeper
-A genie ghost with a golden turban, a long white beard and a smoke tail floats in a domed golden palace in every region (look for the golden beacon). He grants **twisted wishes**: "You wish you could fly?" throws you into the sky, "You wish to be strong?" weighs you down, "You wish for riches?" makes gold explode around you, and "You wish to be safe?" locks you in a golden cage. He also fires homing wish orbs, vanishes in smoke and spins up sand cyclones. Below half health he calls a **Wish Storm** with smoky copies of himself, and wishes himself back to health once.
-Beat him for the **Wishing Lamp** (right-click for a wish: usually a blessing, sometimes a trick) and his essence. Weaken him below 20% to trap him in a Thermos.
+A genie ghost with long black hair, a gold circlet, a sheer blue veil, flowing blue Arabian silks with gold trim, gold bangles and a swirling smoke tail floats in a domed golden palace in every region (look for the golden beacon). She grants **twisted wishes**: "You wish you could fly?" throws you into the sky, "You wish to be strong?" weighs you down, "You wish for riches?" makes gold explode around you, and "You wish to be safe?" locks you in a golden cage. She also fires homing wish orbs, vanishes in smoke and spins up sand cyclones. Below half health she calls a **Wish Storm** with smoky copies of herself, and wishes herself back to health once.
+Beat her for the **Wishing Lamp** (right-click for a wish: usually a blessing, sometimes a trick) and her essence. Weaken her below 20% to trap her in a Thermos.
 
 ## Bosses come back, and break out
 Every region of the Ghost Zone has a Ghost Prison (two designs: the Big House and the Spire), a Crate King warehouse, a Voltage stage and the Wishkeeper's palace.

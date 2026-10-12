@@ -37,7 +37,7 @@ public class WishkeeperRenderer extends MobEntityRenderer<WishkeeperEntity, Wish
 
 	@Override
 	protected void scale(WishkeeperEntity e, MatrixStack matrices, float amount) {
-		float s = e.isStorm() ? 1.6f : 1.5f;
+		float s = e.isStorm() ? 1.55f : 1.45f;
 		matrices.scale(s, s, s);
 	}
 

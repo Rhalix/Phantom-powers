@@ -81,6 +81,8 @@ public class PhantomClient implements ClientModInitializer {
 			ClientRings.tick();
 			ClientShockwaves.tick();
 			ClientEntityFx.tick();
+			BlasterScope.tick(client);
+			GhostTail.tick(client);
 			ClientGhostSense.tick(client);
 			ClientCutscene.tick(client);
 			if (client.player == null) return;
@@ -165,12 +167,14 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.ROOM_GHOST, RoomGhostRenderer::new);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(GhostTail.LAYER, GhostTail::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.WIDE, () -> GhostSuitFeature.layer(false));
 		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.SLIM, () -> GhostSuitFeature.layer(true));
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((type, renderer, helper, ctx) -> {
 			if (renderer instanceof PlayerEntityRenderer playerRenderer) {
 				helper.register(new BackpackFeature(playerRenderer, ctx.getPart(BackpackFeature.LAYER)));
 				helper.register(new GuitarFeature(playerRenderer));
+				helper.register(new GhostTail(playerRenderer, ctx.getPart(GhostTail.LAYER)));
 				helper.register(new GhostSuitFeature(playerRenderer,
 						ctx.getPart(GhostSuitFeature.WIDE), ctx.getPart(GhostSuitFeature.SLIM)));
 			}
@@ -217,6 +221,7 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(ClientGhostSense::renderHud);
 		HudRenderCallback.EVENT.register(ControlsHud::render);
 		HudRenderCallback.EVENT.register(SuitTrackerHud::render);
+		HudRenderCallback.EVENT.register(BlasterScope::render);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

@@ -40,7 +40,7 @@ public final class PortalLogic {
 	public static final RegistryKey<World> GHOST_ZONE = RegistryKey.of(RegistryKeys.WORLD, PhantomMod.id("ghost_zone"));
 
 	private static final int MAX_INTERIOR = 64;
-	private static final int MIN_INTERIOR = 6;
+	private static final int MIN_INTERIOR = 2;
 	private static final int TRAVEL_COOLDOWN = 60;
 
 	private static final List<Runnable> NEXT_TICK = new ArrayList<>();
@@ -134,8 +134,8 @@ public final class PortalLogic {
 			minY = Math.min(minY, ip.getY());
 			maxY = Math.max(maxY, ip.getY());
 		}
-		if (interior.size() < MIN_INTERIOR || maxY - minY < 2) {
-			return new Scan(null, "The opening is too small: make it at least 2 wide and 3 tall so a person fits inside.", 3);
+		if (interior.size() < MIN_INTERIOR || maxY - minY < 1) {
+			return new Scan(null, "The opening is too small: make it at least 1 wide and 2 tall so a person fits inside.", 3);
 		}
 		return new Scan(new Frame(axis, interior), null, 4);
 	}
@@ -175,7 +175,7 @@ public final class PortalLogic {
 		if (scan.frame() == null) {
 			if (explainTo != null && !nearFrameBlocks(w, buttonPos) && nearOldFrame(w, buttonPos)) {
 				explainTo.sendMessage(Text.literal("Ghost Portal: the lab portal is now built from Ghost Portal Frame blocks (8 from iron, redstone and copper) "
-						+ "with optional Hazard Plating trim. Make a ring around an opening at least 2 wide and 3 tall, then press a button inside it.")
+						+ "with optional Hazard Plating trim. Make a ring around an opening (2 wide and 3 tall is perfect, 1x2 is the smallest), then press a button inside it.")
 						.formatted(Formatting.YELLOW), false);
 				return null;
 			}
@@ -249,18 +249,15 @@ public final class PortalLogic {
 	}
 
 	/**
-	 * The lab portal: an octagonal ring of Ghost Portal Frame with Hazard Plating at the bottom and top,
-	 * around a 5x5 opening with its corners cut off. {@code base} is the bottom-left corner of the frame.
+	 * The lab portal: a compact ring of Ghost Portal Frame with Hazard Plating along the bottom and top,
+	 * around a 2 wide, 3 tall opening. {@code base} is the bottom-left corner of the frame.
 	 * Returns the opening (filled with portal if {@code lit}).
 	 */
 	public static Set<BlockPos> buildLabPortal(ServerWorld w, BlockPos base, Direction.Axis axis, int flags, boolean lit) {
 		Set<BlockPos> interior = new HashSet<>();
 		Direction along = axis == Direction.Axis.X ? Direction.EAST : Direction.SOUTH;
-		for (int j = 1; j <= 5; j++) {
-			int from = (j == 1 || j == 5) ? 2 : 1;
-			int to = (j == 1 || j == 5) ? 4 : 5;
-			for (int i = from; i <= to; i++) interior.add(base.offset(along, i).up(j).toImmutable());
-		}
+		for (int j = 1; j <= 3; j++)
+			for (int i = 1; i <= 2; i++) interior.add(base.offset(along, i).up(j).toImmutable());
 		BlockState frame = ModBlocks.PORTAL_FRAME.getDefaultState();
 		BlockState hazard = ModBlocks.HAZARD_PLATING.getDefaultState();
 		for (BlockPos ip : interior) {
@@ -269,7 +266,7 @@ public final class PortalLogic {
 					BlockPos n = ip.offset(along, di).up(dj);
 					if (interior.contains(n) || !w.getBlockState(n).isAir() && isFrame(w.getBlockState(n))) continue;
 					int j = n.getY() - base.getY();
-					w.setBlockState(n, (j == 0 || j == 6) ? hazard : frame, flags);
+					w.setBlockState(n, (j == 0 || j == 4) ? hazard : frame, flags);
 				}
 			}
 		}
@@ -438,6 +435,6 @@ public final class PortalLogic {
 			}
 		}
 		buildLabPortal(zone, new BlockPos(x0 - 1, y0, z0), Direction.Axis.X, flags, true);
-		return new Vec3d(x0 + 2.5, y0, z0 + 2.5);
+		return new Vec3d(x0 + 1.0, y0, z0 + 2.5);
 	}
 }

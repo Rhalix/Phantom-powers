@@ -12,9 +12,12 @@
     "defaultRequire": 1
   },
   "client": [
+    "client.AbstractClientPlayerEntityMixin",
+    "client.ArmorFeatureRendererMixin",
     "client.BipedEntityModelMixin",
     "client.EntityRenderDispatcherMixin",
     "client.HeldItemFeatureRendererMixin",
+    "client.PlayerEntityModelMixin",
     "client.PlayerEntityRendererMixin"
   ]
 }

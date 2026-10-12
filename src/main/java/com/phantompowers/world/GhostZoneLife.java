@@ -215,7 +215,7 @@ public final class GhostZoneLife {
 			}
 			case PALACE -> {
 				WishPalace.spawnBoss(zone, c);
-				name = "The Wishkeeper has returned to his palace... careful what you wish for!";
+				name = "The Wishkeeper has returned to her palace... careful what you wish for!";
 			}
 			default -> {
 				VoltageEntity v = ModEntities.VOLTAGE.create(zone);
