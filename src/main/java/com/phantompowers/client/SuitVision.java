@@ -7,8 +7,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 
 /**
- * Ghost Hunter Suit visor: every ghost nearby (even invisible ones) shows up as a glowing
- * infrared outline, through walls too.
+ * Ghost Hunter Suit visor: ghosts that have turned invisible show up as a glowing
+ * infrared outline, through walls too. Visible ghosts look normal.
  */
 public final class SuitVision {
 	/** Infrared orange-red. */
@@ -30,9 +30,10 @@ public final class SuitVision {
 		return e instanceof PlayerEntity p && !p.isMainPlayer() && !GhostFlags.CLIENT_GHOSTS.isEmpty() && GhostFlags.CLIENT_GHOSTS.contains(p.getUuid());
 	}
 
-	/** Should this entity get the infrared outline for the local player? */
+	/** Should this entity get the infrared outline for the local player? Only ghosts that have turned invisible. */
 	public static boolean sees(Entity e) {
 		if (!isGhost(e) || !e.isAlive() || !active()) return false;
+		if (!isInvisibleGhost(e) && !e.isInvisible()) return false;
 		PlayerEntity me = MinecraftClient.getInstance().player;
 		return me != null && e.squaredDistanceTo(me) < RANGE * RANGE;
 	}

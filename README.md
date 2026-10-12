@@ -56,7 +56,7 @@ Craft: iron ingot / ectoplasm / iron ingot over redstone / firework rocket / red
 Place it, right-click to hop on. You ride it standing up in a surfer stance with your arms out. It flies where you look: W to fly, S to brake, A/D to strafe, **right-click to fire twin lasers**, sneak to hop off. Sneak + right-click it to pick it up.
 
 ## Ghost Hunter Suit
-While the suit is deployed, every ghost within 64 blocks (even invisible ones, even behind walls) shows up as a glowing **infrared outline**, and a small **tracker ring** around your crosshair shows little arrows pointing at nearby ghosts (green) and hostile mobs (red), with the distance to the closest.
+While the suit is deployed, ghosts that have turned **invisible** within 64 blocks show up as a glowing **infrared outline** (even behind walls), and a small **tracker ring** around your crosshair shows little arrows pointing at nearby ghosts (green) and hostile mobs (red), with the distance to the closest.
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
 It's as strong as a full set of netherite armor when deployed. Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
 
