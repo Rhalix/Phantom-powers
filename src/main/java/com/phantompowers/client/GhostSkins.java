@@ -115,40 +115,88 @@ public final class GhostSkins {
 		return best < 0 ? 0 : sample.get(best);
 	}
 
+	private static int count(NativeImage img, int s, int[] box) {
+		int n = 0;
+		for (int y = box[1] * s; y < box[3] * s; y++)
+			for (int x = box[0] * s; x < box[2] * s; x++)
+				if (a(img.getColor(x, y)) >= 128) n++;
+		return n;
+	}
+
+	/** Color of face pixel (fx, fy) in 8x8 face units: the hat layer if it covers it, otherwise the base layer. */
+	private static int faceAt(NativeImage img, int s, int fx, int fy) {
+		int hat = img.getColor((40 + fx) * s, (8 + fy) * s);
+		if (a(hat) >= 128) return hat;
+		return img.getColor((8 + fx) * s, (8 + fy) * s);
+	}
+
 	private static void recolor(NativeImage img, NativeImage eyes, int s) {
 		// Skin tone: lower half of the face and the chin.
-		int skin = mode(img, s, new int[][]{{8, 13, 16, 16}, {0, 12, 8, 16}, {16, 12, 24, 16}});
-		// Hair: top of the head, the back of the head and the forehead row.
-		int hair = mode(img, s, new int[][]{{8, 0, 16, 8}, {24, 8, 32, 11}, {8, 8, 16, 9}});
+		int skin = mode(img, s, new int[][]{{9, 14, 15, 16}, {8, 13, 16, 16}});
+		// Hair: the top of the head. Lots of skins draw the hair on the hat layer, so look there first.
+		int[] hatTop = {40, 0, 48, 8};
+		int hair = count(img, s, hatTop) > 20 * s * s
+				? mode(img, s, new int[][]{hatTop, {56, 8, 64, 12}})
+				: mode(img, s, new int[][]{{8, 0, 16, 8}, {24, 8, 32, 11}});
 		boolean hairDistinct = dist(hair, skin) > 40;
 
-		// Find the eyes: a row on the face (rows 10..13) with whites or strongly colored pixels.
-		boolean[][] eye = new boolean[8 * s][8 * s];
-		int eyeRow = -1, bestScore = 0;
-		for (int ry = 1; ry <= 5; ry++) {
+		// ---- Eyes: on the face (rows 2..6), one per side, at most 2 pixels wide.
+		// Each candidate pixel is scored by how much it stands out from both skin and hair;
+		// whites of the eyes score extra. The best row wins.
+		boolean[][] eye = new boolean[8][8];
+		int bestRow = -1;
+		int bestScore = 0;
+		int[][] rowPicks = new int[8][];
+		for (int fy = 2; fy <= 6; fy++) {
+			int[] picks = new int[4];
 			int score = 0;
-			for (int rx = 1; rx < 7; rx++) {
-				int c = img.getColor((8 + rx) * s, (8 + ry) * s);
-				if (a(c) < 128) continue;
-				if (nearWhite(c) && !nearWhite(skin)) score += 3;
-				else if (dist(c, skin) > 70 && (!hairDistinct || dist(c, hair) > 60)) score += 2;
+			int k = 0;
+			for (int side = 0; side < 2; side++) {
+				int c1 = -1, c2 = -1, s1 = 0, s2 = 0;
+				for (int fx = side == 0 ? 0 : 4; fx < (side == 0 ? 4 : 8); fx++) {
+					int c = faceAt(img, s, fx, fy);
+					if (a(c) < 128) continue;
+					int sc = Math.min(dist(c, skin), hairDistinct ? dist(c, hair) : 999);
+					if (nearWhite(c) && !nearWhite(skin)) sc += 60;
+					boolean classic = fx == 1 || fx == 2 || fx == 5 || fx == 6;
+					if (classic) sc += 12;
+					if (fx == 0 || fx == 7) sc -= 25; // edges are usually hair or eyeliner
+					if (sc > s1) { s2 = s1; c2 = c1; s1 = sc; c1 = fx; }
+					else if (sc > s2) { s2 = sc; c2 = fx; }
+				}
+				int need = 55;
+				picks[k++] = s1 >= need ? c1 : -1;
+				// Second pixel only if it sits right next to the first and is just as strong
+				picks[k++] = (s2 >= need && s2 >= s1 - 40 && Math.abs(c2 - c1) == 1) ? c2 : -1;
+				if (s1 >= need) score += s1;
+				if (picks[k - 1] >= 0) score += s2 / 2;
 			}
-			if (score > bestScore) { bestScore = score; eyeRow = ry; }
+			// A row where most of the face differs from skin is a hair fringe or a mask, not eyes
+			int odd = 0;
+			for (int fx = 0; fx < 8; fx++) {
+				int c = faceAt(img, s, fx, fy);
+				if (dist(c, skin) > 55) odd++;
+			}
+			if (odd >= 7) score /= 3;
+			rowPicks[fy] = picks;
+			if (score > bestScore) { bestScore = score; bestRow = fy; }
 		}
-		if (eyeRow < 0 || bestScore < 4) eyeRow = 4; // default Steve/Alex eye row
-		for (int y = 0; y < s; y++) {
-			for (int x = 0; x < 8 * s; x++) {
-				int px = 8 * s + x, py = (8 + eyeRow) * s + y;
-				int c = img.getColor(px, py);
-				if (a(c) < 128) continue;
-				boolean isEye = dist(c, skin) > 55 && (!hairDistinct || dist(c, hair) > 50);
-				int fx = x / s;
-				if (bestScore < 4) isEye = fx == 1 || fx == 2 || fx == 5 || fx == 6; // couldn't tell: classic spots
-				eye[x][eyeRow * s + y] = isEye;
+		if (bestRow < 0 || bestScore < 120) {
+			bestRow = 4; // couldn't find them: classic eye spots
+			rowPicks[4] = new int[]{1, 2, 5, 6};
+		}
+		for (int fx : rowPicks[bestRow]) if (fx >= 0) eye[fx][bestRow] = true;
+		// Taller eyes: include the same spots just below when they also stand out from the skin
+		int below = bestRow + 1;
+		if (below <= 6) {
+			for (int fx = 0; fx < 8; fx++) {
+				if (!eye[fx][bestRow]) continue;
+				int c = faceAt(img, s, fx, below);
+				if (dist(c, skin) > 70 && (!hairDistinct || dist(c, hair) > 50)) eye[fx][below] = true;
 			}
 		}
 
-		// Recolor hair on the head (base layer) and hair in the hat layer.
+		// ---- Hair: anything on the head (base and hat layer) that looks more like hair than skin.
 		int[][] headBoxes = {{0, 0, 32, 16}, {32, 0, 64, 16}};
 		for (int[] bx : headBoxes) {
 			boolean hat = bx[0] == 32;
@@ -156,36 +204,39 @@ public final class GhostSkins {
 				for (int x = bx[0] * s; x < bx[2] * s; x++) {
 					int c = img.getColor(x, y);
 					if (a(c) < 16) continue;
-					// Face front eye cells
-					int fx = hat ? x - 32 * s : x;
-					if (fx >= 8 * s && fx < 16 * s && y >= 8 * s && y < 16 * s && eye[fx - 8 * s][y - 8 * s]) continue;
+					int fx = (hat ? x - 32 * s : x) / s - 8, fy = y / s - 8;
+					boolean onFace = fx >= 0 && fx < 8 && fy >= 0 && fy < 8;
+					if (onFace && eye[fx][fy]) continue;
 					boolean isHair;
-					if (hairDistinct) isHair = dist(c, hair) < 75 && dist(c, skin) > 30;
-					else isHair = (y < 8 * s) && !hat; // can't tell hair from skin: only the top of the head
-					// Hair-colored strands right below the eye row stay as they are (beards, mouths)
-					if (isHair && !hat && fx >= 8 * s && fx < 16 * s && y >= (8 + eyeRow + 1) * s && y < 16 * s) {
-						isHair = false;
+					if (hairDistinct) {
+						isHair = dist(c, hair) < dist(c, skin) && dist(c, hair) < 110;
+					} else {
+						isHair = y < 8 * s && !hat;
 					}
+					// Below the eyes it's mouth/beard territory: leave those alone
+					if (isHair && onFace && fy > bestRow) isHair = false;
 					if (!isHair) continue;
-					int v = 228 + (lum(c) - lum(hair)) / 2;
-					v = Math.max(170, Math.min(255, v));
+					int v = 232 + (lum(c) - lum(hair)) / 2;
+					v = Math.max(175, Math.min(255, v));
 					img.setColor(x, y, abgr(a(c), v, v, Math.min(255, v + 10)));
 				}
 			}
 		}
 
-		// Eyes: glowing red, brighter where the whites were.
-		for (int y = 0; y < 8 * s; y++) {
-			for (int x = 0; x < 8 * s; x++) {
-				if (!eye[x][y]) continue;
-				int px = 8 * s + x, py = 8 * s + y;
-				int c = img.getColor(px, py);
-				int red = nearWhite(c) || lum(c) > 150 ? abgr(255, 255, 70, 60) : abgr(255, 215, 10, 10);
-				img.setColor(px, py, red);
-				eyes.setColor(px, py, red);
-				// Hat layer over the eyes would hide them: clear it there
-				int hc = img.getColor(px + 32 * s, py);
-				if (a(hc) > 0) img.setColor(px + 32 * s, py, 0);
+		// ---- Eyes: glowing red, brighter where the whites were. Clear the hat layer over them.
+		for (int fy = 0; fy < 8; fy++) {
+			for (int fx = 0; fx < 8; fx++) {
+				if (!eye[fx][fy]) continue;
+				int c = faceAt(img, s, fx, fy);
+				for (int yy = 0; yy < s; yy++) {
+					for (int xx = 0; xx < s; xx++) {
+						int px = (8 + fx) * s + xx, py = (8 + fy) * s + yy;
+						int red = nearWhite(c) || lum(c) > 150 ? abgr(255, 255, 80, 70) : abgr(255, 225, 15, 15);
+						img.setColor(px, py, red);
+						eyes.setColor(px, py, red);
+						img.setColor(px + 32 * s, py, 0);
+					}
+				}
 			}
 		}
 	}

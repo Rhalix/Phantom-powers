@@ -39,7 +39,7 @@ public class VoltageRenderer extends MobEntityRenderer<VoltageEntity, VoltageMod
 
 	@Override
 	protected void scale(VoltageEntity e, MatrixStack matrices, float amount) {
-		float s = e.isEncore() ? 1.75f : 1.6f;
+		float s = e.isEncore() ? 1.5f : 1.42f;
 		matrices.scale(s, s, s);
 	}
 
