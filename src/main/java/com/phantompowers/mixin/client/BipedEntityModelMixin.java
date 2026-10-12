@@ -37,6 +37,29 @@ public abstract class BipedEntityModelMixin {
 		if (com.phantompowers.client.GuitarFeature.guitarOf(entity) != null) phantom$guitarPose(entity, age);
 		float hero = com.phantompowers.client.ClientRings.transformProgress(entity.getId(), age - (int) age);
 		if (hero >= 0f) phantom$heroPose(hero, age);
+		float wail = com.phantompowers.client.ClientRings.wailProgress(entity.getId(), age - (int) age);
+		if (wail >= 0f) phantom$wailPose(wail, age);
+	}
+
+	/** The wail finale: head thrown back screaming, arms flung wide and back, the whole body shaking. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$wailPose(float t, float age) {
+		float in = MathHelper.clamp(t / 0.15f, 0f, 1f);
+		float shake = MathHelper.sin(age * 2.7f) * 0.04f * in;
+		body.pitch = -0.18f * in;
+		head.pitch = -0.55f * in + shake;
+		head.yaw = shake;
+		hat.copyTransform(head);
+		rightArm.pitch = 0.5f * in + shake;
+		rightArm.yaw = 0f;
+		rightArm.roll = 1.25f * in;
+		leftArm.pitch = 0.5f * in - shake;
+		leftArm.yaw = 0f;
+		leftArm.roll = -1.25f * in;
+		rightLeg.roll = 0.18f * in;
+		leftLeg.roll = -0.18f * in;
+		rightLeg.pitch = 0.1f * in;
+		leftLeg.pitch = 0.1f * in;
 	}
 
 	/**

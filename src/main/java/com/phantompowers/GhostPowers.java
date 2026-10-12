@@ -64,6 +64,9 @@ public final class GhostPowers {
 	public static final int CUTSCENE_TICKS = 50;
 	private static final int MIN_WAIL_TICKS = 20;
 	private static final int MAX_WAIL_TICKS = 200;
+	/** Hold the wail this long and it turns into the finale cutscene. */
+	private static final int WAIL_FINALE_AT = 100;
+	public static final int WAIL_FINALE_TICKS = 80;
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
@@ -393,6 +396,55 @@ public final class GhostPowers {
 		syncNow(p);
 	}
 
+	/**
+	 * Hold the wail long enough and it becomes a cutscene: the camera swings round to face you, you rise up
+	 * and unleash everything you've got in every direction... then it drains you back to human form.
+	 */
+	private static void startWailFinale(ServerPlayerEntity p, GhostData d) {
+		d.wailTicks = 0;
+		d.wailHeld = false;
+		d.cutscene = WAIL_FINALE_TICKS;
+		d.cutsceneKind = 2;
+		d.cutsceneToGhost = false;
+		d.cutsceneAnchor = p.getPos();
+		sendRings(p, WAIL_FINALE_TICKS - 30, 2); // the screaming pose, seen by everyone nearby
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 6.0f, 0.85f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 2.0f, 0.8f);
+		syncNow(p);
+	}
+
+	private static void tickWailFinale(ServerPlayerEntity p, GhostData d, ServerWorld w) {
+		int t = WAIL_FINALE_TICKS - d.cutscene;
+		if (d.cutscene > 30) {
+			Vec3d eye = p.getEyePos();
+			Vec3d look = p.getRotationVec(1f);
+			if (t % 4 == 1) {
+				// Waves blast out all around you, not just ahead
+				for (int k = 0; k < 4; k++) {
+					Vec3d dir = look.rotateY((float) (k * Math.PI / 2));
+					WAVES.add(new WailWave(w, p.getUuid(), eye, dir));
+				}
+			}
+			if (t % 3 == 0) {
+				for (int k = 0; k < 6; k++) {
+					Vec3d dir = look.rotateY((float) (k * Math.PI / 3 + t * 0.1));
+					com.phantompowers.entity.BossMoves.soundWave(w, eye.add(dir.multiply(0.6)), dir, 22f, 0x66FF99);
+				}
+			}
+			if (t % 18 == 0) {
+				w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 6.0f, 0.9f + w.random.nextFloat() * 0.15f);
+			}
+			w.spawnParticles(GREEN, eye.x, eye.y, eye.z, 12, 1.2, 0.8, 1.2, 0.2);
+			w.spawnParticles(ParticleTypes.SONIC_BOOM, eye.x + look.x * 2, eye.y + look.y * 2, eye.z + look.z * 2, 1, 0, 0, 0, 0);
+		}
+		if (d.cutscene == 30) {
+			// Out of power: the rings come back and take you human again
+			sendRings(p, 22, 3);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.5f, 0.6f);
+		}
+	}
+
 	/** Hold U: the suit-up cutscene. */
 	private static void startSuitCutscene(ServerPlayerEntity p, GhostData d) {
 		if (d.cutscene > 0) return;
@@ -413,12 +465,14 @@ public final class GhostPowers {
 		d.cutscene--;
 		// Hold still (and float a tiny bit) while the rings pass over you
 		if (d.cutsceneAnchor != null) {
-			double lift = d.cutsceneToGhost ? Math.min(0.6, (CUTSCENE_TICKS - d.cutscene) * 0.015) : 0;
+			double lift = d.cutsceneKind == 2 ? (d.cutscene > 30 ? Math.min(1.2, (WAIL_FINALE_TICKS - d.cutscene) * 0.04) : 1.2 * d.cutscene / 30.0)
+					: d.cutsceneToGhost ? Math.min(0.6, (CUTSCENE_TICKS - d.cutscene) * 0.015) : 0;
 			p.requestTeleport(d.cutsceneAnchor.x, d.cutsceneAnchor.y + lift, d.cutsceneAnchor.z);
 			p.setVelocity(Vec3d.ZERO);
 			p.fallDistance = 0;
 		}
 		ServerWorld w = p.getServerWorld();
+		if (d.cutsceneKind == 2) tickWailFinale(p, d, w);
 		if (d.cutscene % 3 == 0) {
 			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 3, 0.5, 0.8, 0.5, 0);
 		}
@@ -426,6 +480,15 @@ public final class GhostPowers {
 			if (d.cutsceneKind == 1) {
 				if (d.cutsceneToGhost != d.suitOn) HunterSuit.toggle(p, d, false);
 			} else if (d.cutsceneToGhost != d.transformed) toggleTransform(p, d, false);
+			if (d.cutsceneKind == 2) {
+				// The wail took everything you had
+				d.wailCooldown = 260;
+				d.exhaust = Math.max(d.exhaust, 120);
+				d.energy = 0;
+				p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 120, 0, false, false, true));
+				p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1, false, false, true));
+				bar(p, "The wail drained every last drop of ghost energy...", Formatting.GRAY);
+			}
 			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 60, 0.6, 1.0, 0.6, 0.02);
 			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1, p.getZ(), 1, 0, 0, 0, 0);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, SoundCategory.PLAYERS, 1.2f, 1.0f);
@@ -799,6 +862,10 @@ public final class GhostPowers {
 	private static void tickWail(ServerPlayerEntity p, GhostData d) {
 		if (d.wailTicks <= 0) return;
 		ServerWorld w = p.getServerWorld();
+		if (d.wailHeld && d.wailTicks >= WAIL_FINALE_AT && d.transformed && p.isAlive() && d.cutscene == 0) {
+			startWailFinale(p, d);
+			return;
+		}
 		boolean keepGoing = d.transformed && p.isAlive() && d.energy > 0
 				&& (d.wailHeld || d.wailTicks < MIN_WAIL_TICKS) && d.wailTicks < MAX_WAIL_TICKS;
 		if (!keepGoing) {

@@ -50,6 +50,14 @@ public final class ClientRings {
 		return -1f;
 	}
 
+	/** How far along this entity's big wail finale is (0..1), or -1 if it isn't doing one. */
+	public static float wailProgress(int entityId, float partial) {
+		for (Rings r : ACTIVE) {
+			if (r.entityId == entityId && r.style == 2) return Math.min(1f, (r.age + partial) / r.duration);
+		}
+		return -1f;
+	}
+
 	public static void tick() {
 		ACTIVE.removeIf(r -> ++r.age > r.duration);
 	}
@@ -76,6 +84,7 @@ public final class ClientRings {
 			Vec3d pos = e.getLerpedPos(partial);
 			float h = e.getHeight();
 			float t = Math.min(1f, (r.age + partial) / r.duration);
+			if (r.style == 2) continue; // wail finale: a pose, not rings
 			if (r.style == 1) {
 				suitWrap(consumers, m, pos, h, t, r.age + partial);
 				vc = consumers.getBuffer(RenderLayer.getLightning());

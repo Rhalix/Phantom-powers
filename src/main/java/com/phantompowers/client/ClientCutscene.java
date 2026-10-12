@@ -6,7 +6,7 @@ import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.render.RenderTickCounter;
 
-/** The hold-V transformation cutscene: camera turns to face you, movie bars, a shout. */
+/** Cutscenes (hold V to transform, hold U to suit up, or hold the wail too long): camera turns to face you, movie bars, a shout. */
 public final class ClientCutscene {
 	private static boolean active;
 	private static Perspective previous;
@@ -52,6 +52,26 @@ public final class ClientCutscene {
 		ctx.fill(0, 0, w, bar, 0xFF000000);
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 
+		if (ClientGhost.cutsceneKind == 2) {
+			// Wail finale: the screen pulses green while you scream, then fades as you drain
+			boolean screaming = ClientGhost.cutscene > 30;
+			if (screaming) {
+				int a = (int) (40 + 40 * Math.abs(Math.sin((shown + tickCounter.getTickDelta(true)) * 0.6)));
+				ctx.fill(0, bar, w, h - bar, (a << 24) | 0x33FF77);
+			} else {
+				int a = (int) (120 * (1 - ClientGhost.cutscene / 30f));
+				ctx.fill(0, bar, w, h - bar, (Math.max(0, a) << 24));
+			}
+			String line = screaming ? "AAAAAAAAAAHHHHHH!" : "...completely drained...";
+			int color = screaming ? 0xFF66FF99 : 0xFFBBBBBB;
+			float jitter = screaming ? (float) Math.sin(shown * 3.1) * 2f : 0f;
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f + jitter, h - bar / 2f - 6, 0);
+			ctx.getMatrices().scale(screaming ? 2.4f : 1.6f, screaming ? 2.4f : 1.6f, 1f);
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+			ctx.getMatrices().pop();
+			return;
+		}
 		if (shown > 6) {
 			String line;
 			int color;

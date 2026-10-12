@@ -21,5 +21,6 @@ public abstract class HeldItemFeatureRendererMixin {
 	private void phantom$skipGuitar(LivingEntity entity, ItemStack stack, ModelTransformationMode mode, Arm arm,
 			MatrixStack matrices, VertexConsumerProvider consumers, int light, CallbackInfo ci) {
 		if (entity instanceof PlayerEntity && stack.getItem() instanceof ThunderGuitarItem) ci.cancel();
+		if (com.phantompowers.client.SuitVision.isInvisibleGhost(entity)) ci.cancel();
 	}
 }

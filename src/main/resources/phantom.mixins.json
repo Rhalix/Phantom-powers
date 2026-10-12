@@ -15,8 +15,10 @@
     "client.AbstractClientPlayerEntityMixin",
     "client.ArmorFeatureRendererMixin",
     "client.BipedEntityModelMixin",
+    "client.EntityOutlineColorMixin",
     "client.EntityRenderDispatcherMixin",
     "client.HeldItemFeatureRendererMixin",
+    "client.MinecraftClientMixin",
     "client.PlayerEntityModelMixin",
     "client.PlayerEntityRendererMixin"
   ]

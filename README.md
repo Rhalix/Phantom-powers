@@ -34,9 +34,9 @@ Walk back through the portal there to come home.
 | R | Ecto Blast: a glowing green energy beam | free |
 | G | Intangibility: walk through walls. Floors stay solid; **hold sneak to sink**, fly up to rise. **Sneak + hold G** on a mob, player or wall keeps it intangible until you let go | 3 |
 | H | Possession: take over a mob or player and control where it goes. Your host gets your glowing ghost eyes, and you get **its powers**: a passive bonus plus a power on **R** (creeper explodes, skeleton shoots, blaze/ghast fireballs, enderman teleports, warden sonic boom, iron golem slam, horse gallop and more). H again to leave | 5 |
-| B | Ghostly Wail: **hold** to keep screaming (up to 10s). Shockwaves break blocks and damage and blast mobs away. Drains you back to human form | 8 |
+| B | Ghostly Wail: **hold** to keep screaming. Shockwaves break blocks and damage and blast mobs away. Drains you back to human form. **Hold it for 5 seconds** and it turns into a cutscene: the camera swings round, you rise up and wail in every direction, then you're drained back to human | 8 |
 | N | Wail Tornado: a giant tornado of wail energy that roams forward, sucking up mobs and ripping up the ground | 12 |
-| J | Invisibility: completely invisible to other players, armor and all | 2 |
+| J | Invisibility: completely invisible, armor and held items too (but the Ghost Hunter Suit can still spot you) | 2 |
 | Z | Frost Breath: **hold** to breathe ice. Enemies that stay in it freeze solid in a block of ice; **punch a frozen enemy on low health to shatter it**. Freezes water too | 6 |
 | K | Open the **Ghost Skills** screen (also a button on your inventory) | - |
 
@@ -56,7 +56,7 @@ Craft: iron ingot / ectoplasm / iron ingot over redstone / firework rocket / red
 Place it, right-click to hop on. You ride it standing up in a surfer stance with your arms out. It flies where you look: W to fly, S to brake, A/D to strafe, **right-click to fire twin lasers**, sneak to hop off. Sneak + right-click it to pick it up.
 
 ## Ghost Hunter Suit
-While the suit is deployed, a small **tracker ring** around your crosshair shows little arrows pointing at nearby ghosts (green) and hostile mobs (red), with the distance to the closest.
+While the suit is deployed, every ghost within 64 blocks (even invisible ones, even behind walls) shows up as a glowing **infrared outline**, and a small **tracker ring** around your crosshair shows little arrows pointing at nearby ghosts (green) and hostile mobs (red), with the distance to the closest.
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
 It's as strong as a full set of netherite armor when deployed. Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
 
