@@ -17,13 +17,12 @@ import net.minecraft.util.math.MathHelper;
 /**
  * The Crate King: a hunched, shouting ghost who wears a shipping crate as armor and an open crate as a crown
  * (its flaps sticking up like crown points). Packing tape wraps his forearms, a shipping-label sash crosses his chest,
- * his lower body is a curling ghost tail, and little boxes orbit around him. Unboxed, he holds Pandora's Box.
+ * and he stomps around in taped work trousers and boots made from crates. Unboxed, he holds Pandora's Box.
  */
 public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(PhantomMod.id("crate_king"), "main");
 	private final ModelPart root;
-	private final ModelPart head, body, box, lid, rightArm, leftArm, tail, tail2, tail3, tail4;
-	private final ModelPart[] orbit = new ModelPart[4];
+	private final ModelPart head, body, box, lid, rightArm, leftArm, rightLeg, leftLeg;
 	private final ModelPart[] flaps = new ModelPart[4];
 
 	public CrateKingModel(ModelPart root) {
@@ -33,10 +32,8 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 		this.body = root.getChild("body");
 		this.box = body.getChild("box");
 		this.lid = box.getChild("lid");
-		this.tail = body.getChild("tail");
-		this.tail2 = tail.getChild("tail2");
-		this.tail3 = tail2.getChild("tail3");
-		this.tail4 = tail3.getChild("tail4");
+		this.rightLeg = root.getChild("right_leg");
+		this.leftLeg = root.getChild("left_leg");
 		this.rightArm = root.getChild("right_arm");
 		this.leftArm = root.getChild("left_arm");
 		ModelPart crown = head.getChild("crown");
@@ -44,7 +41,6 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 		this.flaps[1] = crown.getChild("flap_back");
 		this.flaps[2] = crown.getChild("flap_right");
 		this.flaps[3] = crown.getChild("flap_left");
-		for (int i = 0; i < 4; i++) orbit[i] = root.getChild("orbit" + i);
 	}
 
 	public static TexturedModelData getTexturedModelData() {
@@ -54,13 +50,13 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 				.uv(42, 0).cuboid(-4f, -8f, -4f, 8f, 8f, 8f),
 				ModelTransform.of(0f, 0.5f, -1.5f, 0f, 0f, 0f));
 		ModelPartData p_crown = p_head.addChild("crown", ModelPartBuilder.create()
-				.uv(0, 19).cuboid(-5f, -3f, -5f, 10f, 3f, 10f, new Dilation(0.1f, 0f, 0.1f)),
+				.uv(40, 19).cuboid(-5f, -3f, -5f, 10f, 3f, 10f, new Dilation(0.1f, 0f, 0.1f)),
 				ModelTransform.of(0f, -7.6f, 0f, 0f, 0f, 0f));
 		ModelPartData p_flap_front = p_crown.addChild("flap_front", ModelPartBuilder.create()
-				.uv(0, 51).cuboid(-5f, -4f, -0.5f, 10f, 4f, 1f, new Dilation(0.1f, 0f, -0.3f)),
+				.uv(100, 44).cuboid(-5f, -4f, -0.5f, 10f, 4f, 1f, new Dilation(0.1f, 0f, -0.3f)),
 				ModelTransform.of(0f, -3f, -5f, 0.25f, 0f, 0f));
 		ModelPartData p_flap_back = p_crown.addChild("flap_back", ModelPartBuilder.create()
-				.uv(22, 51).cuboid(-5f, -4f, -0.5f, 10f, 4f, 1f, new Dilation(0.1f, 0f, -0.3f)),
+				.uv(0, 53).cuboid(-5f, -4f, -0.5f, 10f, 4f, 1f, new Dilation(0.1f, 0f, -0.3f)),
 				ModelTransform.of(0f, -3f, 5f, -0.25f, 0f, 0f));
 		ModelPartData p_flap_right = p_crown.addChild("flap_right", ModelPartBuilder.create()
 				.uv(74, 0).cuboid(-0.5f, -4f, -5f, 1f, 4f, 10f, new Dilation(-0.3f, 0f, 0.1f)),
@@ -74,52 +70,36 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 		ModelPartData p_sash = p_body.addChild("sash", ModelPartBuilder.create()
 				.uv(36, 0).cuboid(-1f, -8.5f, -0.5f, 2f, 17f, 1f, new Dilation(-0.1f, 0f, -0.3f)),
 				ModelTransform.of(0f, 6f, -3.7f, 0f, 0f, -0.65f));
-		ModelPartData p_tail = p_body.addChild("tail", ModelPartBuilder.create()
-				.uv(40, 19).cuboid(-4.5f, 0f, -3f, 9f, 6f, 6f),
-				ModelTransform.of(0f, 11.5f, 0.5f, -0.25f, 0f, 0f));
-		ModelPartData p_tail2 = p_tail.addChild("tail2", ModelPartBuilder.create()
-				.uv(0, 32).cuboid(-3.5f, 0f, -2.5f, 7f, 5f, 5f),
-				ModelTransform.of(0f, 5.5f, 0.5f, 0.35f, 0f, 0f));
-		ModelPartData p_tail3 = p_tail2.addChild("tail3", ModelPartBuilder.create()
-				.uv(42, 42).cuboid(-2.5f, 0f, -2f, 5f, 4f, 4f),
-				ModelTransform.of(0f, 4.5f, 0.5f, 0.45f, 0f, 0f));
-		ModelPartData p_tail4 = p_tail3.addChild("tail4", ModelPartBuilder.create()
-				.uv(60, 42).cuboid(-1.5f, 0f, -1.5f, 3f, 4f, 3f),
-				ModelTransform.of(0f, 3.5f, 0.3f, 0.55f, 0f, 0f));
 		ModelPartData p_box = p_body.addChild("box", ModelPartBuilder.create()
-				.uv(70, 19).cuboid(-3f, -3f, -3f, 6f, 6f, 6f),
+				.uv(80, 19).cuboid(-3f, -3f, -3f, 6f, 6f, 6f),
 				ModelTransform.of(0f, 7f, -9f, 0f, 0f, 0f));
 		ModelPartData p_lid = p_box.addChild("lid", ModelPartBuilder.create()
-				.uv(24, 32).cuboid(-3.5f, -1.6f, -7f, 7f, 2f, 7f, new Dilation(0f, -0.2f, 0f)),
+				.uv(68, 33).cuboid(-3.5f, -1.6f, -7f, 7f, 2f, 7f, new Dilation(0f, -0.2f, 0f)),
 				ModelTransform.of(0f, -3f, 3f, 0f, 0f, 0f));
 		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
-				.uv(94, 19).cuboid(-3f, -2f, -2f, 4f, 7f, 4f)
-				.uv(52, 32).cuboid(-3f, 5f, -2f, 4f, 5f, 4f, new Dilation(0.25f, 0f, 0.25f))
-				.uv(68, 32).cuboid(-3.5f, 9.5f, -2.5f, 5f, 4f, 5f),
+				.uv(104, 19).cuboid(-3f, -2f, -2f, 4f, 7f, 4f)
+				.uv(96, 33).cuboid(-3f, 5f, -2f, 4f, 5f, 4f, new Dilation(0.25f, 0f, 0.25f))
+				.uv(0, 44).cuboid(-3.5f, 9.5f, -2.5f, 5f, 4f, 5f),
 				ModelTransform.of(-7f, 1.5f, -1f, 0f, 0f, 0f));
 		ModelPartData p_right_pad = p_right_arm.addChild("right_pad", ModelPartBuilder.create()
-				.uv(88, 32).cuboid(-4f, -3f, -3f, 5f, 3f, 6f, new Dilation(0.1f)),
+				.uv(20, 44).cuboid(-4f, -3f, -3f, 5f, 3f, 6f, new Dilation(0.1f)),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, -0.15f));
 		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
-				.uv(110, 19).cuboid(-1f, -2f, -2f, 4f, 7f, 4f)
-				.uv(110, 32).cuboid(-1f, 5f, -2f, 4f, 5f, 4f, new Dilation(0.25f, 0f, 0.25f))
-				.uv(0, 42).cuboid(-1.5f, 9.5f, -2.5f, 5f, 4f, 5f),
+				.uv(0, 33).cuboid(-1f, -2f, -2f, 4f, 7f, 4f)
+				.uv(42, 44).cuboid(-1f, 5f, -2f, 4f, 5f, 4f, new Dilation(0.25f, 0f, 0.25f))
+				.uv(58, 44).cuboid(-1.5f, 9.5f, -2.5f, 5f, 4f, 5f),
 				ModelTransform.of(7f, 1.5f, -1f, 0f, 0f, 0f));
 		ModelPartData p_left_pad = p_left_arm.addChild("left_pad", ModelPartBuilder.create()
-				.uv(20, 42).cuboid(-1f, -3f, -3f, 5f, 3f, 6f, new Dilation(0.1f)),
+				.uv(78, 44).cuboid(-1f, -3f, -3f, 5f, 3f, 6f, new Dilation(0.1f)),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0.15f));
-		ModelPartData p_orbit0 = r.addChild("orbit0", ModelPartBuilder.create()
-				.uv(72, 42).cuboid(-1.5f, -1.5f, -1.5f, 3f, 3f, 3f),
-				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
-		ModelPartData p_orbit1 = r.addChild("orbit1", ModelPartBuilder.create()
-				.uv(84, 42).cuboid(-1.5f, -1.5f, -1.5f, 3f, 3f, 3f),
-				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
-		ModelPartData p_orbit2 = r.addChild("orbit2", ModelPartBuilder.create()
-				.uv(96, 42).cuboid(-1.5f, -1.5f, -1.5f, 3f, 3f, 3f),
-				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
-		ModelPartData p_orbit3 = r.addChild("orbit3", ModelPartBuilder.create()
-				.uv(108, 42).cuboid(-1.5f, -1.5f, -1.5f, 3f, 3f, 3f),
-				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
+				.uv(0, 19).cuboid(-2.5f, 0f, -2.5f, 5f, 9f, 5f)
+				.uv(16, 33).cuboid(-3f, 8.25f, -3.5f, 6f, 4f, 7f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(-2.8f, 12f, 2f, 0f, 0f, 0f));
+		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
+				.uv(20, 19).cuboid(-2.5f, 0f, -2.5f, 5f, 9f, 5f)
+				.uv(42, 33).cuboid(-3f, 8.25f, -3.5f, 6f, 4f, 7f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(2.8f, 12f, 2f, 0f, 0f, 0f));
 		return TexturedModelData.of(data, 128, 128);
 	}
 
@@ -154,17 +134,14 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 			else flaps[i].roll = (i == 2 ? -0.25f - flutter : 0.25f + flutter);
 		}
 
-		// Ghost tail: curls under him, streams back when he moves, sways side to side
-		float sway = MathHelper.sin(age * 0.09f);
-		float trail = Math.min(1f, limbDistance * 1.5f);
-		tail.pitch = -0.25f + trail * 0.35f;
-		tail.yaw = sway * 0.12f;
-		tail2.pitch = 0.35f + trail * 0.2f + MathHelper.sin(age * 0.09f - 0.8f) * 0.08f;
-		tail2.roll = sway * 0.15f;
-		tail3.pitch = 0.45f + trail * 0.15f + MathHelper.sin(age * 0.09f - 1.6f) * 0.12f;
-		tail3.roll = MathHelper.sin(age * 0.09f - 1.2f) * 0.2f;
-		tail4.pitch = 0.55f + MathHelper.sin(age * 0.09f - 2.4f) * 0.18f;
-		tail4.roll = MathHelper.sin(age * 0.09f - 2f) * 0.3f;
+		// Stomping legs in crate boots; knees buckle when hurt
+		float stride = MathHelper.cos(limbAngle * 0.6662f) * 1.0f * limbDistance;
+		rightLeg.pivotY = 12f + bob;
+		leftLeg.pivotY = 12f + bob;
+		rightLeg.pitch = stride - swing * 0.35f - hurt * 0.3f;
+		leftLeg.pitch = -stride + swing * 0.5f + hurt * 0.2f;
+		rightLeg.roll = 0.04f + hurt * 0.12f;
+		leftLeg.roll = -0.04f - hurt * 0.12f;
 
 		box.visible = evil;
 		if (evil) {
@@ -189,17 +166,5 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 			leftArm.roll = -0.15f - hurt * 0.9f;
 		}
 
-		// Little crates orbit him (faster and wider once Pandora's Box is open)
-		float speed = evil ? 0.11f : 0.06f;
-		float radius = evil ? 15f : 12.5f;
-		for (int i = 0; i < 4; i++) {
-			float a = age * speed + i * MathHelper.HALF_PI;
-			ModelPart o = orbit[i];
-			o.pivotX = MathHelper.cos(a) * radius;
-			o.pivotZ = MathHelper.sin(a) * radius;
-			o.pivotY = 8f + MathHelper.sin(age * 0.1f + i * 1.3f) * 2.5f + bob;
-			o.yaw = a * 2f;
-			o.pitch = age * 0.05f + i;
-		}
 	}
 }
