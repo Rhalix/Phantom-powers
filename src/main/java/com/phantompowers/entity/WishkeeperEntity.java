@@ -44,7 +44,7 @@ import org.joml.Vector3f;
 import java.util.List;
 
 /**
- * The Wishkeeper: an ancient genie ghost (long black hair, gold circlet, blue veil and silks) who grants
+ * The Wishkeeper: an ancient genie ghost (flowing black hair, jeweled headband, sky-blue silks and a curling smoke tail) who grants
  * wishes... the wrong way. Say you want to fly and she'll throw you into the sky. Want to be strong? Enjoy being slow.
  * She fires homing wish orbs, vanishes in smoke, and below half health calls up a Wish Storm
  * and grants herself one last wish.
