@@ -76,7 +76,7 @@ Sneak + right-click to let them all out. It even works on half-ghost players in 
 
 ## Ghost Prison and the Ghost Jailer
 Floating prison fortresses are scattered across the Ghost Zone (about one every 640 blocks). Cells hold captured ghosts.
-The **Ghost Jailer** guards it: it chains you back when you run, calls guard ghosts, and hits hard. It also marks the ground and comes crashing down in a **Prison Slam** shockwave (jump over the ring to dodge it), locks you in an **iron-bar cage** for a few seconds, and **blinks behind you** in a puff of smoke. Below half health it goes into **Lockdown**: faster, and its chains hit everyone nearby. Beat it to free the prisoners and loot the hall, where a Thermos is always waiting.
+The **Ghost Jailer** guards it: a towering warden with a furious shouting face, glowing green eyes and huge gauntleted fists. He points an accusing finger at you when he spots you, and his fists crackle with green ecto energy as he attacks. it chains you back when you run, calls guard ghosts, and hits hard. It also marks the ground and comes crashing down in a **Prison Slam** shockwave (jump over the ring to dodge it), locks you in an **iron-bar cage** for a few seconds, and **blinks behind you** in a puff of smoke. Below half health it goes into **Lockdown**: faster, and its chains hit everyone nearby. Beat it to free the prisoners and loot the hall, where a Thermos is always waiting.
 Weaken it below 30% health and you can trap it in a Thermos.
 
 ## The Crate King

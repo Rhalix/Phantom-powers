@@ -40,6 +40,12 @@ import org.joml.Vector3f;
  * Beat it to free the prisoners.
  */
 public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
+	private static final net.minecraft.entity.data.TrackedData<Boolean> POINTING =
+			net.minecraft.entity.data.DataTracker.registerData(GhostJailerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
+	private static final net.minecraft.entity.data.TrackedData<Integer> CAST =
+			net.minecraft.entity.data.DataTracker.registerData(GhostJailerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.INTEGER);
+	private float pointAnim;
+	private float prevPointAnim;
 	private static final DustParticleEffect CHAIN = new DustParticleEffect(new Vector3f(0.6f, 0.65f, 0.7f), 1.2f);
 	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Ghost Jailer").formatted(Formatting.DARK_GREEN),
 			BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
@@ -54,6 +60,49 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 	public GhostJailerEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
 		this.experiencePoints = 120;
+	}
+
+	@Override
+	protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
+		super.initDataTracker(builder);
+		builder.add(POINTING, false);
+		builder.add(CAST, 0);
+	}
+
+	/** 0..1: how far his fist is raised crackling with ecto energy (client animation). */
+	public float casting() {
+		return Math.min(1f, dataTracker.get(CAST) / 8f);
+	}
+
+	/** 0..1: pointing an accusing finger at you (client animation, eased). */
+	public float pointing() {
+		return pointAnim;
+	}
+
+	private void cast(int ticks) {
+		dataTracker.set(CAST, Math.max(dataTracker.get(CAST), ticks));
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		if (getWorld().isClient) {
+			prevPointAnim = pointAnim;
+			pointAnim += ((dataTracker.get(POINTING) ? 1f : 0f) - pointAnim) * 0.2f;
+			// Green ecto energy crackling around his fists while he powers up an attack
+			if (dataTracker.get(CAST) > 0) {
+				for (int i = 0; i < 3; i++) {
+					double side = (random.nextBoolean() ? 1 : -1) * 0.8;
+					Vec3d fwd = getRotationVector(0, getBodyYaw()).multiply(0.8);
+					getWorld().addParticle(i == 0 ? ParticleTypes.GLOW : com.phantompowers.GhostPowers.GREEN,
+							getX() + fwd.x + Math.cos(Math.toRadians(getBodyYaw())) * side + (random.nextDouble() - 0.5) * 0.5,
+							getY() + getHeight() * 0.62 + random.nextDouble() * 0.8,
+							getZ() + fwd.z + Math.sin(Math.toRadians(getBodyYaw())) * side + (random.nextDouble() - 0.5) * 0.5, 0, 0.03, 0);
+				}
+			}
+		} else if (dataTracker.get(CAST) > 0) {
+			dataTracker.set(CAST, dataTracker.get(CAST) - 1);
+		}
 	}
 
 	public static DefaultAttributeContainer.Builder createAttributes() {
@@ -82,6 +131,7 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 		super.mobTick();
 		bossBar.setPercent(getHealth() / getMaxHealth());
 		LivingEntity target = getTarget();
+		dataTracker.set(POINTING, target != null && target.isAlive() && squaredDistanceTo(target) < 26 * 26 && canSee(target));
 		if (!(getWorld() instanceof ServerWorld w) || target == null) return;
 
 		if (!enraged && getHealth() <= getMaxHealth() * 0.5f) enrage(w);
@@ -137,6 +187,7 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	private void chain(ServerWorld w, LivingEntity target) {
+		cast(12);
 		Vec3d from = getPos().add(0, getHeight() * 0.6, 0);
 		Vec3d to = target.getPos().add(0, target.getHeight() * 0.5, 0);
 		Vec3d d = to.subtract(from);
@@ -152,6 +203,7 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	public void slam(ServerWorld w, LivingEntity target) {
+		cast(24);
 		Vec3d spot = BossMoves.ground(w, target.getPos());
 		BossMoves.warn(w, spot, 3.0, 22, 0x55FF99);
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.JAILER_ROAR, SoundCategory.HOSTILE, 3.0f, 0.8f);
@@ -171,6 +223,7 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	public void lockUp(ServerWorld w, LivingEntity target) {
+		cast(16);
 		if (BossMoves.cage(w, target, net.minecraft.block.Blocks.IRON_BARS, enraged ? 120 : 80) > 0 && target instanceof ServerPlayerEntity p) {
 			p.sendMessage(Text.literal("Ghost Jailer: \"Back in your cell!\"").formatted(Formatting.DARK_GREEN, Formatting.BOLD), true);
 		}

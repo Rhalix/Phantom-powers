@@ -42,9 +42,9 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_cap = p_head.addChild("cap", ModelPartBuilder.create()
 				.uv(48, 17).cuboid(-4.5f, -10.6f, -4.5f, 9f, 2.6f, 9f)
-				.uv(48, 33).cuboid(-4.7f, -8.3f, -4.7f, 9.4f, 0.9f, 9.4f)
-				.uv(84, 45).cuboid(-4.5f, -8f, -7.2f, 9f, 0.7f, 2.8f)
-				.uv(108, 45).cuboid(-1f, -10.3f, -4.8f, 2f, 2f, 0.4f),
+				.uv(0, 45).cuboid(-4.7f, -8.3f, -4.7f, 9.4f, 0.9f, 9.4f)
+				.uv(28, 56).cuboid(-4.5f, -8f, -7.2f, 9f, 0.7f, 2.8f)
+				.uv(52, 56).cuboid(-1f, -10.3f, -4.8f, 2f, 2f, 0.4f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
 				.uv(0, 0).cuboid(-5f, 0f, -2.5f, 10f, 12f, 5f),
@@ -56,47 +56,49 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 				.uv(102, 0).cuboid(-0.6f, -7.5f, -0.4f, 1.2f, 15f, 0.8f),
 				ModelTransform.of(0f, 6f, -2.75f, 0f, 0f, 0.75f));
 		ModelPartData p_keys = p_body.addChild("keys", ModelPartBuilder.create()
-				.uv(114, 45).cuboid(-1f, -0.2f, -0.3f, 2f, 2f, 0.6f)
-				.uv(120, 45).cuboid(-0.3f, 1.6f, -0.3f, 0.6f, 2f, 0.6f)
-				.uv(124, 45).cuboid(0.6f, 1.4f, -0.3f, 0.6f, 1.6f, 0.6f),
+				.uv(58, 56).cuboid(-1f, -0.2f, -0.3f, 2f, 2f, 0.6f)
+				.uv(64, 56).cuboid(-0.3f, 1.6f, -0.3f, 0.6f, 2f, 0.6f)
+				.uv(68, 56).cuboid(0.6f, 1.4f, -0.3f, 0.6f, 1.6f, 0.6f),
 				ModelTransform.of(4.2f, 9.5f, -2.6f, 0f, 0f, 0f));
 		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
 				.uv(108, 0).cuboid(-3f, -2f, -2f, 4f, 12f, 4f),
 				ModelTransform.of(-6f, 2f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_pauldron = p_right_arm.addChild("right_pauldron", ModelPartBuilder.create()
-				.uv(88, 33).cuboid(-3.6f, -3f, -2.6f, 5f, 3.6f, 5.2f),
+				.uv(40, 45).cuboid(-3.6f, -3f, -2.6f, 5f, 3.6f, 5.2f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_gauntlet = p_right_arm.addChild("right_gauntlet", ModelPartBuilder.create()
-				.uv(26, 45).cuboid(-3f, 6f, -2f, 4f, 4f, 4f, new Dilation(0.35f)),
+				.uv(84, 17).cuboid(-3.7f, 6.5f, -2.7f, 5.4f, 5.6f, 5.4f)
+				.uv(104, 45).cuboid(-3.9f, 10.6f, -2.9f, 5.8f, 1.4f, 2.2f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_baton = p_right_arm.addChild("baton", ModelPartBuilder.create()
-				.uv(84, 17).cuboid(-0.8f, -0.8f, -9f, 1.6f, 1.6f, 10f)
-				.uv(74, 45).cuboid(-1.1f, -1.1f, -9.6f, 2.2f, 2.2f, 1.2f),
+				.uv(0, 33).cuboid(-0.8f, -0.8f, -9f, 1.6f, 1.6f, 10f)
+				.uv(0, 56).cuboid(-1.1f, -1.1f, -9.6f, 2.2f, 2.2f, 1.2f),
 				ModelTransform.of(-1f, 9.5f, -1f, 0f, 0f, 0f));
 		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
 				.uv(0, 17).cuboid(-1f, -2f, -2f, 4f, 12f, 4f),
 				ModelTransform.of(6f, 2f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_pauldron = p_left_arm.addChild("left_pauldron", ModelPartBuilder.create()
-				.uv(0, 45).cuboid(-1.4f, -3f, -2.6f, 5f, 3.6f, 5.2f),
+				.uv(62, 45).cuboid(-1.4f, -3f, -2.6f, 5f, 3.6f, 5.2f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_gauntlet = p_left_arm.addChild("left_gauntlet", ModelPartBuilder.create()
-				.uv(42, 45).cuboid(-1f, 6f, -2f, 4f, 4f, 4f, new Dilation(0.35f)),
+				.uv(24, 33).cuboid(-1.7f, 6.5f, -2.7f, 5.4f, 5.6f, 5.4f)
+				.uv(10, 56).cuboid(-1.9f, 10.6f, -2.9f, 5.8f, 1.4f, 2.2f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_arm_chain = p_left_arm.addChild("arm_chain", ModelPartBuilder.create()
-				.uv(58, 45).cuboid(-1f, 2f, -2f, 4f, 2f, 4f, new Dilation(0.45f))
-				.uv(22, 45).cuboid(0.5f, 10f, -0.5f, 1f, 9f, 1f),
+				.uv(88, 45).cuboid(-1f, 2f, -2f, 4f, 2f, 4f, new Dilation(0.45f))
+				.uv(84, 45).cuboid(0.5f, 10f, -0.5f, 1f, 9f, 1f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
 				.uv(30, 0).cuboid(-2.25f, 0f, -2.25f, 4.5f, 12f, 4.5f),
 				ModelTransform.of(-2.4f, 12f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_boot = p_right_leg.addChild("right_boot", ModelPartBuilder.create()
-				.uv(0, 33).cuboid(-2.6f, 6.8f, -2.9f, 5.2f, 5.2f, 5.3f),
+				.uv(48, 33).cuboid(-2.6f, 6.8f, -2.9f, 5.2f, 5.2f, 5.3f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
 				.uv(50, 0).cuboid(-2.25f, 0f, -2.25f, 4.5f, 12f, 4.5f),
 				ModelTransform.of(2.4f, 12f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_boot = p_left_leg.addChild("left_boot", ModelPartBuilder.create()
-				.uv(24, 33).cuboid(-2.6f, 6.8f, -2.9f, 5.2f, 5.2f, 5.3f),
+				.uv(72, 33).cuboid(-2.6f, 6.8f, -2.9f, 5.2f, 5.2f, 5.3f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		return TexturedModelData.of(data, 128, 128);
 	}
@@ -124,12 +126,18 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 		coatTail.pitch = 0.06f + Math.abs(walk) * 0.35f;
 		// Baton raised, ready to strike; swings hard when attacking
 		float swing = MathHelper.sin(e.handSwingProgress * MathHelper.PI);
-		rightArm.pitch = -0.55f - walk * 0.3f - swing * 1.6f;
+		float cast = e.casting();
+		float point = e.pointing();
+		rightArm.pitch = -0.55f - walk * 0.3f - swing * 1.6f - cast * 1.4f;
 		rightArm.yaw = 0.1f;
-		rightArm.roll = 0.08f;
+		rightArm.roll = 0.08f + cast * 0.25f;
 		baton.pitch = 0.6f + swing * 0.6f;
-		leftArm.pitch = walk * 0.5f + MathHelper.sin(age * 0.05f) * 0.05f;
-		leftArm.roll = -0.12f;
+		// Left fist: thrust out to point an accusing finger at you, or raised crackling with ecto energy
+		float shake = MathHelper.sin(age * 2.2f) * 0.05f * cast;
+		leftArm.pitch = MathHelper.lerp(Math.max(point, cast), walk * 0.5f + MathHelper.sin(age * 0.05f) * 0.05f, -1.5f + shake);
+		leftArm.yaw = point * 0.15f * (1 - cast);
+		leftArm.roll = -0.12f - cast * 0.25f;
+		head.pitch += cast * -0.2f;
 		armChain.roll = MathHelper.sin(age * 0.1f) * 0.05f;
 	}
 }
