@@ -41,10 +41,21 @@ public final class ClientGhost {
 		cutsceneToGhost = p.cutsceneToGhost();
 		level = p.level();
 		cutsceneKind = p.cutsceneKind();
+		holding = p.holding();
+		frostCooldown = p.frostCooldown();
+		hostAbility = p.hostAbility();
 		GhostFlags.clientSelfIntangible = intangible;
+		GhostFlags.clientSelfHolding = holding;
 	}
 
+	public static boolean holding;
+	public static int frostCooldown;
+	public static int hostAbility = -1;
+
 	public static void reset() {
+		holding = false;
+		hostAbility = -1;
+		GhostFlags.clientSelfHolding = false;
 		powers = transformed = intangible = possessing = invisible = false;
 		energy = 0;
 		points = progress = unlocked = wailCooldown = tornadoCooldown = exhaust = cutscene = 0;

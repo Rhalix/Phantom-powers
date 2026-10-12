@@ -52,6 +52,26 @@ public final class ModBlocks {
 	public static final Item ECTO_GRASS_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_grass"),
 			new BlockItem(ECTO_GRASS, new Item.Settings()));
 
+	/** Lab-built Ghost Portal: a ring of these (plus Hazard Plating trim) around the opening. */
+	public static final Block PORTAL_FRAME = Registry.register(Registries.BLOCK, PhantomMod.id("ghost_portal_frame"),
+			new Block(AbstractBlock.Settings.create()
+					.mapColor(MapColor.IRON_GRAY)
+					.strength(5.0f, 6.0f)
+					.requiresTool()
+					.luminance(state -> 3)
+					.sounds(BlockSoundGroup.METAL)));
+	public static final Item PORTAL_FRAME_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ghost_portal_frame"),
+			new BlockItem(PORTAL_FRAME, new Item.Settings()));
+
+	public static final Block HAZARD_PLATING = Registry.register(Registries.BLOCK, PhantomMod.id("hazard_plating"),
+			new Block(AbstractBlock.Settings.create()
+					.mapColor(MapColor.YELLOW)
+					.strength(5.0f, 6.0f)
+					.requiresTool()
+					.sounds(BlockSoundGroup.METAL)));
+	public static final Item HAZARD_PLATING_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("hazard_plating"),
+			new BlockItem(HAZARD_PLATING, new Item.Settings()));
+
 	private ModBlocks() {}
 
 	public static void init() {
@@ -59,6 +79,12 @@ public final class ModBlocks {
 			entries.add(ECTO_STONE_ITEM);
 			entries.add(ECTO_GRASS_ITEM);
 			entries.add(GHOST_CRATE_ITEM);
+			entries.add(PORTAL_FRAME_ITEM);
+			entries.add(HAZARD_PLATING_ITEM);
+		});
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> {
+			entries.add(PORTAL_FRAME_ITEM);
+			entries.add(HAZARD_PLATING_ITEM);
 		});
 	}
 }

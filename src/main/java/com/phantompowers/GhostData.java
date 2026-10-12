@@ -42,6 +42,10 @@ public class GhostData {
 	public int blastCooldown;
 	public int wailCooldown;
 	public int tornadoCooldown;
+	public int frostCooldown;
+	public int frostTicks;
+	public int hostAbilityCooldown;
+	public boolean frostHeld;
 	public int exhaust;
 	public int syncTimer;
 

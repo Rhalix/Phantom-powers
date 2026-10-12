@@ -8,15 +8,19 @@ A ghost-powers mod for **Minecraft 1.21.1** with **Fabric**.
 3. Start Minecraft with the Fabric profile.
 
 ## Getting your powers
-1. Build a **Ghost Portal**: a closed frame (like a Nether portal, any size) made of **black concrete**,
-   with **at least 5 iron blocks** somewhere in the frame. Example, standing upright:
+1. Build a **Ghost Portal** like the lab portal from the show: a ring of **Ghost Portal Frame** blocks
+   (craft 8 from 4 iron ingots, 4 redstone and 1 copper ingot) around an opening at least 2 wide and 3 tall.
+   **Hazard Plating** (craft 8 from 4 yellow dye, 4 black dye and 1 iron ingot) counts as frame too, for the striped trim.
+   An octagon looks best:
 
    ```
-   I I B I
-   B . . B
-   B . . B
-   B . . B
-   I B B I      I = iron block, B = black concrete, . = empty
+     H H H H H
+   F F . . . F F
+   F . . . . . F
+   F . . . . . F
+   F . . . . . F
+   F F . . . F F
+     H H H H H        F = Ghost Portal Frame, H = Hazard Plating, . = empty
    ```
 2. Put a **button** inside the opening (on the floor or on an inside wall).
 3. Stand **inside** the portal and press the button. The portal turns on and zaps you.
@@ -31,14 +35,15 @@ Walk back through the portal there to come home.
 | V | Go ghost / go human (you can fly in ghost form) | - |
 | R | Ecto Blast: a glowing green energy beam | free |
 | G | Intangibility: walk through walls. Floors stay solid; **hold sneak to sink**, fly up to rise. **Sneak + hold G** on a mob, player or wall keeps it intangible until you let go | 3 |
-| H | Possession: take over a mob or player and control where it goes. H again to leave | 5 |
+| H | Possession: take over a mob or player and control where it goes. Your host gets your glowing ghost eyes, and you get **its powers**: a passive bonus plus a power on **R** (creeper explodes, skeleton shoots, blaze/ghast fireballs, enderman teleports, warden sonic boom, iron golem slam, horse gallop and more). H again to leave | 5 |
 | B | Ghostly Wail: **hold** to keep screaming (up to 10s). Shockwaves break blocks and damage and blast mobs away. Drains you back to human form | 8 |
 | N | Wail Tornado: a giant tornado of wail energy that roams forward, sucking up mobs and ripping up the ground | 12 |
 | J | Invisibility: completely invisible to other players, armor and all | 2 |
+| Z | Frost Breath: **hold** to breathe ice. Enemies that stay in it freeze solid in a block of ice; **punch a frozen enemy on low health to shatter it**. Freezes water too | 6 |
 | K | Open the **Ghost Skills** screen (also a button on your inventory) | - |
 
 You earn **1 stat point every 30 seconds** in ghost form. Spend them in the Ghost Skills screen, in any order.
-Powers use **ghost energy** (the green bar).
+Powers use **ghost energy** (the green bar). Going ghost plays a **hero pose**: arms thrown wide as the rings pass, then a fist punched to the sky.
 
 ## Ghost Zone doors
 Every floating door in the Ghost Zone leads to **its own room**: libraries, frozen halls, ember chambers,
@@ -53,6 +58,7 @@ Craft: iron ingot / ectoplasm / iron ingot over redstone / firework rocket / red
 Place it, right-click to hop on. You ride it standing up in a surfer stance with your arms out. It flies where you look: W to fly, S to brake, A/D to strafe, **right-click to fire twin lasers**, sneak to hop off. Sneak + right-click it to pick it up.
 
 ## Ghost Hunter Suit
+While the suit is deployed, a small **tracker ring** around your crosshair shows little arrows pointing at nearby ghosts (green) and hostile mobs (red), with the distance to the closest.
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
 It's as strong as a full set of netherite armor when deployed. Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
 
@@ -82,29 +88,35 @@ Beat him for **Pandora's Box** (right-click: a dark shockwave that blasts every 
 
 ## Voltage and the Thunder Guitar
 A punk-rock ghost girl (spiky pink hair, studded leather jacket, plaid skirt, torn fishnets and platform boots) plays a concert stage in every region of the Ghost Zone. Her power chords blast huge sound waves, her solos call down lightning, and her fans fight for her. Her **Amp Blast** sends three sound shockwaves rolling across the floor, and she **Stage Dives** onto you with a lightning crash. Below 40% she goes into an **Encore**: her hair blazes up into a tall electric-pink flame and she electrifies the floor in rings of lightning.
-Beat her for the **Thunder Guitar**. You hold it across your body like a real guitar, and when you use it you strum, slide along the neck and headbang. It's a double-cutaway electric guitar with a lightning-bolt sunburst, gold knobs and a whammy bar: a strong melee weapon. Right-click for a **Power Chord** (a giant glowing cone of sound waves, 16 blocks long), sneak + right-click for a **Lightning Riff** (strikes up to 3 hostile mobs).
+Beat her for the **Thunder Guitar**. You hold it across your body like a real guitar, and when you use it you strum, slide along the neck and headbang. It's a double-cutaway electric guitar with a lightning-bolt sunburst, gold knobs and a whammy bar: a strong melee weapon. Right-click for a **Power Chord** (a giant glowing cone of sound waves, 16 blocks long, played as a real distorted guitar riff), sneak + right-click for a **Lightning Riff** (strikes up to 3 hostile mobs, with a screaming guitar solo).
 
 ## Ghost Blaster
+A detailed silver sci-fi blaster with glowing green energy cells, cooling coils and a scope.
 Craft: iron ingot, iron ingot, glass pane / redstone block, ectoplasm / iron ingot (bottom-left). Right-click to fire. Double damage to ghosts, and stronger and faster with the Ghost Hunter Suit deployed. Repair with ectoplasm.
 
 ## Eating ghosts
 Ghosts and bosses drop their **essence**. Eat it to take their power until you die:
-Hostile Ghost (strength + night vision), Friendly Ghost (constant healing), Ghost Jailer (toughness, your hits chain enemies), Crate King (a crate-armor shield that comes back), Voltage (speed, every 4th hit calls lightning).
+Hostile Ghost (strength + night vision), Friendly Ghost (constant healing), Ghost Jailer (toughness, your hits chain enemies), Crate King (a crate-armor shield that comes back), Voltage (speed, every 4th hit calls lightning), Wishkeeper (luck, and a free random blessing every minute).
 
 ## Room ghosts
 Every door room has its own ghost: Librarian Specter, Frost Wraith, Cinder Spirit, Bloom Sprite, Miser Ghost, Shackled Soul, Gearwork Ghost, Box Hoarder, Cloud Wisp, Drowned Phantom and Spirit Monk. Some are friendly and give gifts, others attack with their own tricks.
 
+## The Wishkeeper
+A genie ghost with a golden turban, a long white beard and a smoke tail floats in a domed golden palace in every region (look for the golden beacon). He grants **twisted wishes**: "You wish you could fly?" throws you into the sky, "You wish to be strong?" weighs you down, "You wish for riches?" makes gold explode around you, and "You wish to be safe?" locks you in a golden cage. He also fires homing wish orbs, vanishes in smoke and spins up sand cyclones. Below half health he calls a **Wish Storm** with smoky copies of himself, and wishes himself back to health once.
+Beat him for the **Wishing Lamp** (right-click for a wish: usually a blessing, sometimes a trick) and his essence. Weaken him below 20% to trap him in a Thermos.
+
 ## Bosses come back, and break out
-Every region of the Ghost Zone has a Ghost Prison (two designs: the Big House and the Spire), a Crate King warehouse and a Voltage stage. Prisons shine a **green beacon beam** you can see from far away. A beaten boss returns to its lair one Minecraft day later.
+Every region of the Ghost Zone has a Ghost Prison (two designs: the Big House and the Spire), a Crate King warehouse, a Voltage stage and the Wishkeeper's palace.
+Prisons have a real inside: the Big House has a two-story admin block with a **cafeteria**, the **warden's office** (with a safe), an armory, an infirmary and a visiting room; the Spire has an admin wing with a cafeteria and an office. Prisons shine a **green beacon beam** you can see from far away. A beaten boss returns to its lair one Minecraft day later.
 Sometimes at night a boss **breaks out into the Overworld** near you. It fades away at sunrise if nobody's around.
 
 ## Ghost level
-Every 2 stat points you earn raises your ghost level. In ghost form you get extra hearts, strength, armor and (from level 5) Resistance, growing with your level.
+Every 2 stat points you earn raises your ghost level. In ghost form you get extra hearts, armor, a **Strength buff** that goes up a level every 7 ghost levels (Strength I up to V) plus extra punch damage, and (from level 5) Resistance, all growing with your level.
 
 If a Ghost Portal won't turn on, the chat tells you what's wrong with the frame.
 
 ## Test commands (cheats on)
-`/phantom grant`, `/phantom prison`, `/phantom crateking`, `/phantom voltage`, `/phantom breakout`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
+`/phantom grant`, `/phantom prison`, `/phantom crateking`, `/phantom voltage`, `/phantom wishkeeper`, `/phantom breakout`, `/phantom sense`, `/phantom testportal`, `/phantom points <n>`, `/phantom unlockall`, `/phantom reset`, `/phantom ghostzone`
 
 ## Multiplayer servers
 Set `allow-flight=true` in `server.properties`, or players floating while intangible may get kicked.

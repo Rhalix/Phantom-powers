@@ -40,7 +40,7 @@ public class ThunderGuitarItem extends Item {
 		stack.damage(1, attacker, EquipmentSlot.MAINHAND);
 		if (attacker.getWorld() instanceof ServerWorld w) {
 			w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, target.getX(), target.getY() + target.getHeight() / 2, target.getZ(), 10, 0.3, 0.4, 0.3, 0.2);
-			strum(w, attacker, 1.0f);
+			w.playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(), ModSounds.GUITAR_HIT, SoundCategory.PLAYERS, 1.2f, 1.0f);
 		}
 		return true;
 	}
@@ -67,7 +67,7 @@ public class ThunderGuitarItem extends Item {
 				e.setOnFireFor(3);
 				n++;
 			}
-			strum(w, user, 1.5f);
+			w.playSound(null, user.getX(), user.getY(), user.getZ(), ModSounds.GUITAR_SOLO, SoundCategory.PLAYERS, 1.6f, 1.0f);
 			user.sendMessage(Text.literal(n > 0 ? "Lightning Riff!" : "No foes to strike.").formatted(Formatting.YELLOW), true);
 			user.getItemCooldownManager().set(this, 100);
 		} else {
@@ -77,8 +77,8 @@ public class ThunderGuitarItem extends Item {
 			com.phantompowers.entity.BossMoves.coneHit(w, user, from, look, 16, 0.55,
 					w.getDamageSources().indirectMagic(user, user), 10f, 1.8, e -> e != user);
 			com.phantompowers.entity.BossMoves.soundWave(w, from.add(look.multiply(0.6)), look, 16f, 0xFF55FF);
-			w.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 0.8f, 1.6f);
-			strum(w, user, 0.8f);
+			w.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 0.4f, 1.6f);
+			w.playSound(null, user.getX(), user.getY(), user.getZ(), ModSounds.GUITAR_RIFF, SoundCategory.PLAYERS, 1.6f, 1.0f);
 			user.getItemCooldownManager().set(this, 30);
 		}
 		stack.damage(1, user, LivingEntity.getSlotForHand(hand));

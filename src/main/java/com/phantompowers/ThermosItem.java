@@ -71,6 +71,7 @@ public class ThermosItem extends Item {
 		if (e instanceof GhostJailerEntity j) return j.getHealth() < j.getMaxHealth() * 0.3f;
 		if (e instanceof com.phantompowers.entity.CrateKingEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.VoltageEntity v) return v.getHealth() < v.getMaxHealth() * 0.2f;
+		if (e instanceof com.phantompowers.entity.WishkeeperEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		return e instanceof AbstractGhostEntity || e instanceof VexEntity || e instanceof PhantomEntity;
 	}
 
@@ -100,8 +101,7 @@ public class ThermosItem extends Item {
 			p.sendMessage(Text.literal("Point the Thermos at a ghost!").formatted(Formatting.GRAY), true);
 			return TypedActionResult.fail(stack);
 		}
-		if ((target instanceof GhostJailerEntity || target instanceof com.phantompowers.entity.CrateKingEntity
-				|| target instanceof com.phantompowers.entity.VoltageEntity) && !canTrap(target)) {
+		if (FrostLogic.isBoss(target) && !canTrap(target)) {
 			p.sendMessage(Text.literal("It's too strong! Weaken it first.").formatted(Formatting.RED), true);
 			return TypedActionResult.fail(stack);
 		}
@@ -115,8 +115,7 @@ public class ThermosItem extends Item {
 
 	/** The ghost begs as it gets pulled in: "No, no, NOOOO!" */
 	public static void scream(ServerWorld w, Entity t) {
-		boolean boss = t instanceof GhostJailerEntity || t instanceof com.phantompowers.entity.CrateKingEntity
-				|| t instanceof com.phantompowers.entity.VoltageEntity;
+		boolean boss = FrostLogic.isBoss(t);
 		float pitch = boss ? 0.72f : 0.9f + w.random.nextFloat() * 0.3f;
 		w.playSound(null, t.getX(), t.getY(), t.getZ(), ModSounds.GHOST_NONONO, SoundCategory.HOSTILE, 1.6f, pitch);
 		Text line = Text.literal("<").append(t.getDisplayName()).append("> ")
@@ -134,7 +133,7 @@ public class ThermosItem extends Item {
 		if (bh.getType() != HitResult.Type.MISS) end = bh.getPos();
 		Box box = p.getBoundingBox().stretch(end.subtract(start)).expand(1.5);
 		EntityHitResult eh = ProjectileUtil.raycast(p, start, end, box,
-				e -> e != p && (canTrap(e) || e instanceof GhostJailerEntity || e instanceof com.phantompowers.entity.CrateKingEntity || e instanceof com.phantompowers.entity.VoltageEntity || isGhostPlayer(e)), start.squaredDistanceTo(end));
+				e -> e != p && (canTrap(e) || FrostLogic.isBoss(e) || isGhostPlayer(e)), start.squaredDistanceTo(end));
 		return eh == null ? null : eh.getEntity();
 	}
 

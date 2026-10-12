@@ -42,6 +42,18 @@ public final class GhostFlags {
 
 	/** Set on the client from the sync packet: is the local player intangible? */
 	public static volatile boolean clientSelfIntangible;
+	/** Set on the client from the sync packet: is the local player holding something intangible? (no sinking then) */
+	public static volatile boolean clientSelfHolding;
+
+	/** Server side: players currently holding something intangible. */
+	public static final Set<UUID> HOLDERS = new HashSet<>();
+
+	public static boolean isHolding(Entity e) {
+		World w = e.getWorld();
+		if (w == null) return false;
+		if (w.isClient) return clientSelfHolding && e instanceof PlayerEntity p && p.isMainPlayer();
+		return !HOLDERS.isEmpty() && HOLDERS.contains(e.getUuid());
+	}
 
 	public static final class TempPhase {
 		public final Entity entity;
@@ -85,5 +97,6 @@ public final class GhostFlags {
 		HOSTS.clear();
 		INVISIBLE.clear();
 		POSSESSORS.clear();
+		HOLDERS.clear();
 	}
 }

@@ -79,5 +79,44 @@
       }
     ],
     "subtitle": "subtitles.phantom.ghost_nonono"
+  },
+  "guitar_riff": {
+    "sounds": [
+      {
+        "name": "phantom:guitar_riff1",
+        "attenuation_distance": 48
+      },
+      {
+        "name": "phantom:guitar_riff2",
+        "attenuation_distance": 48
+      },
+      {
+        "name": "phantom:guitar_riff3",
+        "attenuation_distance": 48
+      },
+      {
+        "name": "phantom:guitar_riff4",
+        "attenuation_distance": 48
+      }
+    ],
+    "subtitle": "subtitles.phantom.guitar_riff"
+  },
+  "guitar_solo": {
+    "sounds": [
+      {
+        "name": "phantom:guitar_solo",
+        "attenuation_distance": 48
+      }
+    ],
+    "subtitle": "subtitles.phantom.guitar_solo"
+  },
+  "guitar_hit": {
+    "sounds": [
+      {
+        "name": "phantom:guitar_hit",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "subtitles.phantom.guitar_hit"
   }
 }

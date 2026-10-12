@@ -5,6 +5,7 @@ import com.phantompowers.entity.CrateProjectileEntity;
 import com.phantompowers.entity.FriendlyGhostEntity;
 import com.phantompowers.entity.GliderEntity;
 import com.phantompowers.entity.VoltageEntity;
+import com.phantompowers.entity.WishkeeperEntity;
 import com.phantompowers.entity.RoomGhostEntity;
 import com.phantompowers.entity.GhostJailerEntity;
 import com.phantompowers.entity.HostileGhostEntity;
@@ -55,6 +56,11 @@ public final class ModEntities {
 			EntityType.Builder.create(RoomGhostEntity::new, SpawnGroup.MONSTER)
 					.dimensions(0.7f, 1.9f).maxTrackingRange(10).build("room_ghost"));
 
+	public static final EntityType<WishkeeperEntity> WISHKEEPER = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("wishkeeper"),
+			EntityType.Builder.create(WishkeeperEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.1f, 3.3f).maxTrackingRange(12).makeFireImmune().build("wishkeeper"));
+
 	private ModEntities() {}
 
 	public static void init() {
@@ -64,5 +70,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(CRATE_KING, CrateKingEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROOM_GHOST, RoomGhostEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(WISHKEEPER, WishkeeperEntity.createAttributes());
 	}
 }

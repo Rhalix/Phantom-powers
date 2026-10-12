@@ -41,7 +41,7 @@ public final class GhostZoneLife {
 
 	private GhostZoneLife() {}
 
-	private enum Lair { PRISON, CRATE_KEEP, STAGE }
+	private enum Lair { PRISON, CRATE_KEEP, STAGE, PALACE }
 
 	public static void tick(MinecraftServer server) {
 		int t = server.getTicks();
@@ -114,6 +114,7 @@ public final class GhostZoneLife {
 			case PRISON -> nearestPrison(zone, near);
 			case CRATE_KEEP -> nearestCrateKeep(zone, near);
 			case STAGE -> nearestStage(zone, near);
+			case PALACE -> nearestPalace(zone, near);
 		};
 	}
 
@@ -131,11 +132,21 @@ public final class GhostZoneLife {
 		return new BlockPos(prison.getX(), prison.getY() - 3, prison.getZ() < cz ? prison.getZ() + 220 : prison.getZ() - 220);
 	}
 
+	/** The Wishkeeper's palace floats in the far corner of the region from its prison (diagonal). */
+	public static BlockPos nearestPalace(ServerWorld zone, BlockPos pos) {
+		BlockPos prison = nearestPrison(zone, pos);
+		int cx = Math.floorDiv(prison.getX(), REGION) * REGION + REGION / 2;
+		int cz = Math.floorDiv(prison.getZ(), REGION) * REGION + REGION / 2;
+		return new BlockPos(prison.getX() < cx ? prison.getX() + 200 : prison.getX() - 200, prison.getY() + 4,
+				prison.getZ() < cz ? prison.getZ() + 200 : prison.getZ() - 200);
+	}
+
 	private static long key(BlockPos c, Lair lair) {
 		return switch (lair) {
 			case PRISON -> c.asLong();
 			case CRATE_KEEP -> c.asLong() ^ 0x5C0FFEE5L;
 			case STAGE -> c.asLong() ^ 0x5717A9E5L;
+			case PALACE -> c.asLong() ^ 0x31511E5L;
 		};
 	}
 
@@ -149,6 +160,7 @@ public final class GhostZoneLife {
 			case PRISON -> GhostPrison.build(zone, c, Random.create(key));
 			case CRATE_KEEP -> CrateKeep.build(zone, c, Random.create(key));
 			case STAGE -> ConcertStage.build(zone, c, Random.create(key));
+			case PALACE -> WishPalace.build(zone, c, Random.create(key));
 		}
 		return true;
 	}
@@ -159,6 +171,10 @@ public final class GhostZoneLife {
 
 	public static boolean ensureCrateKeep(ServerWorld zone, BlockPos c) {
 		return ensureLair(zone, c, Lair.CRATE_KEEP);
+	}
+
+	public static boolean ensurePalace(ServerWorld zone, BlockPos c) {
+		return ensureLair(zone, c, Lair.PALACE);
 	}
 
 	public static boolean ensureStage(ServerWorld zone, BlockPos c) {
@@ -175,6 +191,7 @@ public final class GhostZoneLife {
 			case PRISON -> GhostJailerEntity.class;
 			case CRATE_KEEP -> CrateKingEntity.class;
 			case STAGE -> VoltageEntity.class;
+			case PALACE -> com.phantompowers.entity.WishkeeperEntity.class;
 		};
 		if (!zone.getEntitiesByClass(boss, area, e -> e.isAlive()).isEmpty()) {
 			rs.markBoss(key, zone.getTime()); // still alive: check again later
@@ -195,6 +212,10 @@ public final class GhostZoneLife {
 					zone.spawnEntity(k);
 				}
 				name = "The Crate King is back in his warehouse!";
+			}
+			case PALACE -> {
+				WishPalace.spawnBoss(zone, c);
+				name = "The Wishkeeper has returned to his palace... careful what you wish for!";
 			}
 			default -> {
 				VoltageEntity v = ModEntities.VOLTAGE.create(zone);
@@ -236,7 +257,7 @@ public final class GhostZoneLife {
 			if (!p.isAlive() || p.isSpectator() || p.isCreative()) continue;
 			if (ow.getRandom().nextInt(25) != 0) continue;
 			if (!ow.getEntitiesByClass(AbstractGhostEntity.class, p.getBoundingBox().expand(128),
-					e -> e instanceof GhostJailerEntity || e instanceof CrateKingEntity || e instanceof VoltageEntity).isEmpty()) continue;
+					e -> com.phantompowers.FrostLogic.isBoss(e)).isEmpty()) continue;
 			breakout(ow, p.getBlockPos());
 		}
 	}
@@ -248,9 +269,10 @@ public final class GhostZoneLife {
 		int x = near.getX() + (int) (Math.cos(a) * (30 + r.nextInt(15)));
 		int z = near.getZ() + (int) (Math.sin(a) * (30 + r.nextInt(15)));
 		int y = ow.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z) + 3;
-		AbstractGhostEntity boss = switch (r.nextInt(3)) {
+		AbstractGhostEntity boss = switch (r.nextInt(4)) {
 			case 0 -> ModEntities.GHOST_JAILER.create(ow);
 			case 1 -> ModEntities.CRATE_KING.create(ow);
+			case 2 -> ModEntities.WISHKEEPER.create(ow);
 			default -> ModEntities.VOLTAGE.create(ow);
 		};
 		if (boss == null) return null;

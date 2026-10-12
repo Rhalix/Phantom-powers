@@ -63,6 +63,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(InvisiblePayload.ID, InvisiblePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RingPayload.ID, RingPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(GhostSensePayload.ID, GhostSensePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.EntityFxPayload.ID, com.phantompowers.network.EntityFxPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShockwavePayload.ID, com.phantompowers.network.ShockwavePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
@@ -111,6 +112,8 @@ public class PhantomMod implements ModInitializer {
 		// Hits by players who ate ghost essences
 		net.fabricmc.fabric.api.event.player.AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
 			if (!world.isClient && player instanceof ServerPlayerEntity sp && entity instanceof net.minecraft.entity.LivingEntity le) {
+				// Punch a frozen, badly hurt enemy and it shatters
+				if (FrostLogic.tryShatter(sp, le)) return ActionResult.SUCCESS;
 				GhostPowers.onPlayerHit(sp, le);
 			}
 			return ActionResult.PASS;
@@ -127,6 +130,7 @@ public class PhantomMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			GhostPowers.onServerStopping();
 			com.phantompowers.entity.BossMoves.restoreAll();
+			FrostLogic.clearAll();
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->

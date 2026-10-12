@@ -49,5 +49,15 @@
   "item.phantom.jailer_essence": "Ghost Jailer Essence",
   "item.phantom.crate_king_essence": "Crate King Essence",
   "item.phantom.voltage_essence": "Voltage Essence",
-  "subtitles.phantom.ghost_nonono": "Ghost: \"No no no!\""
+  "subtitles.phantom.ghost_nonono": "Ghost: \"No no no!\"",
+  "key.phantom.frost": "Frost Breath (hold)",
+  "subtitles.phantom.guitar_riff": "Electric guitar riff",
+  "subtitles.phantom.guitar_solo": "Guitar solo",
+  "subtitles.phantom.guitar_hit": "Guitar chord",
+  "block.phantom.ghost_portal_frame": "Ghost Portal Frame",
+  "block.phantom.hazard_plating": "Hazard Plating",
+  "entity.phantom.wishkeeper": "The Wishkeeper",
+  "item.phantom.wishkeeper_spawn_egg": "Wishkeeper Spawn Egg",
+  "item.phantom.wishkeeper_essence": "Wishkeeper Essence",
+  "item.phantom.wishing_lamp": "Wishing Lamp"
 }

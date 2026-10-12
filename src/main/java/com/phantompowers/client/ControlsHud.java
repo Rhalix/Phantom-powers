@@ -52,9 +52,17 @@ public final class ControlsHud {
 					"possess what you look at",
 					"Ghostly Wail (hold to keep wailing)",
 					"Wail Tornado",
-					"invisible"};
+					"invisible",
+					"Frost Breath (hold)"};
 			for (int i = 0; i < keys.length; i++) {
-				if (ClientGhost.has(i)) lines.add(new Line(name(keys[i]), help[i]));
+				if (!ClientGhost.has(i)) continue;
+				if (i == GhostPowers.BLAST && ClientGhost.possessing && ClientGhost.hostAbility >= 0) {
+					String passive = com.phantompowers.HostPowers.PASSIVES[ClientGhost.hostAbility];
+					lines.add(new Line(name(keys[i]), "host power: " + com.phantompowers.HostPowers.NAMES[ClientGhost.hostAbility]
+							+ (passive.isEmpty() ? "" : "  (+" + passive + ")")));
+					continue;
+				}
+				lines.add(new Line(name(keys[i]), help[i]));
 			}
 			lines.add(new Line(name(PhantomClient.SKILLS), "Ghost Skills (unlock powers)"));
 		}

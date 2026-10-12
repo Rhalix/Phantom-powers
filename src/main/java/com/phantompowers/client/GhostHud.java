@@ -61,7 +61,7 @@ public final class GhostHud {
 		for (int i = 0; i < keys.length; i++) {
 			if (!ClientGhost.has(i)) continue;
 			String text = PhantomClient.keyName(keys[i]) + "  " + GhostPowers.NAMES[i];
-			int cd = i == GhostPowers.WAIL ? ClientGhost.wailCooldown : i == GhostPowers.TORNADO ? ClientGhost.tornadoCooldown : 0;
+			int cd = i == GhostPowers.WAIL ? ClientGhost.wailCooldown : i == GhostPowers.TORNADO ? ClientGhost.tornadoCooldown : i == GhostPowers.FROST ? ClientGhost.frostCooldown : 0;
 			int color = ClientGhost.transformed ? WHITE : GRAY;
 			if (cd > 0) {
 				text += " " + (cd / 20 + 1) + "s";

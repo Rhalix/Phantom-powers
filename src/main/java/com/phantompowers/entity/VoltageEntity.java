@@ -242,11 +242,16 @@ public class VoltageEntity extends AbstractGhostEntity implements Monster {
 		playChord(w, 1.2f);
 	}
 
+	private int musicCooldown;
+
+	/** Real guitar riffs (not too often, so they don't pile up on each other). */
 	private void playChord(ServerWorld w, float pitch) {
-		SoundEvent guitar = SoundEvents.BLOCK_NOTE_BLOCK_GUITAR.value();
-		w.playSound(null, getX(), getY(), getZ(), guitar, SoundCategory.HOSTILE, 3.0f, pitch);
-		w.playSound(null, getX(), getY(), getZ(), guitar, SoundCategory.HOSTILE, 3.0f, pitch * 1.26f);
-		w.playSound(null, getX(), getY(), getZ(), guitar, SoundCategory.HOSTILE, 3.0f, pitch * 1.5f);
+		if (age < musicCooldown) {
+			w.playSound(null, getX(), getY(), getZ(), ModSounds.GUITAR_HIT, SoundCategory.HOSTILE, 2.0f, pitch < 1 ? 1f : 1.12f);
+			return;
+		}
+		musicCooldown = age + 50;
+		w.playSound(null, getX(), getY(), getZ(), pitch > 1 ? ModSounds.GUITAR_SOLO : ModSounds.GUITAR_RIFF, SoundCategory.HOSTILE, 3.0f, 1.0f);
 	}
 
 	private void encore(ServerWorld w) {
@@ -302,7 +307,7 @@ public class VoltageEntity extends AbstractGhostEntity implements Monster {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		return SoundEvents.BLOCK_NOTE_BLOCK_GUITAR.value();
+		return ModSounds.GUITAR_HIT;
 	}
 
 	@Override

@@ -42,6 +42,14 @@ public final class ClientRings {
 		ACTIVE.add(new Rings(p.entityId(), p.duration(), p.style()));
 	}
 
+	/** How far along this entity's ghost transformation is (0..1), or -1 if it isn't transforming. */
+	public static float transformProgress(int entityId, float partial) {
+		for (Rings r : ACTIVE) {
+			if (r.entityId == entityId && r.style == 0) return Math.min(1f, (r.age + partial) / r.duration);
+		}
+		return -1f;
+	}
+
 	public static void tick() {
 		ACTIVE.removeIf(r -> ++r.age > r.duration);
 	}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "phantom:block/ghost_portal_frame"
+    }
+  }
+}

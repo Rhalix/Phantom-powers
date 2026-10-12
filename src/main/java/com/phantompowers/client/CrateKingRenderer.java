@@ -37,7 +37,7 @@ public class CrateKingRenderer extends MobEntityRenderer<CrateKingEntity, CrateK
 
 	@Override
 	protected void scale(CrateKingEntity e, MatrixStack matrices, float amount) {
-		float s = e.isEvil() ? 2.1f : 1.9f;
+		float s = e.isEvil() ? 1.85f : 1.7f;
 		matrices.scale(s, s, s);
 	}
 

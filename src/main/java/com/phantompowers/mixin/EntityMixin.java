@@ -38,7 +38,8 @@ public abstract class EntityMixin {
 		ci.cancel();
 
 		boolean flying = self instanceof PlayerEntity p && p.getAbilities().flying;
-		boolean sinking = !flying && self.isSneaking();
+		// Sneak + G is how you grab things, so holding something never makes you sink
+		boolean sinking = !flying && self.isSneaking() && !GhostFlags.isHolding(self);
 		double dy = movement.y;
 		if (sinking) {
 			dy = Math.max(Math.min(dy, -0.15), -0.35);

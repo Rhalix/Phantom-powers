@@ -300,6 +300,9 @@ public final class GhostPrison {
 		b.box(-2, 10, -24, 2, 22, -20, tile);
 		b.beacon(0, 23, -22);
 
+		// The admin block: cafeteria, warden's office, armory, infirmary and visiting room
+		PrisonInterior.adminBlock(b.w, b.c, b.r);
+
 		// Exercise yard centerpiece: a chained soul pillar
 		for (int y = 0; y <= 5; y++) b.set(0, y, 4, Blocks.POLISHED_BASALT.getDefaultState());
 		b.set(0, 6, 4, Blocks.SOUL_CAMPFIRE.getDefaultState());
@@ -384,5 +387,7 @@ public final class GhostPrison {
 			}
 		b.beacon(0, TOP + 2, 0);
 		b.set(0, TOP + 1, 0, Blocks.IRON_BLOCK.getDefaultState());
+		// Admin wing on the south side: cafeteria and warden's office
+		PrisonInterior.spireWing(b.w, b.c, b.r, R);
 	}
 }

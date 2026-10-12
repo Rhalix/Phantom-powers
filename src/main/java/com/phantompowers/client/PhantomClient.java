@@ -48,10 +48,11 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding INVISIBLE;
 	public static KeyBinding SKILLS;
 	public static KeyBinding SUIT;
+	public static KeyBinding FROST;
 
 	/** Key bound to each skill, in skill order (used by the HUD and skills screen). */
 	public static KeyBinding[] skillKeys() {
-		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE};
+		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST};
 	}
 
 	private static boolean intangibleHeld;
@@ -59,6 +60,7 @@ public class PhantomClient implements ClientModInitializer {
 	private static int suitHeld;
 	private static int fireDelay;
 	private static boolean wailHeld;
+	private static boolean frostHeld;
 	private static final int HOLD_TICKS = 10;
 
 	@Override
@@ -72,11 +74,13 @@ public class PhantomClient implements ClientModInitializer {
 		INVISIBLE = key("invisible", GLFW.GLFW_KEY_J);
 		SKILLS = key("skills", GLFW.GLFW_KEY_K);
 		SUIT = key("suit", GLFW.GLFW_KEY_U);
+		FROST = key("frost", GLFW.GLFW_KEY_Z);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
 			ClientRings.tick();
 			ClientShockwaves.tick();
+			ClientEntityFx.tick();
 			ClientGhostSense.tick(client);
 			ClientCutscene.tick(client);
 			if (client.player == null) return;
@@ -94,6 +98,11 @@ public class PhantomClient implements ClientModInitializer {
 			while (INTANGIBLE.wasPressed()) send(GhostPowers.A_INTANGIBLE);
 			while (POSSESS.wasPressed()) send(GhostPowers.A_POSSESS);
 			while (WAIL.wasPressed()) send(GhostPowers.A_WAIL);
+			// Z: hold to keep breathing frost
+			while (FROST.wasPressed()) send(GhostPowers.A_FROST);
+			boolean frostNow = FROST.isPressed();
+			if (frostHeld && !frostNow) send(GhostPowers.A_FROST_RELEASE);
+			frostHeld = frostNow;
 			boolean wailNow = WAIL.isPressed();
 			if (wailHeld && !wailNow) send(GhostPowers.A_WAIL_RELEASE);
 			wailHeld = wailNow;
@@ -137,6 +146,7 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_SUITED.addAll(payload.suited());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.EntityFxPayload.ID, (payload, context) -> ClientEntityFx.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShockwavePayload.ID, (payload, context) -> ClientShockwaves.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(GhostSensePayload.ID, (payload, context) -> ClientGhostSense.add(payload));
 
@@ -165,8 +175,10 @@ public class PhantomClient implements ClientModInitializer {
 						ctx.getPart(GhostSuitFeature.WIDE), ctx.getPart(GhostSuitFeature.SLIM)));
 			}
 		});
-		EntityRendererRegistry.register(ModEntities.GHOST_JAILER,
-				ctx -> new GhostRenderer<>(ctx, PhantomMod.id("textures/entity/ghost_jailer.png"), 1.8f));
+		EntityModelLayerRegistry.registerModelLayer(JailerModel.LAYER, JailerModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.GHOST_JAILER, JailerRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(WishkeeperModel.LAYER, WishkeeperModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.WISHKEEPER, WishkeeperRenderer::new);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ClientGhost.reset();
 			GhostFlags.clientSelfIntangible = false;
@@ -176,6 +188,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientBeams.clear();
 			ClientRings.clear();
 			ClientShockwaves.clear();
+			ClientEntityFx.clear();
 			ClientGhostSense.clear();
 			ClientCutscene.reset(client);
 		});
@@ -198,10 +211,12 @@ public class PhantomClient implements ClientModInitializer {
 			ClientRings.render(ctx);
 			ClientGhostSense.render(ctx);
 			ClientShockwaves.render(ctx);
+			ClientEntityFx.render(ctx);
 		});
 		HudRenderCallback.EVENT.register(ClientCutscene::renderHud);
 		HudRenderCallback.EVENT.register(ClientGhostSense::renderHud);
 		HudRenderCallback.EVENT.register(ControlsHud::render);
+		HudRenderCallback.EVENT.register(SuitTrackerHud::render);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

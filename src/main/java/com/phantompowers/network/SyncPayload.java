@@ -8,7 +8,8 @@ import net.minecraft.network.packet.CustomPayload;
 /** Server -> client: the player's ghost status, for the HUD. */
 public record SyncPayload(boolean powers, boolean transformed, boolean intangible, boolean possessing, boolean invisible,
 						  float energy, int points, int progress, int unlocked, int wailCooldown, int tornadoCooldown, int exhaust,
-						  int cutscene, boolean cutsceneToGhost, int level, int cutsceneKind)
+						  int cutscene, boolean cutsceneToGhost, int level, int cutsceneKind,
+						  boolean holding, int frostCooldown, int hostAbility)
 		implements CustomPayload {
 
 	public static final CustomPayload.Id<SyncPayload> ID = new CustomPayload.Id<>(PhantomMod.id("sync"));
@@ -32,12 +33,16 @@ public record SyncPayload(boolean powers, boolean transformed, boolean intangibl
 		buf.writeBoolean(cutsceneToGhost);
 		buf.writeVarInt(level);
 		buf.writeVarInt(cutsceneKind);
+		buf.writeBoolean(holding);
+		buf.writeVarInt(frostCooldown);
+		buf.writeVarInt(hostAbility + 1);
 	}
 
 	private static SyncPayload read(PacketByteBuf buf) {
 		return new SyncPayload(buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
 				buf.readFloat(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
-				buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt());
+				buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt(),
+				buf.readBoolean(), buf.readVarInt(), buf.readVarInt() - 1);
 	}
 
 	@Override

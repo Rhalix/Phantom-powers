@@ -67,22 +67,24 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5;
-	public static final int SKILL_COUNT = 6;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility"};
-	public static final int[] COSTS = {0, 3, 5, 8, 12, 2};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6;
+	public static final int SKILL_COUNT = 7;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6};
 	public static final String[] DESCRIPTIONS = {
 			"Fire a beam of green ecto energy.",
 			"Walk through walls. Sneak to sink, fly to rise. Sneak+hold to phase others.",
 			"Take over a mob or player and control where it goes.",
 			"A huge scream that breaks blocks and blasts mobs away.",
 			"A giant tornado of wail energy that rips up the ground.",
-			"Turn completely invisible, armor and all."
+			"Turn completely invisible, armor and all.",
+			"Hold to breathe ice. Freeze enemies solid, then punch to shatter."
 	};
 
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
-			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12, A_UNLOCK = 100;
+			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
+			A_FROST = 13, A_FROST_RELEASE = 14, A_UNLOCK = 100;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -110,7 +112,12 @@ public final class GhostPowers {
 		switch (action) {
 			case A_TRANSFORM -> { if (d.cutscene == 0) toggleTransform(p, d, true); }
 			case A_TRANSFORM_CUTSCENE -> startCutscene(p, d);
-			case A_BLAST -> { if (ready(p, d, st, BLAST)) blast(p, d); }
+			case A_BLAST -> {
+				if (d.possessing != null) HostPowers.active(p, d);
+				else if (ready(p, d, st, BLAST)) blast(p, d);
+			}
+			case A_FROST -> { if (ready(p, d, st, FROST)) FrostLogic.start(p, d); }
+			case A_FROST_RELEASE -> d.frostHeld = false;
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
@@ -207,14 +214,15 @@ public final class GhostPowers {
 
 	// ------------------------------------------------------- devoured essences
 
-	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4;
-	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage"};
+	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4, ESS_WISH = 5;
+	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage", "Wishkeeper"};
 	public static final String[] ESSENCE_POWERS = {
 			"Strength and night vision",
 			"Constant healing",
 			"Toughness, and your hits chain enemies (slow them)",
 			"A crate-armor shield that keeps coming back",
-			"Speed, and every 4th hit calls down lightning"};
+			"Speed, and every 4th hit calls down lightning",
+			"Luck, and a free wish (a random blessing) every minute"};
 
 	public static void eatEssence(ServerPlayerEntity p, int power) {
 		GhostState st = GhostState.of(p.getServer());
@@ -251,6 +259,10 @@ public final class GhostPowers {
 		if ((d.eaten & (1 << ESS_VOLTAGE)) != 0) {
 			p.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 120, 1, true, false, true));
 		}
+		if ((d.eaten & (1 << ESS_WISH)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.LUCK, 120, 1, true, false, true));
+			if (p.age % 1200 < 40) WishingLampItem.grantWish(p, false);
+		}
 	}
 
 	/** Melee hits by a player who ate certain essences. */
@@ -285,7 +297,11 @@ public final class GhostPowers {
 	}
 
 	public static double statBonusDamage(GhostData d) {
-		return Math.min(12.0, 1.0 + 0.5 * (level(d) - 1));
+		return Math.min(18.0, 1.0 + 0.6 * (level(d) - 1));
+	}
+
+	public static int strengthAmp(GhostData d) {
+		return Math.min(4, (level(d) - 1) / 7);
 	}
 
 	public static double statBonusArmor(GhostData d) {
@@ -308,6 +324,13 @@ public final class GhostPowers {
 		setMod(p, EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, MOD_KNOCK, on ? Math.min(0.6, 0.1 + lvl * 0.02) : 0);
 		if (on && lvl >= 5) {
 			p.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 60, lvl >= 15 ? 1 : 0, true, false, true));
+		}
+		// Ghost strength: Strength I from the start, one level stronger every 7 ghost levels (up to Strength V)
+		if (on) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 60, strengthAmp(d), true, false, true));
+		} else {
+			StatusEffectInstance st = p.getStatusEffect(StatusEffects.STRENGTH);
+			if (st != null && st.isAmbient() && st.getDuration() <= 60) p.removeStatusEffect(StatusEffects.STRENGTH);
 		}
 		if (!on && p.getHealth() > p.getMaxHealth()) p.setHealth(p.getMaxHealth());
 	}
@@ -484,6 +507,7 @@ public final class GhostPowers {
 			d.energy -= PHASE_TARGET_COST;
 			GhostFlags.TEMP.put(target.getUuid(), new GhostFlags.TempPhase(target, 600));
 			d.holding = target;
+			GhostFlags.HOLDERS.add(p.getUuid());
 			phaseSelfForHold(p, d);
 			if (target instanceof MobEntity mob) {
 				d.heldPrevAi = mob.isAiDisabled();
@@ -519,6 +543,7 @@ public final class GhostPowers {
 		}
 		if (phased > 0) {
 			HELD_BLOCKS.put(p.getUuid(), held);
+			GhostFlags.HOLDERS.add(p.getUuid());
 			phaseSelfForHold(p, d);
 			d.energy -= PHASE_TARGET_COST;
 			sound(p, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 0.8f);
@@ -529,6 +554,8 @@ public final class GhostPowers {
 	/** Let go of whatever you're holding intangible. */
 	public static void releaseHold(ServerPlayerEntity p, GhostData d, boolean message) {
 		boolean released = false;
+		GhostFlags.HOLDERS.remove(p.getUuid());
+		d.syncTimer = 0;
 		if (d.holding != null) {
 			Entity e = d.holding;
 			d.holding = null;
@@ -551,6 +578,7 @@ public final class GhostPowers {
 
 	/** Whoever you phase, you phase with them. */
 	private static void phaseSelfForHold(ServerPlayerEntity p, GhostData d) {
+		d.syncTimer = 0;
 		if (d.intangible) return;
 		d.intangible = true;
 		d.holdMadeIntangible = true;
@@ -683,7 +711,7 @@ public final class GhostPowers {
 		p.teleport(w, target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
 		w.spawnParticles(GREEN, target.getX(), target.getY() + target.getHeight() / 2, target.getZ(), 40, 0.4, 0.6, 0.4, 0);
 		sound(p, SoundEvents.ENTITY_VEX_CHARGE, 1.0f, 0.7f);
-		bar(p, "You possessed " + target.getName().getString() + "! Move to control it. Press H to leave.", Formatting.GREEN);
+		bar(p, "You possessed " + target.getName().getString() + "! R: " + HostPowers.NAMES[HostPowers.kind(target)] + ". H to leave.", Formatting.GREEN);
 		if (target instanceof ServerPlayerEntity tp) {
 			tp.sendMessage(Text.literal("You've been possessed by " + p.getName().getString() + "!").formatted(Formatting.GREEN), true);
 		}
@@ -1029,6 +1057,7 @@ public final class GhostPowers {
 		tickPhasedBlocks();
 		WAVES.removeIf(WailWave::tick);
 		TORNADOES.removeIf(Tornado::tick);
+		FrostLogic.tick(server);
 	}
 
 	private static void tickPlayer(ServerPlayerEntity p, GhostData d, GhostState st) {
@@ -1089,6 +1118,9 @@ public final class GhostPowers {
 		tickHold(p, d);
 		tickCutscene(p, d);
 		tickWail(p, d);
+		FrostLogic.tickBreath(p, d);
+		if (d.hostAbilityCooldown > 0) d.hostAbilityCooldown--;
+		if (d.possessing != null && p.age % 20 == 0) HostPowers.passive(p, d.possessing);
 		HunterSuit.tick(p, d);
 
 		if (--d.syncTimer <= 0) {
@@ -1269,7 +1301,8 @@ public final class GhostPowers {
 		if (!ServerPlayNetworking.canSend(p, SyncPayload.ID)) return;
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
-				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d), d.cutsceneKind));
+				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d), d.cutsceneKind,
+				d.holding != null || HELD_BLOCKS.containsKey(p.getUuid()), d.frostCooldown, d.possessing == null ? -1 : HostPowers.kind(d.possessing)));
 	}
 
 	private static boolean useEnergy(ServerPlayerEntity p, GhostData d, float amount) {

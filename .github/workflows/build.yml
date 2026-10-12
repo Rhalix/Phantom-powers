@@ -71,8 +71,12 @@ jobs:
             echo "phantom teststage" >&3
             echo "phantom breakout" >&3
             echo "phantom testbosses" >&3
+            echo "phantom testpalace" >&3
+            echo "phantom testfrost" >&3
+            echo "phantom testhost" >&3
             echo "execute in phantom:ghost_zone run summon phantom:voltage 24 120 24 {Health:90f}" >&3
             echo "execute in phantom:ghost_zone run summon phantom:room_ghost 10 120 10" >&3
+            echo "execute in phantom:ghost_zone run summon phantom:wishkeeper 14 120 14" >&3
             echo "execute in phantom:ghost_zone run summon phantom:crate_king 20 120 20 {Health:120f}" >&3
             sleep 5
             sleep 30
@@ -94,6 +98,10 @@ jobs:
           grep -q "Summoned new Ghost Jailer" server.log || { echo "Summon test did not pass" >> problems.txt; grep -n -B1 -A2 "summon" server.log >> problems.txt; ok=0; }
           grep -q "Boss test: OK" server.log || { echo "Boss moves test failed" >> problems.txt; grep -n -A5 "testbosses\|Boss test" server.log >> problems.txt; ok=0; }
           grep -q "Boss cleanup: OK" server.log || { echo "Boss cage cleanup failed" >> problems.txt; grep -n "Boss cleanup" server.log >> problems.txt; ok=0; }
+          grep -q "Palace test: OK" server.log || { echo "Palace test failed" >> problems.txt; grep -n -A3 "testpalace\|Palace test" server.log >> problems.txt; ok=0; }
+          grep -q "Frost test: OK" server.log || { echo "Frost test failed" >> problems.txt; grep -n -A3 "testfrost\|Frost test" server.log >> problems.txt; ok=0; }
+          grep -q "Host test: OK" server.log || { echo "Host test failed" >> problems.txt; grep -n -A3 "testhost\|Host test" server.log >> problems.txt; ok=0; }
+          grep -q "Wish Storm" server.log || { echo "Wishkeeper stage two never triggered" >> problems.txt; ok=0; }
           grep -q "Lockdown" server.log || { echo "Jailer lockdown never triggered" >> problems.txt; ok=0; }
           grep -q "Room test: OK" server.log || { echo "Room test did not pass" >> problems.txt; grep -n -A3 "Room test\|testrooms" server.log >> problems.txt; ok=0; }
           if [ $ok != 1 ] || grep -qE "ERROR|Exception" problems.txt; then
@@ -105,7 +113,7 @@ jobs:
             done
             exit 1
           fi
-          detail=$(grep -iE "Done \(|Portal test|Room test|Prison test|Crate test|Stage test|Boss test|Boss cleanup|Breakout|Encore|Pandora|Summoned|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          detail=$(grep -iE "Done \(|Portal test|Room test|Prison test|Crate test|Stage test|Boss test|Boss cleanup|Palace test|Frost test|Host test|Wish Storm|Breakout|Encore|Pandora|Summoned|forceload|Marked|Unknown|Incorrect|Loading [0-9]+ mods|phantom" server.log | head -20 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
           echo "::notice title=Server test passed::$detail"
 
       - name: Test the game client starts

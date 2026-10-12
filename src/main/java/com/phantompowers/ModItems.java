@@ -70,7 +70,13 @@ public final class ModItems {
 			essence("friendly_ghost_essence", GhostPowers.ESS_FRIENDLY, Rarity.UNCOMMON),
 			essence("jailer_essence", GhostPowers.ESS_JAILER, Rarity.EPIC),
 			essence("crate_king_essence", GhostPowers.ESS_CRATE, Rarity.EPIC),
-			essence("voltage_essence", GhostPowers.ESS_VOLTAGE, Rarity.EPIC)};
+			essence("voltage_essence", GhostPowers.ESS_VOLTAGE, Rarity.EPIC),
+			essence("wishkeeper_essence", GhostPowers.ESS_WISH, Rarity.EPIC)};
+
+	public static final Item WISHKEEPER_EGG = Registry.register(Registries.ITEM, PhantomMod.id("wishkeeper_spawn_egg"),
+			new SpawnEggItem(ModEntities.WISHKEEPER, 0x2FC9B8, 0xF2C230, new Item.Settings()));
+	public static final Item WISHING_LAMP = Registry.register(Registries.ITEM, PhantomMod.id("wishing_lamp"),
+			new WishingLampItem(new Item.Settings().maxDamage(30).rarity(Rarity.EPIC).fireproof()));
 
 	private static Item essence(String name, int power, Rarity rarity) {
 		return Registry.register(Registries.ITEM, PhantomMod.id(name), new EssenceItem(power, new Item.Settings().rarity(rarity)));
@@ -92,6 +98,7 @@ public final class ModItems {
 			e.add(GHOST_BLASTER);
 			e.add(THUNDER_GUITAR);
 			e.add(PANDORAS_BOX);
+			e.add(WISHING_LAMP);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(HOSTILE_GHOST_EGG);
@@ -99,6 +106,7 @@ public final class ModItems {
 			e.add(GHOST_JAILER_EGG);
 			e.add(CRATE_KING_EGG);
 			e.add(VOLTAGE_EGG);
+			e.add(WISHKEEPER_EGG);
 		});
 	}
 }

@@ -35,13 +35,54 @@ public abstract class BipedEntityModelMixin {
 		if (!(entity instanceof PlayerEntity)) return;
 		if (entity.getVehicle() instanceof GliderEntity) phantom$gliderPose(age);
 		if (com.phantompowers.client.GuitarFeature.guitarOf(entity) != null) phantom$guitarPose(entity, age);
+		float hero = com.phantompowers.client.ClientRings.transformProgress(entity.getId(), age - (int) age);
+		if (hero >= 0f) phantom$heroPose(hero, age);
+	}
+
+	/**
+	 * Going ghost: feet planted wide, chest out. Arms sweep up as the rings pass,
+	 * then one fist punches to the sky while the other plants on the hip.
+	 */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$heroPose(float t, float age) {
+		float rise = MathHelper.clamp(t / 0.6f, 0f, 1f);          // 0..1 over the first 60%
+		float punch = MathHelper.clamp((t - 0.6f) / 0.15f, 0f, 1f); // snaps up near the end
+		float ease = rise * rise * (3 - 2 * rise);
+		body.pitch = -0.08f * ease;
+		head.pitch = -0.25f * ease - 0.2f * punch;
+		head.yaw = 0f;
+		hat.copyTransform(head);
+		// Wide heroic stance
+		rightLeg.roll = 0.22f * ease;
+		leftLeg.roll = -0.22f * ease;
+		rightLeg.pitch = 0f;
+		leftLeg.pitch = 0f;
+		rightLeg.yaw = 0.15f * ease;
+		leftLeg.yaw = -0.15f * ease;
+		// Arms: crossed in front, then thrown out wide...
+		float cross = 1f - ease;
+		rightArm.pitch = -1.2f * cross - 0.2f * ease;
+		rightArm.yaw = -0.6f * cross;
+		rightArm.roll = 0.9f * ease;
+		leftArm.pitch = -1.2f * cross - 0.2f * ease;
+		leftArm.yaw = 0.6f * cross;
+		leftArm.roll = -0.9f * ease;
+		// ...then the right fist punches up to the sky, left hand on the hip
+		if (punch > 0f) {
+			rightArm.pitch = MathHelper.lerp(punch, rightArm.pitch, -2.9f);
+			rightArm.roll = MathHelper.lerp(punch, rightArm.roll, -0.25f);
+			rightArm.yaw = 0f;
+			leftArm.pitch = MathHelper.lerp(punch, leftArm.pitch, 0.25f);
+			leftArm.roll = MathHelper.lerp(punch, leftArm.roll, -0.75f);
+			leftArm.yaw = MathHelper.lerp(punch, leftArm.yaw, 0.4f);
+		}
 	}
 
 	@org.spongepowered.asm.mixin.Unique
 	private void phantom$guitarPose(LivingEntity entity, float age) {
 		if (entity.handSwinging) phantom$played.put(entity, entity.age);
 		Integer last = phantom$played.get(entity);
-		float play = last == null ? 0f : Math.max(0f, 1f - (entity.age - last) / 26f);
+		float play = last == null ? 0f : (entity.age - last < 50 ? 1f : Math.max(0f, 1f - (entity.age - last - 50) / 10f));
 		// Strumming hand: across the body to the strings
 		rightArm.pitch = -0.64f + play * 0.34f * MathHelper.sin(age * 1.8f);
 		rightArm.yaw = 0f;

@@ -15,6 +15,9 @@ public final class ModSounds {
 	public static final SoundEvent GHOST_DEATH = register("ghost_death");
 	public static final SoundEvent JAILER_ROAR = register("jailer_roar");
 	public static final SoundEvent GHOST_NONONO = register("ghost_nonono");
+	public static final SoundEvent GUITAR_RIFF = register("guitar_riff");
+	public static final SoundEvent GUITAR_SOLO = register("guitar_solo");
+	public static final SoundEvent GUITAR_HIT = register("guitar_hit");
 
 	private ModSounds() {}
 

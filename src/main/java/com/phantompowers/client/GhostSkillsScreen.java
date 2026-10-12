@@ -10,7 +10,8 @@ import net.minecraft.text.Text;
 /** Spend stat points to unlock ghost powers. Opened from the inventory tab or the K key. */
 public class GhostSkillsScreen extends Screen {
 	private static final int PANEL_W = 320;
-	private static final int ROW_H = 30;
+	private static final int ROW_H = 28;
+	private static final String[] ROMAN = {"I", "II", "III", "IV", "V"};
 
 	private final Screen parent;
 	private final ButtonWidget[] unlockButtons = new ButtonWidget[GhostPowers.SKILL_COUNT];
@@ -34,7 +35,7 @@ public class GhostSkillsScreen extends Screen {
 			final int skill = i;
 			unlockButtons[i] = addDrawableChild(ButtonWidget.builder(Text.literal("Unlock"),
 							b -> PhantomClient.send(GhostPowers.A_UNLOCK + skill))
-					.dimensions(left + PANEL_W - 76, top + 40 + i * ROW_H + 3, 68, 20)
+					.dimensions(left + PANEL_W - 76, top + 40 + i * ROW_H + 2, 68, 20)
 					.build());
 		}
 		addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close())
@@ -64,7 +65,7 @@ public class GhostSkillsScreen extends Screen {
 		int lvl = ClientGhost.level;
 		int hearts = (int) Math.min(20, 2 + (lvl - 1));
 		String pts = ClientGhost.powers
-				? "Ghost Level " + lvl + " (+" + hearts + " hearts in ghost form)   Points: " + ClientGhost.points
+				? "Ghost Level " + lvl + " (+" + hearts + " hearts, Strength " + ROMAN[Math.min(4, (lvl - 1) / 7)] + ")   Points: " + ClientGhost.points
 				: "You don't have ghost powers yet.";
 		ctx.drawCenteredTextWithShadow(textRenderer, pts, width / 2, top + 22, 0xFFFFEE55);
 

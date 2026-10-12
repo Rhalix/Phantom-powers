@@ -130,6 +130,68 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Crate test: OK"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("wishkeeper").executes(ctx -> {
+					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
+					ServerWorld zone = p.getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					BlockPos at = p.getServerWorld() == zone ? p.getBlockPos() : BlockPos.ORIGIN;
+					BlockPos palace = GhostZoneLife.nearestPalace(zone, at);
+					GhostZoneLife.ensurePalace(zone, palace);
+					p.teleport(zone, palace.getX() + 0.5, palace.getY(), palace.getZ() + 15.5, 180f, 0f);
+					ctx.getSource().sendFeedback(() -> Text.literal("The Wishkeeper's palace... be careful what you wish for."), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("testpalace").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var k = com.phantompowers.world.WishPalace.build(zone, new BlockPos(-40000, 110, 40000), net.minecraft.util.math.random.Random.create(5));
+					if (k == null) {
+						ctx.getSource().sendError(Text.literal("Palace test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Palace test: OK"), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("testfrost").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var victim = net.minecraft.entity.EntityType.ZOMBIE.create(zone);
+					var by = net.minecraft.entity.EntityType.ARMOR_STAND.create(zone);
+					if (victim == null || by == null) return 0;
+					victim.refreshPositionAndAngles(30.5, 190, 30.5, 0, 0);
+					victim.setNoGravity(true);
+					by.refreshPositionAndAngles(30.5, 190, 26.5, 0, 0);
+					by.setNoGravity(true);
+					zone.spawnEntity(victim);
+					zone.spawnEntity(by);
+					// Breathe at it for a while, then shatter it
+					for (int t = 1; t <= 60; t++) FrostLogic.breathe(zone, by, by.getEyePos(), new net.minecraft.util.math.Vec3d(0, 0, 1), t);
+					boolean frozen = FrostLogic.isFrozen(victim);
+					boolean ok = FrostLogic.testFreezeAndShatter(zone, victim, by);
+					if (!ok) {
+						ctx.getSource().sendError(Text.literal("Frost test: FAILED (frozen by breath: " + frozen + ")"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Frost test: OK (frozen by breath: " + frozen + ", shattered)"), false);
+					return 1;
+				}))
+				.then(CommandManager.literal("testhost").executes(ctx -> {
+					// Every mob type maps to a host power with a name
+					int n = 0;
+					for (var type : net.minecraft.registry.Registries.ENTITY_TYPE) {
+						ServerWorld zone = ctx.getSource().getServer().getOverworld();
+						if (!(type.create(zone) instanceof net.minecraft.entity.LivingEntity le)) continue;
+						int k = HostPowers.kind(le);
+						if (k < 0 || k >= HostPowers.NAMES.length || k >= HostPowers.PASSIVES.length) {
+							ctx.getSource().sendError(Text.literal("Host test: FAILED for " + type));
+							return 0;
+						}
+						n++;
+					}
+					final int count = n;
+					ctx.getSource().sendFeedback(() -> Text.literal("Host test: OK (" + count + " mob types)"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("voltage").executes(ctx -> {
 					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
 					ServerWorld zone = p.getServer().getWorld(PortalLogic.GHOST_ZONE);
@@ -157,7 +219,7 @@ public final class PhantomCommands {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;
 					var log = org.slf4j.LoggerFactory.getLogger("phantom");
-					BlockPos[] spots = {new BlockPos(16, 190, 40), new BlockPos(32, 190, 40), new BlockPos(48, 190, 40)};
+					BlockPos[] spots = {new BlockPos(16, 190, 40), new BlockPos(32, 190, 40), new BlockPos(48, 190, 40), new BlockPos(56, 190, 40)};
 					java.util.List<net.minecraft.entity.decoration.ArmorStandEntity> stands = new java.util.ArrayList<>();
 					for (BlockPos sp : spots) {
 						var stand = net.minecraft.entity.EntityType.ARMOR_STAND.create(zone);
@@ -170,16 +232,20 @@ public final class PhantomCommands {
 					var jailer = com.phantompowers.ModEntities.GHOST_JAILER.create(zone);
 					var king = com.phantompowers.ModEntities.CRATE_KING.create(zone);
 					var volt = com.phantompowers.ModEntities.VOLTAGE.create(zone);
-					if (jailer == null || king == null || volt == null) return 0;
+					var wish = com.phantompowers.ModEntities.WISHKEEPER.create(zone);
+					if (jailer == null || king == null || volt == null || wish == null) return 0;
 					jailer.refreshPositionAndAngles(16.5, 190, 46.5, 0, 0);
 					king.refreshPositionAndAngles(32.5, 190, 46.5, 0, 0);
 					volt.refreshPositionAndAngles(48.5, 190, 46.5, 0, 0);
+					wish.refreshPositionAndAngles(56.5, 190, 46.5, 0, 0);
 					zone.spawnEntity(jailer);
 					zone.spawnEntity(king);
 					zone.spawnEntity(volt);
+					zone.spawnEntity(wish);
 					jailer.testMoves(zone, stands.get(0));
 					king.testMoves(zone, stands.get(1));
 					volt.testMoves(zone, stands.get(2));
+					wish.testMoves(zone, stands.get(3));
 					ThermosItem.scream(zone, jailer);
 					int placed = 0;
 					for (BlockPos sp : spots) placed += countCage(zone, sp);
@@ -229,7 +295,7 @@ public final class PhantomCommands {
 		int n = 0;
 		for (BlockPos p : BlockPos.iterate(center.add(-3, -3, -3), center.add(3, 5, 3))) {
 			var st = w.getBlockState(p);
-			if (st.isOf(net.minecraft.block.Blocks.IRON_BARS) || st.isOf(net.minecraft.block.Blocks.SPRUCE_PLANKS)) n++;
+			if (st.isOf(net.minecraft.block.Blocks.IRON_BARS) || st.isOf(net.minecraft.block.Blocks.SPRUCE_PLANKS) || st.isOf(net.minecraft.block.Blocks.GOLD_BLOCK)) n++;
 		}
 		return n;
 	}

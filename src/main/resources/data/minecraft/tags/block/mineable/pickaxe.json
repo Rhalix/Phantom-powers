@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "phantom:ecto_stone",
-    "phantom:ecto_grass"
+    "phantom:ecto_grass",
+    "phantom:ghost_portal_frame",
+    "phantom:hazard_plating"
   ]
 }
