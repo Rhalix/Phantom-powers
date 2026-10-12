@@ -26,6 +26,7 @@ public final class ControlsHud {
 		if (mc.player.getVehicle() instanceof GliderEntity) {
 			lines.add(new Line("LOOK", "steer the glider"));
 			lines.add(new Line(name(mc.options.forwardKey), "fly  /  " + name(mc.options.backKey) + " brake"));
+			lines.add(new Line(name(mc.options.sprintKey), "afterburner (sprint fly)"));
 			lines.add(new Line(name(mc.options.leftKey) + "/" + name(mc.options.rightKey), "strafe"));
 			lines.add(new Line(name(mc.options.useKey), "fire lasers"));
 			lines.add(new Line(name(mc.options.sneakKey), "hop off"));

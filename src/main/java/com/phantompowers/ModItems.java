@@ -88,6 +88,16 @@ public final class ModItems {
 	private ModItems() {}
 
 	public static void init() {
+		// Our own creative tab with every item and block in the mod
+		Registry.register(Registries.ITEM_GROUP, PhantomMod.id("main"), net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup.builder()
+				.icon(() -> new net.minecraft.item.ItemStack(THERMOS))
+				.displayName(net.minecraft.text.Text.translatable("itemGroup.phantom.main"))
+				.entries((context, entries) -> {
+					for (Item item : Registries.ITEM) {
+						if (Registries.ITEM.getId(item).getNamespace().equals("phantom")) entries.add(item);
+					}
+				})
+				.build());
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ECTOPLASM));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(e -> {
 			for (Item i : ESSENCES) e.add(i);

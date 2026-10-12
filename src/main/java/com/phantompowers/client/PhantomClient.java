@@ -130,6 +130,8 @@ public class PhantomClient implements ClientModInitializer {
 				suitHeld = 0;
 			}
 
+			// Sprint on the Hover Glider = afterburners
+			GliderEntity.clientBoost = client.options.sprintKey.isPressed() && client.player.getVehicle() instanceof GliderEntity;
 			// Right-click on the Hover Glider fires its lasers
 			if (client.player.getVehicle() instanceof GliderEntity && client.options.useKey.isPressed() && client.currentScreen == null) {
 				if (fireDelay <= 0) {

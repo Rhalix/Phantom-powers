@@ -59,8 +59,23 @@ public final class ClientRings {
 		return -1f;
 	}
 
+	/** After going ghost/human, the pose eases back to normal over this many ticks instead of snapping. */
+	public static final int HERO_RELEASE = 20;
+
+	private static boolean hero(Rings r) {
+		return r.style == 0 || r.style == 4;
+	}
+
 	public static void tick() {
-		ACTIVE.removeIf(r -> ++r.age > r.duration);
+		ACTIVE.removeIf(r -> ++r.age > r.duration + (hero(r) ? HERO_RELEASE : 0));
+	}
+
+	/** 0 while the transformation pose is held, rising to 1 as it relaxes back to normal afterwards. */
+	public static float heroRelease(int entityId, float partial) {
+		for (Rings r : ACTIVE) {
+			if (r.entityId == entityId && hero(r)) return Math.max(0f, Math.min(1f, (r.age + partial - r.duration) / HERO_RELEASE));
+		}
+		return 0f;
 	}
 
 	public static void clear() {
@@ -80,6 +95,7 @@ public final class ClientRings {
 		ms.translate(-cam.x, -cam.y, -cam.z);
 		Matrix4f m = ms.peek().getPositionMatrix();
 		for (Rings r : ACTIVE) {
+			if (r.age > r.duration) continue; // rings are gone; only the pose is still relaxing
 			Entity e = mc.world.getEntityById(r.entityId);
 			if (e == null) continue;
 			Vec3d pos = e.getLerpedPos(partial);

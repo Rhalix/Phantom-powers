@@ -66,5 +66,6 @@
   "entity.phantom.ghost_net_trap": "Ghost Net",
   "key.phantom.fists": "Ecto Fists",
   "subtitles.phantom.wail_tornado": "Wail Tornado roars",
-  "subtitles.phantom.net_zap": "Ghost Net crackles"
+  "subtitles.phantom.net_zap": "Ghost Net crackles",
+  "itemGroup.phantom.main": "Phantom Powers"
 }

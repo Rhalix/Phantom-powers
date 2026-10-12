@@ -36,7 +36,10 @@ public abstract class BipedEntityModelMixin {
 		if (entity.getVehicle() instanceof GliderEntity) phantom$gliderPose(age);
 		if (com.phantompowers.client.GuitarFeature.guitarOf(entity) != null) phantom$guitarPose(entity, age);
 		float hero = com.phantompowers.client.ClientRings.transformProgress(entity.getId(), age - (int) age);
-		if (hero >= 0f) phantom$heroPose(hero, age);
+		if (hero >= 0f) {
+			float release = com.phantompowers.client.ClientRings.heroRelease(entity.getId(), age - (int) age);
+			phantom$heroPose(hero, release, age);
+		}
 		float wail = com.phantompowers.client.ClientRings.wailProgress(entity.getId(), age - (int) age);
 		if (wail >= 0f) phantom$wailPose(wail, age);
 		float lean = com.phantompowers.client.SupermanFlight.lean(entity, age - (int) age);
@@ -87,9 +90,13 @@ public abstract class BipedEntityModelMixin {
 	 * then one fist punches to the sky while the other plants on the hip.
 	 */
 	@org.spongepowered.asm.mixin.Unique
-	private void phantom$heroPose(float t, float age) {
-		float rise = MathHelper.clamp(t / 0.6f, 0f, 1f);          // 0..1 over the first 60%
-		float punch = MathHelper.clamp((t - 0.6f) / 0.15f, 0f, 1f); // snaps up near the end
+	private void phantom$heroPose(float t, float release, float age) {
+		// Remember the normal pose so we can blend back into it smoothly afterwards
+		float[] normal = {body.pitch, head.pitch, head.yaw, rightLeg.roll, leftLeg.roll, rightLeg.pitch, leftLeg.pitch, rightLeg.yaw, leftLeg.yaw,
+				rightArm.pitch, rightArm.yaw, rightArm.roll, leftArm.pitch, leftArm.yaw, leftArm.roll};
+		float rise = MathHelper.clamp(t / 0.55f, 0f, 1f);
+		float punchRaw = MathHelper.clamp((t - 0.55f) / 0.3f, 0f, 1f);   // a smooth punch, not a snap
+		float punch = punchRaw * punchRaw * (3 - 2 * punchRaw);
 		float ease = rise * rise * (3 - 2 * rise);
 		body.pitch = -0.08f * ease;
 		head.pitch = -0.25f * ease - 0.2f * punch;
@@ -118,6 +125,26 @@ public abstract class BipedEntityModelMixin {
 			leftArm.pitch = MathHelper.lerp(punch, leftArm.pitch, 0.25f);
 			leftArm.roll = MathHelper.lerp(punch, leftArm.roll, -0.75f);
 			leftArm.yaw = MathHelper.lerp(punch, leftArm.yaw, 0.4f);
+		}
+		// After the rings finish, the fist comes down and the stance relaxes gently
+		if (release > 0f) {
+			float w = release * release * (3 - 2 * release);
+			body.pitch = MathHelper.lerp(w, body.pitch, normal[0]);
+			head.pitch = MathHelper.lerp(w, head.pitch, normal[1]);
+			head.yaw = MathHelper.lerp(w, head.yaw, normal[2]);
+			hat.copyTransform(head);
+			rightLeg.roll = MathHelper.lerp(w, rightLeg.roll, normal[3]);
+			leftLeg.roll = MathHelper.lerp(w, leftLeg.roll, normal[4]);
+			rightLeg.pitch = MathHelper.lerp(w, rightLeg.pitch, normal[5]);
+			leftLeg.pitch = MathHelper.lerp(w, leftLeg.pitch, normal[6]);
+			rightLeg.yaw = MathHelper.lerp(w, rightLeg.yaw, normal[7]);
+			leftLeg.yaw = MathHelper.lerp(w, leftLeg.yaw, normal[8]);
+			rightArm.pitch = MathHelper.lerp(w, rightArm.pitch, normal[9]);
+			rightArm.yaw = MathHelper.lerp(w, rightArm.yaw, normal[10]);
+			rightArm.roll = MathHelper.lerp(w, rightArm.roll, normal[11]);
+			leftArm.pitch = MathHelper.lerp(w, leftArm.pitch, normal[12]);
+			leftArm.yaw = MathHelper.lerp(w, leftArm.yaw, normal[13]);
+			leftArm.roll = MathHelper.lerp(w, leftArm.roll, normal[14]);
 		}
 	}
 

@@ -107,6 +107,15 @@ public class GliderEntity extends Entity {
 		return false;
 	}
 
+	/** Set on the client while the rider holds sprint: afterburners! */
+	public static volatile boolean clientBoost;
+	private boolean boosting;
+	private float boostLevel;
+
+	public float boostLevel() {
+		return boostLevel;
+	}
+
 	@Override
 	public void tick() {
 		super.tick();
@@ -122,7 +131,16 @@ public class GliderEntity extends Entity {
 				Vec3d side = new Vec3d(-flat.z, 0, flat.x);
 				double fwd = p.forwardSpeed;
 				double strafe = p.sidewaysSpeed;
-				Vec3d push = look.multiply(fwd * 0.09).add(side.multiply(-strafe * 0.05));
+				// Sprint while flying forward: afterburners kick in
+				boolean boost = getWorld().isClient && p.isMainPlayer() && clientBoost && fwd > 0;
+				if (boost && !boosting) {
+					getWorld().playSound(p, getX(), getY(), getZ(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 0.7f, 0.6f);
+					getWorld().playSound(p, getX(), getY(), getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.PLAYERS, 0.6f, 0.7f);
+				}
+				boosting = boost;
+				boostLevel = MathHelper.clamp(boostLevel + (boost ? 0.12f : -0.08f), 0f, 1f);
+				double thrust = 0.09 * (1 + 1.1 * boostLevel);
+				Vec3d push = look.multiply(fwd * thrust).add(side.multiply(-strafe * 0.05));
 				v = v.add(push);
 				if (fwd < 0) v = v.multiply(0.85);
 				// Gentle hover bob when idle
@@ -131,7 +149,8 @@ public class GliderEntity extends Entity {
 				v = v.add(0, -0.02, 0); // drifts down slowly when nobody is riding
 			}
 			v = v.multiply(0.94);
-			if (v.length() > MAX_SPEED) v = v.normalize().multiply(MAX_SPEED);
+			double max = MAX_SPEED * (1 + 0.9 * boostLevel);
+			if (v.length() > max) v = v.normalize().multiply(max);
 			setVelocity(v);
 			move(MovementType.SELF, v);
 			if (rider == null && isOnGround()) setVelocity(Vec3d.ZERO);
@@ -147,6 +166,14 @@ public class GliderEntity extends Entity {
 				Vec3d at = getPos().add(back).add(right.multiply(s)).add(0, 0.12, 0);
 				getWorld().addParticle(ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y, at.z, back.x * 0.05, -0.02, back.z * 0.05);
 				if (getVelocity().lengthSquared() > 0.05) getWorld().addParticle(ParticleTypes.CLOUD, at.x, at.y, at.z, back.x * 0.08, 0, back.z * 0.08);
+				if (boostLevel > 0.2f) {
+					// Afterburner: long blue-white flame jets and a streaming trail
+					for (int k = 0; k < 3; k++) {
+						getWorld().addParticle(ParticleTypes.FLAME, at.x, at.y, at.z, back.x * (0.25 + k * 0.08), 0, back.z * (0.25 + k * 0.08));
+					}
+					getWorld().addParticle(ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y, at.z, back.x * 0.4, 0.01, back.z * 0.4);
+					if (age % 2 == 0) getWorld().addParticle(ParticleTypes.FIREWORK, at.x, at.y, at.z, back.x * 0.15, 0, back.z * 0.15);
+				}
 			}
 		}
 	}
