@@ -21,7 +21,7 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-/** The Crate King's prize. Crack the lid to unleash a dark shockwave on every hostile mob around you. */
+/** The Crate King's prize. Crack the lid to unleash a dark shockwave on every hostile mob and other player around you. */
 public class PandorasBoxItem extends Item {
 	private static final DustParticleEffect DARK = new DustParticleEffect(new Vector3f(0.6f, 0.15f, 0.9f), 1.5f);
 
@@ -35,7 +35,7 @@ public class PandorasBoxItem extends Item {
 		if (world.isClient) return TypedActionResult.success(stack, true);
 		ServerWorld w = (ServerWorld) world;
 		int hit = 0;
-		for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, user.getBoundingBox().expand(10), e -> e instanceof Monster && e.isAlive())) {
+		for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, user.getBoundingBox().expand(10), e -> e != user && e.isAlive() && (e instanceof Monster || (e instanceof net.minecraft.entity.player.PlayerEntity pl && !pl.isCreative() && !pl.isSpectator())))) {
 			e.damage(w.getDamageSources().indirectMagic(user, user), 10f);
 			Vec3d out = e.getPos().subtract(user.getPos()).normalize();
 			e.addVelocity(out.x * 1.4, 0.5, out.z * 1.4);
@@ -59,7 +59,7 @@ public class PandorasBoxItem extends Item {
 
 	@Override
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-		tooltip.add(Text.literal("Right-click: dark shockwave hits all hostile mobs nearby").formatted(Formatting.DARK_PURPLE));
+		tooltip.add(Text.literal("Right-click: dark shockwave hits all hostile mobs and other players nearby").formatted(Formatting.DARK_PURPLE));
 		tooltip.add(Text.literal("20 second recharge").formatted(Formatting.DARK_GRAY));
 	}
 

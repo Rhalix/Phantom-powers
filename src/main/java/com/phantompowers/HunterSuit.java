@@ -21,6 +21,7 @@ public final class HunterSuit {
 	private static final Identifier DAMAGE = PhantomMod.id("suit_damage");
 	private static final Identifier SPEED = PhantomMod.id("suit_speed");
 	private static final Identifier KNOCK = PhantomMod.id("suit_knockback");
+	private static final Identifier HEALTH = PhantomMod.id("suit_health");
 
 	private HunterSuit() {}
 
@@ -66,10 +67,32 @@ public final class HunterSuit {
 		// a full set of netherite armor (20 armor, 12 toughness, 0.4 knockback resistance).
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR, ARMOR, on ? 12.0 : 0);
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR_TOUGHNESS, TOUGH, on ? 9.0 : 0);
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, KNOCK, on ? 0.3 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, KNOCK, on ? 0.6 : 0);
+		// Reinforced plating: 5 extra hearts
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_MAX_HEALTH, HEALTH, on ? 10.0 : 0);
+		if (!on && p.getHealth() > p.getMaxHealth()) p.setHealth(p.getMaxHealth());
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_ATTACK_DAMAGE, DAMAGE, on ? 2.0 : 0);
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_MOVEMENT_SPEED, SPEED, on ? 0.015 : 0);
-		if (!on) p.removeStatusEffect(StatusEffects.NIGHT_VISION);
+		if (!on) {
+			p.removeStatusEffect(StatusEffects.NIGHT_VISION);
+			StatusEffectInstance res = p.getStatusEffect(StatusEffects.RESISTANCE);
+			if (res != null && res.isAmbient() && res.getDuration() <= 60) p.removeStatusEffect(StatusEffects.RESISTANCE);
+		}
+	}
+
+	/**
+	 * The suit's real protection: ghost attacks are cut by more than half, everything else by a third,
+	 * and no single hit can take more than a third of your health (so nothing one-shots you).
+	 */
+	public static float reduceDamage(ServerPlayerEntity p, net.minecraft.entity.damage.DamageSource source, float amount) {
+		if (amount <= 0 || source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_INVULNERABILITY)) return amount;
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		if (!d.suitOn) return amount;
+		net.minecraft.entity.Entity attacker = source.getAttacker();
+		boolean ghost = attacker instanceof com.phantompowers.entity.AbstractGhostEntity
+				|| (attacker instanceof ServerPlayerEntity ap && GhostState.of(p.getServer()).data(ap.getUuid()).transformed);
+		float out = amount * (ghost ? 0.45f : 0.65f);
+		return Math.min(out, p.getMaxHealth() * 0.34f);
 	}
 
 	public static void tick(ServerPlayerEntity p, GhostData d) {
@@ -81,6 +104,8 @@ public final class HunterSuit {
 		if (p.age % 40 == 0) {
 			// The visor lets you see in the dark
 			p.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 260, 0, true, false, false));
+			// Shock-absorbing armor
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 60, 0, true, false, true));
 		}
 	}
 }

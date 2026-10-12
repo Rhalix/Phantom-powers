@@ -1,0 +1,18 @@
+{
+  "type": "phantom:ghost_zone",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "phantom:ghost_zone",
+      "lakes": false,
+      "features": false,
+      "layers": [
+        {
+          "block": "minecraft:air",
+          "height": 1
+        }
+      ],
+      "structure_overrides": []
+    }
+  }
+}

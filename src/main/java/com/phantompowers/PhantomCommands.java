@@ -141,6 +141,15 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("The Wishkeeper's palace... be careful what you wish for."), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testthermos").executes(ctx -> {
+					ServerWorld cell = ctx.getSource().getServer().getWorld(ThermosPrison.DIM);
+					if (cell == null || !ThermosPrison.buildCell(cell, ThermosPrison.cellFor(java.util.UUID.randomUUID()))) {
+						ctx.getSource().sendError(Text.literal("Thermos test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Thermos test: OK"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("testpalace").executes(ctx -> {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;

@@ -58,7 +58,7 @@ Place it, right-click to hop on. You ride it standing up in a surfer stance with
 ## Ghost Hunter Suit
 While the suit is deployed, ghosts that have turned **invisible** within 64 blocks show up as a glowing **infrared outline** (even behind walls), and a small **tracker ring** around your crosshair shows little arrows pointing at nearby ghosts (green) and hostile mobs (red), with the distance to the closest.
 Craft: iron ingots in a chestplate shape with white wool and ectoplasm in the middle row.
-It's as strong as a full set of netherite armor when deployed. Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
+It's stronger than a full set of netherite armor when deployed: 5 extra hearts, Resistance, ghost attacks are cut by more than half, and no single hit can take more than a third of your health. Wear it in your **chest armor slot**: it shows as a compact armored backpack with a glowing core. Press **U** to deploy it: the pack vanishes and armor bands wrap up around your body and you're in a black armored suit with white gloves and boots and a glowing visor helmet (extra armor, strength, speed and night vision). Press U again to stow it. **Hold U** for a suit-up cutscene.
 
 A guide in the bottom-right corner of the screen shows the keys for everything you've unlocked.
 
@@ -72,7 +72,7 @@ Many door rooms are haunted too, some by friendly ghosts and some by hostile one
 ## The Thermos
 Craft: iron nugget on top, iron ingot / ectoplasm / iron ingot, iron ingot / redstone / iron ingot.
 Right-click a ghost to suck it inside (it begs "No... no... NOOOO!" as it gets pulled in). It holds as many ghosts as you like, but each catch wears it down. If it breaks, they all escape!
-Sneak + right-click to let them all out. It even yanks other players out of ghost form.
+Sneak + right-click to let them all out. It even works on half-ghost players in ghost form: they get pulled in slowly (**spam jump to struggle free!**) and if they don't escape they end up in their own cell inside the Thermos. Punch the walls 30 times to break out, right back where you were caught. A ghost hiding inside a possessed body can't be trapped, and a possessed player can't use items.
 
 ## Ghost Prison and the Ghost Jailer
 Floating prison fortresses are scattered across the Ghost Zone (about one every 640 blocks). Cells hold captured ghosts.
@@ -82,7 +82,7 @@ Weaken it below 30% health and you can trap it in a Thermos.
 ## The Crate King
 A box-obsessed ghost boss with a cardboard box for a head lives in a floating warehouse in each region of the Ghost Zone (across from the Ghost Prison).
 Stage one he hurls crates at you, makes **crates rain** from the sky and does a **Big Box Slam** shockwave. At half health he pulls out **Pandora's Box** and turns evil: dark purple beams, a whirling crate storm, and ghosts pouring out of the box. He also **boxes you in** with crate walls, and **Pandora's Vortex** drags everyone toward him before it explodes.
-Beat him for **Pandora's Box** (right-click: a dark shockwave that blasts every hostile mob around you, 20s recharge). Weaken him below 20% to trap him in a Thermos.
+Beat him for **Pandora's Box** (right-click: a dark shockwave that blasts every hostile mob and other player around you, 20s recharge). Weaken him below 20% to trap him in a Thermos.
 
 ## Voltage and the Thunder Guitar
 A punk-rock ghost girl (spiky pink hair, studded leather jacket, plaid skirt, torn fishnets and platform boots) plays a concert stage in every region of the Ghost Zone. Her power chords blast huge sound waves, her solos call down lightning, and her fans fight for her. Her **Amp Blast** sends three sound shockwaves rolling across the floor, and she **Stage Dives** onto you with a lightning crash. Below 40% she goes into an **Encore**: her hair blazes up into a tall electric-pink flame and she electrifies the floor in rings of lightning.

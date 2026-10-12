@@ -87,7 +87,7 @@ public final class GhostPowers {
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_UNLOCK = 100;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_UNLOCK = 100;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -121,6 +121,7 @@ public final class GhostPowers {
 			}
 			case A_FROST -> { if (ready(p, d, st, FROST)) FrostLogic.start(p, d); }
 			case A_FROST_RELEASE -> d.frostHeld = false;
+			case A_STRUGGLE -> ThermosItem.struggle(p);
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }

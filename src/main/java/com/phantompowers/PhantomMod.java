@@ -88,6 +88,23 @@ public class PhantomMod implements ModInitializer {
 			return ActionResult.PASS;
 		});
 
+		// Punching the inside of a Thermos: fight your way out
+		net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) -> {
+			if (!world.isClient && player instanceof ServerPlayerEntity sp && world.getBlockState(pos).isOf(ModBlocks.THERMOS_WALL)) {
+				ThermosPrison.onPunch(sp, pos);
+			}
+			return ActionResult.PASS;
+		});
+
+		// A possessed player is just a puppet: they can't use items (so no Thermos on the ghost inside them)
+		net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
+			if (!world.isClient && !GhostFlags.HOSTS.isEmpty() && GhostFlags.HOSTS.contains(player.getUuid())) {
+				player.sendMessage(net.minecraft.text.Text.literal("You're possessed! You can't control your hands!").formatted(net.minecraft.util.Formatting.GREEN), true);
+				return net.minecraft.util.TypedActionResult.fail(player.getStackInHand(hand));
+			}
+			return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
+		});
+
 		// Ticking
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			PortalLogic.tick(server);
@@ -96,6 +113,7 @@ public class PhantomMod implements ModInitializer {
 			GhostSense.tick(server);
 			GhostZoneLife.tick(server);
 			com.phantompowers.entity.BossMoves.tick(server);
+			ThermosPrison.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor

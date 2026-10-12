@@ -59,5 +59,6 @@
   "entity.phantom.wishkeeper": "The Wishkeeper",
   "item.phantom.wishkeeper_spawn_egg": "Wishkeeper Spawn Egg",
   "item.phantom.wishkeeper_essence": "Wishkeeper Essence",
-  "item.phantom.wishing_lamp": "Wishing Lamp"
+  "item.phantom.wishing_lamp": "Wishing Lamp",
+  "block.phantom.thermos_wall": "Thermos Wall"
 }

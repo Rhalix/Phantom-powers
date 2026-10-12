@@ -21,6 +21,9 @@ public class GhostData {
 	public String respawnDim;
 	public BlockPos respawnPos;
 	public String portalDim;
+	/** Where to send you back when you break out of a Thermos. */
+	public String thermosDim;
+	public BlockPos thermosPos;
 	public BlockPos portalPos;
 
 	// Not saved (reset on restart)
@@ -71,6 +74,10 @@ public class GhostData {
 			n.putString("portalDim", portalDim);
 			n.putLong("portalPos", portalPos.asLong());
 		}
+		if (thermosDim != null && thermosPos != null) {
+			n.putString("thermosDim", thermosDim);
+			n.putLong("thermosPos", thermosPos.asLong());
+		}
 		return n;
 	}
 
@@ -91,6 +98,10 @@ public class GhostData {
 		if (n.contains("portalDim")) {
 			d.portalDim = n.getString("portalDim");
 			d.portalPos = BlockPos.fromLong(n.getLong("portalPos"));
+		}
+		if (n.contains("thermosDim")) {
+			d.thermosDim = n.getString("thermosDim");
+			d.thermosPos = BlockPos.fromLong(n.getLong("thermosPos"));
 		}
 		return d;
 	}

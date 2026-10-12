@@ -58,6 +58,8 @@ public class ThermosItem extends Item {
 		final Entity target;
 		final boolean prevAi;
 		int ticks;
+		/** Half-ghost players can struggle free by spamming jump. */
+		int struggle;
 
 		Capture(ServerPlayerEntity player, Hand hand, Entity target) {
 			this.player = player;
@@ -113,6 +115,35 @@ public class ThermosItem extends Item {
 		return TypedActionResult.success(stack);
 	}
 
+	private static final int PLAYER_CAPTURE_TICKS = 70;
+	private static final int STRUGGLE_FREE = 14;
+
+	/** A captured half-ghost pressed jump: fight the pull. */
+	public static void struggle(ServerPlayerEntity target) {
+		for (Capture c : CAPTURES) {
+			if (c.target != target) continue;
+			c.struggle++;
+			ServerWorld w = target.getServerWorld();
+			w.spawnParticles(GhostPowers.GREEN, target.getX(), target.getY() + 1, target.getZ(), 6, 0.4, 0.5, 0.4, 0.05);
+			w.playSound(null, target.getX(), target.getY(), target.getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, SoundCategory.PLAYERS, 0.6f, 1.2f + c.struggle * 0.05f);
+			return;
+		}
+	}
+
+	private static void breakFree(ServerWorld w, ServerPlayerEntity holder, ServerPlayerEntity tp) {
+		Vec3d away = tp.getPos().subtract(holder.getPos()).normalize();
+		tp.addVelocity(away.x * 1.2, 0.6, away.z * 1.2);
+		tp.velocityModified = true;
+		holder.addVelocity(-away.x * 0.8, 0.3, -away.z * 0.8);
+		holder.velocityModified = true;
+		holder.getItemCooldownManager().set(ModItems.THERMOS, 100);
+		w.spawnParticles(GhostPowers.GREEN, tp.getX(), tp.getY() + 1, tp.getZ(), 60, 0.6, 0.8, 0.6, 0.15);
+		w.spawnParticles(ParticleTypes.EXPLOSION, tp.getX(), tp.getY() + 1, tp.getZ(), 1, 0, 0, 0, 0);
+		w.playSound(null, tp.getX(), tp.getY(), tp.getZ(), SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 0.8f, 1.6f);
+		tp.sendMessage(Text.literal("You broke free of the Thermos!").formatted(Formatting.GREEN, Formatting.BOLD), true);
+		holder.sendMessage(Text.literal(tp.getName().getString() + " broke free of the Thermos!").formatted(Formatting.RED), true);
+	}
+
 	/** The ghost begs as it gets pulled in: "No, no, NOOOO!" */
 	public static void scream(ServerWorld w, Entity t) {
 		boolean boss = FrostLogic.isBoss(t);
@@ -138,7 +169,9 @@ public class ThermosItem extends Item {
 	}
 
 	private static boolean isGhostPlayer(Entity e) {
-		return e instanceof ServerPlayerEntity sp && GhostState.of(sp.getServer()).data(sp.getUuid()).transformed;
+		if (!(e instanceof ServerPlayerEntity sp)) return false;
+		GhostData d = GhostState.of(sp.getServer()).data(sp.getUuid());
+		return d.transformed && d.possessing == null && !GhostFlags.HOSTS.contains(sp.getUuid());
 	}
 
 	// ------------------------------------------------------------------ tick
@@ -163,8 +196,9 @@ public class ThermosItem extends Item {
 			Vec3d center = t.getPos().add(0, t.getHeight() / 2, 0);
 			Vec3d toMouth = mouth.subtract(center);
 
-			// Pull the ghost in, spinning
-			double pull = Math.min(1.0, 0.06 + c.ticks * 0.012);
+			// Pull the ghost in, spinning (players fight it, so they come in slower)
+			boolean isPlayer = t instanceof ServerPlayerEntity;
+			double pull = isPlayer ? Math.min(1.0, 0.02 + c.ticks * 0.0045) : Math.min(1.0, 0.06 + c.ticks * 0.012);
 			Vec3d next = center.add(toMouth.multiply(pull)).subtract(0, t.getHeight() / 2, 0);
 			if (t instanceof ServerPlayerEntity tp) tp.requestTeleport(next.x, next.y, next.z);
 			else {
@@ -187,15 +221,24 @@ public class ThermosItem extends Item {
 			}
 			w.spawnParticles(GhostPowers.GREEN, center.x, center.y, center.z, 4, 0.3, 0.4, 0.3, 0);
 
-			if (c.ticks >= 22 || len < 0.9) {
+			if (t instanceof ServerPlayerEntity tp) {
+				// Spam jump to break free!
+				int bars = Math.min(20, c.struggle * 20 / STRUGGLE_FREE);
+				tp.sendMessage(Text.literal("SPAM JUMP TO BREAK FREE!  ").formatted(Formatting.RED, Formatting.BOLD)
+						.append(Text.literal("|".repeat(bars)).formatted(Formatting.GREEN))
+						.append(Text.literal("|".repeat(20 - bars)).formatted(Formatting.DARK_GRAY)), true);
+				if (c.struggle >= STRUGGLE_FREE) {
+					it.remove();
+					breakFree(w, p, tp);
+					continue;
+				}
+			}
+			if ((isPlayer ? c.ticks >= PLAYER_CAPTURE_TICKS : (c.ticks >= 22 || len < 0.9))) {
 				it.remove();
 				if (t instanceof ServerPlayerEntity tp) {
-					GhostState st = GhostState.of(tp.getServer());
-					GhostData d = st.data(tp.getUuid());
-					if (d.transformed) GhostPowers.endForm(tp, d);
-					d.exhaust = Math.max(d.exhaust, 120);
-					tp.sendMessage(Text.literal("You got sucked out of ghost form by a Thermos!").formatted(Formatting.RED), false);
 					w.playSound(null, tp.getX(), tp.getY(), tp.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 0.6f);
+					scream(w, tp);
+					ThermosPrison.imprison(tp, p);
 					continue;
 				}
 				trap(w, p, c, stack, t);

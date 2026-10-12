@@ -122,13 +122,17 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 		float speed = (float) Math.min(1.0, Math.sqrt(dx * dx + dz * dz) * 2.5);
 		float sway = MathHelper.sin(age * 0.18f);
 		float sway2 = MathHelper.sin(age * 0.18f - 1.2f);
-		s1.pitch = 0.15f + speed * 0.9f;
-		s2.pitch = 0.25f + speed * 0.35f + sway * 0.12f;
-		s3.pitch = 0.35f + speed * 0.25f + sway2 * 0.18f;
-		s4.pitch = 0.5f + speed * 0.15f + MathHelper.sin(age * 0.18f - 2.4f) * 0.25f;
-		s2.roll = sway * 0.12f * (1 - speed * 0.5f);
-		s3.roll = sway2 * 0.18f * (1 - speed * 0.5f);
-		s4.roll = MathHelper.sin(age * 0.18f - 2.4f) * 0.25f;
+		// Flying Superman-style the tail trails straight out behind you; hovering it hangs and waves
+		float straight = SupermanFlight.lean(player, tickDelta);
+		float hang = 1f - straight;
+		float wave = 0.35f + 0.65f * hang;
+		s1.pitch = (0.15f + speed * 0.5f) * hang + 0.02f * straight;
+		s2.pitch = (0.25f + speed * 0.2f) * hang + sway * 0.12f * wave;
+		s3.pitch = (0.35f + speed * 0.15f) * hang + sway2 * 0.18f * wave;
+		s4.pitch = (0.5f + speed * 0.1f) * hang + MathHelper.sin(age * 0.18f - 2.4f) * 0.25f * wave;
+		s2.roll = sway * 0.12f * wave;
+		s3.roll = sway2 * 0.18f * wave;
+		s4.roll = MathHelper.sin(age * 0.18f - 2.4f) * 0.25f * wave;
 		matrices.push();
 		getContextModel().body.rotate(matrices);
 		// The body's pivot is at the neck; the tail hangs from the hips

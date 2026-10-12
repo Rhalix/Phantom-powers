@@ -72,6 +72,15 @@ public final class ModBlocks {
 	public static final Item HAZARD_PLATING_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("hazard_plating"),
 			new BlockItem(HAZARD_PLATING, new Item.Settings()));
 
+	/** The inside of a Thermos: unbreakable, but a trapped half-ghost can punch their way out. */
+	public static final Block THERMOS_WALL = Registry.register(Registries.BLOCK, PhantomMod.id("thermos_wall"),
+			new Block(AbstractBlock.Settings.create()
+					.mapColor(MapColor.IRON_GRAY)
+					.strength(-1.0f, 3600000.0f)
+					.dropsNothing()
+					.luminance(state -> 9)
+					.sounds(BlockSoundGroup.METAL)));
+
 	private ModBlocks() {}
 
 	public static void init() {

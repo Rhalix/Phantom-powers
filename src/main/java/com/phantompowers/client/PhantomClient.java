@@ -61,6 +61,7 @@ public class PhantomClient implements ClientModInitializer {
 	private static int fireDelay;
 	private static boolean wailHeld;
 	private static boolean frostHeld;
+	private static boolean jumpHeld;
 	private static final int HOLD_TICKS = 10;
 
 	@Override
@@ -101,6 +102,10 @@ public class PhantomClient implements ClientModInitializer {
 			while (INTANGIBLE.wasPressed()) send(GhostPowers.A_INTANGIBLE);
 			while (POSSESS.wasPressed()) send(GhostPowers.A_POSSESS);
 			while (WAIL.wasPressed()) send(GhostPowers.A_WAIL);
+			// Spamming jump fights a Thermos pulling you in
+			boolean jumpNow = client.options.jumpKey.isPressed();
+			if (jumpNow && !jumpHeld && ClientGhost.powers && client.currentScreen == null) send(GhostPowers.A_STRUGGLE);
+			jumpHeld = jumpNow;
 			// Z: hold to keep breathing frost
 			while (FROST.wasPressed()) send(GhostPowers.A_FROST);
 			boolean frostNow = FROST.isPressed();
