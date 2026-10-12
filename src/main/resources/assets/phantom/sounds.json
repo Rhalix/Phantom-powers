@@ -118,5 +118,23 @@
       }
     ],
     "subtitle": "subtitles.phantom.guitar_hit"
+  },
+  "wail_tornado": {
+    "sounds": [
+      {
+        "name": "phantom:wail_tornado",
+        "attenuation_distance": 72
+      }
+    ],
+    "subtitle": "subtitles.phantom.wail_tornado"
+  },
+  "net_zap": {
+    "sounds": [
+      {
+        "name": "phantom:net_zap",
+        "attenuation_distance": 20
+      }
+    ],
+    "subtitle": "subtitles.phantom.net_zap"
   }
 }

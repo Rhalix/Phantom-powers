@@ -65,6 +65,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(GhostSensePayload.ID, GhostSensePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.EntityFxPayload.ID, com.phantompowers.network.EntityFxPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShockwavePayload.ID, com.phantompowers.network.ShockwavePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.TornadoPayload.ID, com.phantompowers.network.TornadoPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));
@@ -133,6 +134,7 @@ public class PhantomMod implements ModInitializer {
 				// Punch a frozen, badly hurt enemy and it shatters
 				if (FrostLogic.tryShatter(sp, le)) return ActionResult.SUCCESS;
 				GhostPowers.onPlayerHit(sp, le);
+				GhostPowers.onFistPunch(sp, le);
 			}
 			return ActionResult.PASS;
 		});

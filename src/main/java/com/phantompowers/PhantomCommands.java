@@ -150,6 +150,26 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Thermos test: OK"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testnet").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var ghost = ModEntities.HOSTILE_GHOST.create(zone);
+					if (ghost == null) return 0;
+					ghost.refreshPositionAndAngles(-30.5, 190, -30.5, 0, 0);
+					ghost.setNoGravity(true);
+					zone.spawnEntity(ghost);
+					zone.getChunk(-2, -2);
+					boolean netted = com.phantompowers.entity.GhostNetTrapEntity.trap(zone, ghost, null);
+					var thrown = new com.phantompowers.entity.GhostNetProjectile(ModEntities.GHOST_NET_PROJECTILE, zone);
+					boolean ok = netted && thrown.getStack().isOf(ModItems.GHOST_NET);
+					ghost.discard();
+					if (!ok) {
+						ctx.getSource().sendError(Text.literal("Net test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Net test: OK"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("testpalace").executes(ctx -> {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;

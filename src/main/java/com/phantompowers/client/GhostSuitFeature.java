@@ -8,6 +8,7 @@ import net.minecraft.client.model.TexturedModelData;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
@@ -44,8 +45,28 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 	@Override
 	public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, AbstractClientPlayerEntity player,
 			float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
-		if (GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(player.getUuid())) return;
 		if (player.isInvisible()) return;
+		LookTransition.T t = LookTransition.get(player);
+		if (t == null) {
+			if (GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(player.getUuid())) return;
+			draw(matrices, consumers, light, player, vc -> vc);
+			return;
+		}
+		// Mid-transformation: the suit only covers what the rings have already swept over (or not yet, going human)
+		double[] band = LookTransition.band(player, t, tickDelta);
+		double cy = LookTransition.camY();
+		double lo = band[0] - cy, hi = band[1] - cy;
+		if (t.after == LookTransition.GHOST) {
+			draw(matrices, consumers, light, player, vc -> new ClipConsumer(vc, lo, hi));
+		}
+		if (t.before == LookTransition.GHOST) {
+			draw(matrices, consumers, light, player, vc -> new ClipConsumer(vc, -1e9, lo));
+			draw(matrices, consumers, light, player, vc -> new ClipConsumer(vc, hi, 1e9));
+		}
+	}
+
+	private void draw(MatrixStack matrices, VertexConsumerProvider consumers, int light, AbstractClientPlayerEntity player,
+			java.util.function.UnaryOperator<VertexConsumer> wrap) {
 		PlayerEntityModel<AbstractClientPlayerEntity> m = player.getSkinTextures().model() == SkinTextures.Model.SLIM ? slim : wide;
 		getContextModel().copyBipedStateTo(m);
 		m.setVisible(true);
@@ -60,11 +81,11 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 			m.rightLeg.visible = false;
 			m.leftLeg.visible = false;
 		}
-		m.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
+		m.render(matrices, wrap.apply(consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE))), light, OverlayTexture.DEFAULT_UV, -1);
 		// Glowing red eyes
 		Identifier eyes = GhostSkins.eyes(player.getSkinTextures().texture());
 		if (eyes != null) {
-			getContextModel().head.render(matrices, consumers.getBuffer(RenderLayer.getEyes(eyes)), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
+			getContextModel().head.render(matrices, wrap.apply(consumers.getBuffer(RenderLayer.getEyes(eyes))), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
 		}
 	}
 }

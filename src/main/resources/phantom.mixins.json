@@ -15,6 +15,7 @@
   "client": [
     "client.AbstractClientPlayerEntityMixin",
     "client.ArmorFeatureRendererMixin",
+    "client.CameraMixin",
     "client.BipedEntityModelMixin",
     "client.EntityOutlineColorMixin",
     "client.EntityRenderDispatcherMixin",

@@ -35,6 +35,8 @@ public final class GhostFlags {
 		return null;
 	}
 
+	/** Players with Ecto Fists switched on, as told to this client. */
+	public static final Set<UUID> CLIENT_FISTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Players in ghost form, as told to this client (for the ghost look). */
 	public static final Set<UUID> CLIENT_GHOSTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Invisible ghosts (server side). */

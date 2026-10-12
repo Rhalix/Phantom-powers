@@ -18,6 +18,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -32,7 +33,9 @@ import java.util.UUID;
 public final class ThermosPrison {
 	public static final RegistryKey<World> DIM = RegistryKey.of(RegistryKeys.WORLD, PhantomMod.id("thermos_prison"));
 	public static final int BREAK_HITS = 30;
-	private static final int R = 4, H = 7, Y = 100;
+	private static final int R = 6, H = 8, Y = 100;
+	/** Ghosts let loose inside a cell (copies of the ones in the Thermos) carry this tag. */
+	public static final String COPY_TAG = "phantom_thermos_copy";
 	private static final Map<UUID, Integer> PROGRESS = new HashMap<>();
 
 	private ThermosPrison() {}
@@ -65,6 +68,14 @@ public final class ThermosPrison {
 
 	/** Called when the Thermos finishes sucking in a half-ghost player. */
 	public static void imprison(ServerPlayerEntity victim, ServerPlayerEntity by) {
+		imprison(victim, by, null);
+	}
+
+	/**
+	 * Sucked into a Thermos: you land inside that Thermos, together with every ghost it caught before you
+	 * (and anyone else it's holding).
+	 */
+	public static void imprison(ServerPlayerEntity victim, ServerPlayerEntity by, net.minecraft.item.ItemStack thermos) {
 		MinecraftServer server = victim.getServer();
 		GhostState st = GhostState.of(server);
 		GhostData d = st.data(victim.getUuid());
@@ -79,17 +90,50 @@ public final class ThermosPrison {
 			d.thermosDim = victim.getWorld().getRegistryKey().getValue().toString();
 			d.thermosPos = victim.getBlockPos();
 		}
+		BlockPos c = thermos != null && !thermos.isEmpty() ? cellFor(ThermosItem.thermosId(thermos)) : cellFor(victim.getUuid());
+		d.thermosCell = c;
 		st.markDirty();
-		BlockPos c = cellFor(victim.getUuid());
-		buildCell(cellWorld, c);
+		boolean fresh = cellWorld.getPlayers(pl -> pl != victim && pl.getBlockPos().isWithinDistance(c, R + 3)).isEmpty();
+		if (fresh) buildCell(cellWorld, c);
 		victim.teleport(cellWorld, c.getX() + 0.5, c.getY() + 1, c.getZ() + 0.5, victim.getYaw(), 0f);
 		victim.fallDistance = 0;
 		PROGRESS.put(victim.getUuid(), 0);
 		victim.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Trapped in a Thermos!").formatted(Formatting.GREEN, Formatting.BOLD)));
 		victim.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Punch the walls to break out!").formatted(Formatting.WHITE)));
 		cellWorld.playSound(null, victim.getX(), victim.getY(), victim.getZ(), SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.PLAYERS, 1.5f, 0.6f);
+		if (thermos != null) letOutCellmates(cellWorld, c, thermos, victim);
 		if (by != null) {
 			by.sendMessage(Text.literal("You trapped " + victim.getName().getString() + " in the Thermos!").formatted(Formatting.GREEN), true);
+		}
+	}
+
+	/** The ghosts already caught in this Thermos are in here with you. */
+	private static void letOutCellmates(ServerWorld w, BlockPos c, net.minecraft.item.ItemStack thermos, ServerPlayerEntity victim) {
+		Box box = new Box(c).expand(R + 1, H + 1, R + 1);
+		if (!w.getEntitiesByClass(net.minecraft.entity.Entity.class, box, e -> e.getCommandTags().contains(COPY_TAG)).isEmpty()) return;
+		java.util.List<net.minecraft.nbt.NbtCompound> ghosts = ThermosItem.trappedGhosts(thermos);
+		int n = 0;
+		for (net.minecraft.nbt.NbtCompound saved : ghosts) {
+			if (n >= 10) break;
+			double a = n * 2.4;
+			double gx = c.getX() + 0.5 + Math.cos(a) * (R - 2), gz = c.getZ() + 0.5 + Math.sin(a) * (R - 2);
+			net.minecraft.entity.Entity e = net.minecraft.entity.EntityType.loadEntityWithPassengers(saved, w, ent -> {
+				ent.refreshPositionAndAngles(gx, c.getY() + 1, gz, ent.getYaw(), 0);
+				return ent;
+			});
+			if (e == null) continue;
+			e.setUuid(UUID.randomUUID());
+			e.addCommandTag(COPY_TAG);
+			if (e instanceof net.minecraft.entity.mob.MobEntity m) {
+				m.setAiDisabled(false);
+				m.setPersistent();
+			}
+			if (w.spawnEntity(e)) n++;
+			w.spawnParticles(ParticleTypes.SOUL, gx, c.getY() + 1.5, gz, 10, 0.3, 0.5, 0.3, 0.02);
+		}
+		if (n > 0) {
+			victim.sendMessage(Text.literal("You're not alone in here... " + n + " trapped ghost" + (n == 1 ? " is" : "s are") + " in the Thermos with you!")
+					.formatted(Formatting.LIGHT_PURPLE), false);
 		}
 	}
 
@@ -125,6 +169,7 @@ public final class ThermosPrison {
 		}
 		d.thermosDim = null;
 		d.thermosPos = null;
+		d.thermosCell = null;
 		st.markDirty();
 		p.teleport(dest, at.getX() + 0.5, at.getY(), at.getZ() + 0.5, p.getYaw(), p.getPitch());
 		dest.spawnParticles(GhostPowers.GREEN, p.getX(), p.getY() + 1, p.getZ(), 80, 0.6, 1.0, 0.6, 0.1);
@@ -140,12 +185,14 @@ public final class ThermosPrison {
 	public static void tick(MinecraftServer server) {
 		ServerWorld w = server.getWorld(DIM);
 		if (w == null) return;
+		GhostState st = GhostState.of(server);
 		for (ServerPlayerEntity p : w.getPlayers()) {
-			BlockPos c = cellFor(p.getUuid());
+			BlockPos cell = st.data(p.getUuid()).thermosCell;
+			BlockPos c = cell != null ? cell : cellFor(p.getUuid());
 			PROGRESS.putIfAbsent(p.getUuid(), 0);
 			// No phasing or flying out into the void: you have to fight your way out
 			Vec3d center = Vec3d.ofBottomCenter(c.up());
-			if (p.getPos().squaredDistanceTo(center) > 16 || p.getY() < c.getY()) {
+			if (p.getPos().squaredDistanceTo(center) > (R - 0.5) * (R - 0.5) + 9 || p.getY() < c.getY()) {
 				if (!w.getBlockState(c).isOf(ModBlocks.THERMOS_WALL)) buildCell(w, c);
 				p.requestTeleport(center.x, center.y, center.z);
 				p.fallDistance = 0;
@@ -161,6 +208,15 @@ public final class ThermosPrison {
 			if (p.age % 100 == 0) {
 				p.sendMessage(Text.literal("Punch the Thermos walls to break out!").formatted(Formatting.GREEN), true);
 			}
+		}
+		// Ghost copies vanish back into the Thermos once nobody is left in their cell
+		if (server.getTicks() % 40 == 0) {
+			java.util.List<net.minecraft.entity.Entity> gone = new java.util.ArrayList<>();
+			for (net.minecraft.entity.Entity e : w.iterateEntities()) {
+				if (!e.getCommandTags().contains(COPY_TAG)) continue;
+				if (w.getClosestPlayer(e, R + 4) == null) gone.add(e);
+			}
+			for (net.minecraft.entity.Entity e : gone) e.discard();
 		}
 	}
 }

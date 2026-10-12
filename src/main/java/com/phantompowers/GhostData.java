@@ -23,6 +23,10 @@ public class GhostData {
 	public String portalDim;
 	/** Where to send you back when you break out of a Thermos. */
 	public String thermosDim;
+	/** Ecto Fists switched on (not saved). */
+	public boolean fists;
+	/** Which Thermos cell this player is locked in (saved). */
+	public BlockPos thermosCell;
 	public BlockPos thermosPos;
 	public BlockPos portalPos;
 
@@ -77,6 +81,7 @@ public class GhostData {
 		if (thermosDim != null && thermosPos != null) {
 			n.putString("thermosDim", thermosDim);
 			n.putLong("thermosPos", thermosPos.asLong());
+			if (thermosCell != null) n.putLong("thermosCell", thermosCell.asLong());
 		}
 		return n;
 	}
@@ -102,6 +107,7 @@ public class GhostData {
 		if (n.contains("thermosDim")) {
 			d.thermosDim = n.getString("thermosDim");
 			d.thermosPos = BlockPos.fromLong(n.getLong("thermosPos"));
+			if (n.contains("thermosCell")) d.thermosCell = BlockPos.fromLong(n.getLong("thermosCell"));
 		}
 		return d;
 	}

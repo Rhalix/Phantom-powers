@@ -70,10 +70,10 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6;
-	public static final int SKILL_COUNT = 7;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath"};
-	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7;
+	public static final int SKILL_COUNT = 8;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4};
 	public static final String[] DESCRIPTIONS = {
 			"Fire a beam of green ecto energy.",
 			"Walk through walls. Sneak to sink, fly to rise. Sneak+hold to phase others.",
@@ -81,13 +81,14 @@ public final class GhostPowers {
 			"A huge scream that breaks blocks and blasts mobs away.",
 			"A giant tornado of wail energy that rips up the ground.",
 			"Turn completely invisible, armor and all.",
-			"Hold to breathe ice. Freeze enemies solid, then punch to shatter."
+			"Hold to breathe ice. Freeze enemies solid, then punch to shatter.",
+			"Wrap your fists in glowing ecto energy. Punches hit way harder and blast enemies back."
 	};
 
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_UNLOCK = 100;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_UNLOCK = 100;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -103,6 +104,7 @@ public final class GhostPowers {
 	private static final Map<UUID, List<PhasedBlock>> HELD_BLOCKS = new HashMap<>();
 	private static final List<WailWave> WAVES = new ArrayList<>();
 	private static final List<Tornado> TORNADOES = new ArrayList<>();
+	private static int tornadoIds;
 
 	private GhostPowers() {}
 
@@ -121,7 +123,11 @@ public final class GhostPowers {
 			}
 			case A_FROST -> { if (ready(p, d, st, FROST)) FrostLogic.start(p, d); }
 			case A_FROST_RELEASE -> d.frostHeld = false;
-			case A_STRUGGLE -> ThermosItem.struggle(p);
+			case A_STRUGGLE -> {
+				ThermosItem.struggle(p);
+				GhostNet.struggle(p);
+			}
+			case A_FISTS -> { if (ready(p, d, st, FISTS)) toggleFists(p, d); }
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
@@ -149,7 +155,8 @@ public final class GhostPowers {
 			bar(p, NAMES[skill] + " is locked. Unlock it in Ghost Skills (press K or open your inventory).", Formatting.YELLOW);
 			return false;
 		}
-		if (!d.transformed) {
+		// Intangibility and invisibility work in human form too
+		if (!d.transformed && skill != INTANGIBLE && skill != INVISIBLE) {
 			bar(p, "Go ghost first! Press V", Formatting.YELLOW);
 			return false;
 		}
@@ -184,7 +191,7 @@ public final class GhostPowers {
 		}
 		if (d.transformed) {
 			endForm(p, d);
-			if (rings) sendRings(p, 14);
+			if (rings) sendRings(p, 20, 4);
 			bar(p, "Back to human form.", Formatting.GRAY);
 			sound(p, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.4f);
 			return;
@@ -198,7 +205,7 @@ public final class GhostPowers {
 		setFlight(p, true);
 		applyStats(p, d, true);
 		p.heal(statBonusHealth(d));
-		if (rings) sendRings(p, 14);
+		if (rings) sendRings(p, 20);
 		broadcastStates(p.getServer());
 		bar(p, "I'm going ghost!", Formatting.GREEN);
 		sound(p, SoundEvents.BLOCK_BEACON_ACTIVATE, 1.0f, 1.6f);
@@ -211,9 +218,77 @@ public final class GhostPowers {
 		stopPossess(p, d, false);
 		releaseHold(p, d, false);
 		stopInvisible(p, d);
+		d.fists = false;
+		fistMods(p, d);
 		setFlight(p, false);
 		applyStats(p, d, false);
 		broadcastStates(p.getServer());
+	}
+
+	// ------------------------------------------------------------ ecto fists
+
+	private static final float FIST_COST = 4f;
+
+	private static final Identifier FIST_DAMAGE = PhantomMod.id("ecto_fists_damage");
+	private static final Identifier FIST_KNOCK = PhantomMod.id("ecto_fists_knockback");
+
+	public static void fistMods(ServerPlayerEntity p, GhostData d) {
+		boolean on = d.fists && d.transformed;
+		setMod(p, EntityAttributes.GENERIC_ATTACK_DAMAGE, FIST_DAMAGE, on ? 5.0 + level(d) * 0.6 : 0);
+		setMod(p, EntityAttributes.GENERIC_ATTACK_KNOCKBACK, FIST_KNOCK, on ? 2.0 : 0);
+	}
+
+	private static void toggleFists(ServerPlayerEntity p, GhostData d) {
+		d.fists = !d.fists;
+		fistMods(p, d);
+		ServerWorld w = p.getServerWorld();
+		if (d.fists) {
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 0.9f, 1.8f);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 0.6f, 1.4f);
+			fistSparks(p);
+			bar(p, "Ecto Fists charged! Punch to blast.", Formatting.GREEN);
+		} else {
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 0.6f, 1.8f);
+			bar(p, "Ecto Fists off.", Formatting.GRAY);
+		}
+		broadcastStates(p.getServer());
+	}
+
+	/** Green energy crackling around both hands. */
+	private static void fistSparks(ServerPlayerEntity p) {
+		ServerWorld w = p.getServerWorld();
+		float yaw = (float) Math.toRadians(p.bodyYaw);
+		double cos = Math.cos(yaw), sin = Math.sin(yaw);
+		for (int side = -1; side <= 1; side += 2) {
+			double hx = p.getX() + cos * 0.38 * side - sin * 0.15;
+			double hz = p.getZ() + sin * 0.38 * side + cos * 0.15;
+			w.spawnParticles(GREEN, hx, p.getY() + 0.75, hz, 1, 0.06, 0.08, 0.06, 0);
+		}
+	}
+
+	/** A punch with Ecto Fists on: big extra damage and a green blast that knocks them flying. */
+	public static void onFistPunch(ServerPlayerEntity p, Entity target) {
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		if (!d.fists || !d.transformed || !(target instanceof LivingEntity le) || target == p) return;
+		if (d.energy < FIST_COST) {
+			d.fists = false;
+			fistMods(p, d);
+			broadcastStates(p.getServer());
+			bar(p, "Out of ghost energy, your Ecto Fists fizzled out!", Formatting.RED);
+			return;
+		}
+		d.energy -= FIST_COST;
+		ServerWorld w = p.getServerWorld();
+		// (the extra damage and knockback come from attribute bonuses, so the punch itself lands harder)
+		target.addVelocity(0, 0.3, 0);
+		target.velocityModified = true;
+		Vec3d at = target.getPos().add(0, target.getHeight() * 0.55, 0);
+		w.spawnParticles(GREEN, at.x, at.y, at.z, 26, 0.35, 0.35, 0.35, 0.25);
+		w.spawnParticles(ParticleTypes.FLASH, at.x, at.y, at.z, 1, 0, 0, 0, 0);
+		w.spawnParticles(ParticleTypes.SONIC_BOOM, at.x, at.y, at.z, 1, 0, 0, 0, 0);
+		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 0.5f, 1.7f);
+		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1.0f, 0.8f);
+		d.syncTimer = 0;
 	}
 
 	// ------------------------------------------------------- devoured essences
@@ -394,7 +469,7 @@ public final class GhostPowers {
 		d.cutsceneKind = 0;
 		d.cutsceneToGhost = !d.transformed;
 		d.cutsceneAnchor = p.getPos();
-		sendRings(p, CUTSCENE_TICKS - 8);
+		sendRings(p, CUTSCENE_TICKS - 8, d.cutsceneToGhost ? 0 : 4);
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 1.0f, 0.8f);
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.PLAYERS, 1.0f, 1.2f);
@@ -424,24 +499,25 @@ public final class GhostPowers {
 		if (d.cutscene > 30) {
 			Vec3d eye = p.getEyePos();
 			Vec3d look = p.getRotationVec(1f);
-			if (t % 4 == 1) {
+			if (t % 6 == 1) {
 				// Waves blast out all around you, not just ahead
 				for (int k = 0; k < 4; k++) {
 					Vec3d dir = look.rotateY((float) (k * Math.PI / 2));
 					WAVES.add(new WailWave(w, p.getUuid(), eye, dir));
 				}
 			}
-			if (t % 3 == 0) {
-				for (int k = 0; k < 6; k++) {
-					Vec3d dir = look.rotateY((float) (k * Math.PI / 3 + t * 0.1));
+			if (t % 8 == 0) {
+				for (int k = 0; k < 4; k++) {
+					Vec3d dir = look.rotateY((float) (k * Math.PI / 2 + t * 0.1));
 					com.phantompowers.entity.BossMoves.soundWave(w, eye.add(dir.multiply(0.6)), dir, 22f, 0x66FF99);
 				}
 			}
 			if (t % 18 == 0) {
 				w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 6.0f, 0.9f + w.random.nextFloat() * 0.15f);
 			}
-			w.spawnParticles(GREEN, eye.x, eye.y, eye.z, 12, 1.2, 0.8, 1.2, 0.2);
-			w.spawnParticles(ParticleTypes.SONIC_BOOM, eye.x + look.x * 2, eye.y + look.y * 2, eye.z + look.z * 2, 1, 0, 0, 0, 0);
+			// Kept light so the cutscene stays smooth and you can still see yourself
+			if (t % 2 == 0) w.spawnParticles(GREEN, eye.x, eye.y, eye.z, 4, 1.4, 0.8, 1.4, 0.2);
+			if (t % 6 == 0) w.spawnParticles(ParticleTypes.SONIC_BOOM, eye.x + look.x * 3, eye.y + look.y * 3, eye.z + look.z * 3, 1, 0, 0, 0, 0);
 		}
 		if (d.cutscene == 30) {
 			// Out of power: the rings come back and take you human again
@@ -458,7 +534,7 @@ public final class GhostPowers {
 		d.cutsceneKind = 1;
 		d.cutsceneToGhost = !d.suitOn;
 		d.cutsceneAnchor = p.getPos();
-		sendRings(p, CUTSCENE_TICKS - 8, 1);
+		sendRings(p, CUTSCENE_TICKS - 8, d.cutsceneToGhost ? 1 : 5);
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 1.0f, 1.3f);
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE.value(), SoundCategory.PLAYERS, 1.0f, 0.8f);
@@ -472,14 +548,15 @@ public final class GhostPowers {
 		if (d.cutsceneAnchor != null) {
 			double lift = d.cutsceneKind == 2 ? (d.cutscene > 30 ? Math.min(1.2, (WAIL_FINALE_TICKS - d.cutscene) * 0.04) : 1.2 * d.cutscene / 30.0)
 					: d.cutsceneToGhost ? Math.min(0.6, (CUTSCENE_TICKS - d.cutscene) * 0.015) : 0;
-			p.requestTeleport(d.cutsceneAnchor.x, d.cutsceneAnchor.y + lift, d.cutsceneAnchor.z);
-			p.setVelocity(Vec3d.ZERO);
+			// The client floats you smoothly; the server only steps in if you drift away
+			Vec3d want = new Vec3d(d.cutsceneAnchor.x, d.cutsceneAnchor.y + lift, d.cutsceneAnchor.z);
+			if (p.getPos().squaredDistanceTo(want) > 2.25) p.requestTeleport(want.x, want.y, want.z);
 			p.fallDistance = 0;
 		}
 		ServerWorld w = p.getServerWorld();
 		if (d.cutsceneKind == 2) tickWailFinale(p, d, w);
-		if (d.cutscene % 3 == 0) {
-			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 3, 0.5, 0.8, 0.5, 0);
+		if (d.cutscene % 4 == 0) {
+			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 2, 0.7, 0.9, 0.7, 0);
 		}
 		if (d.cutscene == 8) {
 			if (d.cutsceneKind == 1) {
@@ -494,7 +571,7 @@ public final class GhostPowers {
 				p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1, false, false, true));
 				bar(p, "The wail drained every last drop of ghost energy...", Formatting.GRAY);
 			}
-			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 60, 0.6, 1.0, 0.6, 0.02);
+			w.spawnParticles(d.cutsceneToGhost ? GREEN : PALE, p.getX(), p.getY() + 1, p.getZ(), 24, 0.8, 1.0, 0.8, 0.04);
 			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1, p.getZ(), 1, 0, 0, 0, 0);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, SoundCategory.PLAYERS, 1.2f, 1.0f);
 		}
@@ -543,10 +620,6 @@ public final class GhostPowers {
 			stopIntangible(p, d, true);
 			return;
 		}
-		if (d.energy < 10) {
-			bar(p, "Not enough ghost energy!", Formatting.RED);
-			return;
-		}
 		d.intangible = true;
 		GhostFlags.SELF.add(p.getUuid());
 		bar(p, "Intangible! Walk through walls. Sneak to sink through the floor, fly up to rise. G again to stop.", Formatting.AQUA);
@@ -565,14 +638,9 @@ public final class GhostPowers {
 
 	/** Sneak + hold G: keep the mob, player or wall you're looking at intangible for as long as you hold on. */
 	private static void phaseTarget(ServerPlayerEntity p, GhostData d) {
-		if (d.energy < PHASE_TARGET_COST) {
-			bar(p, "Not enough ghost energy!", Formatting.RED);
-			return;
-		}
 		ServerWorld w = p.getServerWorld();
 		Entity target = aimEntity(p, d, 16);
 		if (target != null && !(target instanceof EnderDragonEntity)) {
-			d.energy -= PHASE_TARGET_COST;
 			GhostFlags.TEMP.put(target.getUuid(), new GhostFlags.TempPhase(target, 600));
 			d.holding = target;
 			GhostFlags.HOLDERS.add(p.getUuid());
@@ -613,7 +681,6 @@ public final class GhostPowers {
 			HELD_BLOCKS.put(p.getUuid(), held);
 			GhostFlags.HOLDERS.add(p.getUuid());
 			phaseSelfForHold(p, d);
-			d.energy -= PHASE_TARGET_COST;
 			sound(p, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 0.8f);
 			bar(p, "Holding the wall intangible. Let go of the key to make it solid again.", Formatting.AQUA);
 		}
@@ -686,12 +753,6 @@ public final class GhostPowers {
 			releaseHold(p, d, true);
 			return;
 		}
-		d.energy -= 0.12f;
-		if (d.energy <= 0) {
-			d.energy = 0;
-			releaseHold(p, d, false);
-			bar(p, "Out of ghost energy, you lost your grip!", Formatting.RED);
-		}
 	}
 
 	// ----------------------------------------------------------- invisibility
@@ -700,10 +761,6 @@ public final class GhostPowers {
 		if (d.invisible) {
 			stopInvisible(p, d);
 			bar(p, "You're visible again.", Formatting.GRAY);
-			return;
-		}
-		if (d.energy < 10) {
-			bar(p, "Not enough ghost energy!", Formatting.RED);
 			return;
 		}
 		d.invisible = true;
@@ -734,7 +791,12 @@ public final class GhostPowers {
 		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
 			if (st.data(pl.getUuid()).suitOn) suited.add(pl.getUuid());
 		}
-		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING));
+		List<UUID> fists = new ArrayList<>();
+		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
+			GhostData gd = st.data(pl.getUuid());
+			if (gd.fists && gd.transformed) fists.add(pl.getUuid());
+		}
+		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING), fists);
 		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
 			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}
@@ -992,7 +1054,7 @@ public final class GhostPowers {
 		if (flat.lengthSquared() < 1.0E-4) flat = new Vec3d(0, 0, 1);
 		flat = flat.normalize();
 		TORNADOES.add(new Tornado(w, p.getUuid(), p.getPos().add(flat.multiply(6)), flat));
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 0.8f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 0.85f);
 		bar(p, "WAIL TORNADO!", Formatting.GREEN);
 
 		endForm(p, d);
@@ -1006,9 +1068,18 @@ public final class GhostPowers {
 		final ServerWorld world;
 		final UUID owner;
 		final Vec3d dir;
+		final int id = ++tornadoIds;
 		Vec3d pos;
 		int age;
 		int lifted;
+
+		/** Tell nearby players where to draw the funnel. */
+		void send(boolean done) {
+			com.phantompowers.network.TornadoPayload msg = new com.phantompowers.network.TornadoPayload(id, pos.x, pos.y, pos.z, age, done);
+			for (ServerPlayerEntity viewer : PlayerLookup.around(world, pos, 128)) {
+				if (ServerPlayNetworking.canSend(viewer, com.phantompowers.network.TornadoPayload.ID)) ServerPlayNetworking.send(viewer, msg);
+			}
+		}
 
 		Tornado(ServerWorld world, UUID owner, Vec3d pos, Vec3d dir) {
 			this.world = world;
@@ -1021,6 +1092,7 @@ public final class GhostPowers {
 			age++;
 			Entity ownerEntity = world.getServer().getPlayerManager().getPlayer(owner);
 			if (age > 200) {
+				send(true);
 				finalBurst(ownerEntity);
 				return true;
 			}
@@ -1036,24 +1108,13 @@ public final class GhostPowers {
 				}
 			}
 
-			// The spinning funnel
-			double spin = age * 0.45;
-			for (int h = 0; h < 15; h++) {
-				double r = 0.5 + h * 0.38;
-				for (int k = 0; k < 3; k++) {
-					double a = spin + h * 0.55 + k * (Math.PI * 2 / 3);
-					double x = pos.x + Math.cos(a) * r;
-					double z = pos.z + Math.sin(a) * r;
-					world.spawnParticles(k == 0 ? PALE : GREEN, x, pos.y + h, z, 1, 0, 0, 0, 0);
-				}
+			// The funnel itself is drawn by each client (much smoother than particles); the server just sends where it is
+			send(false);
+			if (age % 6 == 0) {
+				world.spawnParticles(ParticleTypes.CLOUD, pos.x, pos.y + 0.3, pos.z, 4, 1.4, 0.1, 1.4, 0.06);
 			}
-			if (age % 4 == 0) {
-				world.spawnParticles(ParticleTypes.SONIC_BOOM, pos.x, pos.y + 1 + world.random.nextInt(12), pos.z, 1, 0, 0, 0, 0);
-				world.spawnParticles(ParticleTypes.CLOUD, pos.x, pos.y + 0.5, pos.z, 6, 1.2, 0.2, 1.2, 0.05);
-			}
-			if (age % 20 == 1) {
-				world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.PLAYERS, 2.5f, 0.6f);
-				if (age % 60 == 1) world.playSound(null, pos.x, pos.y, pos.z, ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 2.0f, 0.7f);
+			if (age % 40 == 1) {
+				world.playSound(null, pos.x, pos.y, pos.z, ModSounds.WAIL_TORNADO, SoundCategory.PLAYERS, 3.0f, 0.95f + world.random.nextFloat() * 0.1f);
 			}
 
 			// Suck in and spin mobs, players and items
@@ -1163,34 +1224,21 @@ public final class GhostPowers {
 			setFlight(p, true);
 			if (p.age % 40 == 0) applyStats(p, d, true);
 
-			float drain = 0;
-			if (d.intangible) drain += 0.15f;
-			if (d.invisible) drain += 0.1f;
-			if (drain > 0) {
-				d.energy -= drain;
-				if (d.energy <= 0) {
-					d.energy = 0;
-					stopIntangible(p, d, false);
-					stopPossess(p, d, false);
-					stopInvisible(p, d);
-					bar(p, "Out of ghost energy!", Formatting.RED);
-				}
-			} else {
-				d.energy = Math.min(MAX_ENERGY, d.energy + 0.3f);
-			}
-
-			if (d.invisible) {
-				p.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 10, 0, false, false, false));
-			}
+			// Intangibility and invisibility are free; energy refills while you're in ghost form
+			d.energy = Math.min(MAX_ENERGY, d.energy + 0.3f);
 			if (p.age % 6 == 0 && d.possessing == null && !d.invisible) {
 				ServerWorld w = p.getServerWorld();
 				w.spawnParticles(GREEN, p.getX(), p.getY() + p.getHeight() * 0.5, p.getZ(), 2, 0.3, 0.5, 0.3, 0);
 			}
-			if (d.intangible && p.age % 3 == 0) {
-				p.getServerWorld().spawnParticles(PALE, p.getX(), p.getY() + 1, p.getZ(), 2, 0.3, 0.6, 0.3, 0);
-			}
+			if (d.fists && p.age % 3 == 0 && !d.invisible) fistSparks(p);
 		} else {
 			d.energy = Math.min(MAX_ENERGY, d.energy + 0.5f);
+		}
+		if (d.invisible && p.isAlive()) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 10, 0, false, false, false));
+		}
+		if (d.intangible && p.age % 3 == 0 && !d.invisible) {
+			p.getServerWorld().spawnParticles(PALE, p.getX(), p.getY() + 1, p.getZ(), 2, 0.3, 0.6, 0.3, 0);
 		}
 
 		tickPossession(p, d);

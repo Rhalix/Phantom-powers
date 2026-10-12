@@ -11,7 +11,7 @@ import net.minecraft.client.render.RenderTickCounter;
 import java.util.ArrayList;
 import java.util.List;
 
-/** A small "how to use" guide in the bottom-right corner. */
+/** A small "how to use" guide on the right edge of the screen. */
 public final class ControlsHud {
 	private static final float SCALE = 0.6f;
 
@@ -41,6 +41,7 @@ public final class ControlsHud {
 			lines.add(new Line(use, "trap the ghost you aim at"));
 			lines.add(new Line(sneak + "+" + use, "release all ghosts"));
 		}
+		if (held.isOf(com.phantompowers.ModItems.GHOST_NET)) lines.add(new Line(use, "throw the Ghost Net"));
 		if (held.isOf(com.phantompowers.ModItems.PANDORAS_BOX)) lines.add(new Line(use, "dark shockwave"));
 		if (held.getItem() instanceof com.phantompowers.EssenceItem) lines.add(new Line(use + " (hold)", "eat: gain this ghost's power"));
 		if (ClientGhost.powers) {
@@ -53,7 +54,8 @@ public final class ControlsHud {
 					"Ghostly Wail (hold to keep wailing)",
 					"Wail Tornado",
 					"invisible",
-					"Frost Breath (hold)"};
+					"Frost Breath (hold)",
+					"Ecto Fists (punch harder)"};
 			for (int i = 0; i < keys.length; i++) {
 				if (!ClientGhost.has(i)) continue;
 				if (i == GhostPowers.BLAST && ClientGhost.possessing && ClientGhost.hostAbility >= 0) {
@@ -71,21 +73,30 @@ public final class ControlsHud {
 		}
 		if (lines.isEmpty()) return;
 
+		// A tidy list on the right edge: key chips on the left, what they do on the right
 		TextRenderer tr = mc.textRenderer;
-		int width = 0;
-		for (Line l : lines) width = Math.max(width, tr.getWidth(l.key()) + 6 + tr.getWidth(l.text()));
-		int lineH = 10;
+		int keyW = 0, textW = 0;
+		for (Line l : lines) {
+			keyW = Math.max(keyW, tr.getWidth(l.key()));
+			textW = Math.max(textW, tr.getWidth(l.text()));
+		}
+		int lineH = 12;
 		int sw = (int) (ctx.getScaledWindowWidth() / SCALE);
 		int sh = (int) (ctx.getScaledWindowHeight() / SCALE);
-		int x = sw - width - 8;
-		int y = sh - lines.size() * lineH - 8;
+		int total = keyW + 8 + 6 + textW;
+		int x = sw - total - 10;
+		int y = sh / 2 - lines.size() * lineH / 2;
 
 		ctx.getMatrices().push();
 		ctx.getMatrices().scale(SCALE, SCALE, 1f);
-		ctx.fill(x - 4, y - 4, sw - 3, sh - 4, 0x70000000);
+		ctx.fill(x - 6, y - 6, sw - 4, y + lines.size() * lineH + 3, 0x66000000);
+		ctx.fill(x - 6, y - 6, x - 4, y + lines.size() * lineH + 3, 0xFF3FD978);
 		for (Line l : lines) {
-			ctx.drawTextWithShadow(tr, l.key(), x, y, 0xFFFFEE55);
-			ctx.drawTextWithShadow(tr, l.text(), x + tr.getWidth(l.key()) + 6, y, 0xFFE0E0E0);
+			int kw = tr.getWidth(l.key());
+			ctx.fill(x, y - 2, x + keyW + 8, y + 9, 0xFF1E2A23);
+			ctx.fill(x, y + 8, x + keyW + 8, y + 9, 0xFF0C120E);
+			ctx.drawText(tr, l.key(), x + 4 + (keyW - kw) / 2, y, 0xFFFFE066, false);
+			ctx.drawTextWithShadow(tr, l.text(), x + keyW + 14, y, 0xFFE4ECE7);
 			y += lineH;
 		}
 		ctx.getMatrices().pop();

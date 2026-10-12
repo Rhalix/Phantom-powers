@@ -16,6 +16,16 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public final class ModEntities {
+	public static final EntityType<com.phantompowers.entity.GhostNetProjectile> GHOST_NET_PROJECTILE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("ghost_net_projectile"),
+			EntityType.Builder.<com.phantompowers.entity.GhostNetProjectile>create(com.phantompowers.entity.GhostNetProjectile::new, SpawnGroup.MISC)
+					.dimensions(0.4f, 0.4f).maxTrackingRange(8).trackingTickInterval(2).build("ghost_net_projectile"));
+
+	public static final EntityType<com.phantompowers.entity.GhostNetTrapEntity> GHOST_NET_TRAP = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("ghost_net_trap"),
+			EntityType.Builder.<com.phantompowers.entity.GhostNetTrapEntity>create(com.phantompowers.entity.GhostNetTrapEntity::new, SpawnGroup.MISC)
+					.dimensions(0.5f, 0.5f).maxTrackingRange(10).trackingTickInterval(1).makeFireImmune().build("ghost_net_trap"));
+
 	public static final EntityType<HostileGhostEntity> HOSTILE_GHOST = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("hostile_ghost"),
 			EntityType.Builder.create(HostileGhostEntity::new, SpawnGroup.MONSTER)

@@ -33,6 +33,9 @@ public final class ModItems {
 	public static final Item GHOST_JAILER_EGG = Registry.register(Registries.ITEM, PhantomMod.id("ghost_jailer_spawn_egg"),
 			new SpawnEggItem(ModEntities.GHOST_JAILER, 0x2A1838, 0x8A9097, new Item.Settings()));
 
+	public static final Item GHOST_NET = Registry.register(Registries.ITEM, PhantomMod.id("ghost_net"),
+			new GhostNetItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
+
 	public static final Item HOVER_GLIDER = Registry.register(Registries.ITEM, PhantomMod.id("hover_glider"),
 			new HoverGliderItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
@@ -96,6 +99,7 @@ public final class ModItems {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
 			e.add(HUNTER_SUIT);
 			e.add(GHOST_BLASTER);
+			e.add(GHOST_NET);
 			e.add(THUNDER_GUITAR);
 			e.add(PANDORAS_BOX);
 			e.add(WISHING_LAMP);

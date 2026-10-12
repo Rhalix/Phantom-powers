@@ -11,6 +11,8 @@ public final class ClientCutscene {
 	private static boolean active;
 	private static Perspective previous;
 	private static int shown;
+	private static net.minecraft.util.math.Vec3d anchor;
+	private static float baseYaw;
 
 	private ClientCutscene() {}
 
@@ -21,10 +23,13 @@ public final class ClientCutscene {
 			active = true;
 			shown = 0;
 			previous = o.getPerspective();
-			o.setPerspective(Perspective.THIRD_PERSON_FRONT);
+			o.setPerspective(Perspective.THIRD_PERSON_BACK);
+			anchor = mc.player.getPos();
+			baseYaw = mc.player.getBodyYaw();
 		}
 		if (running) {
 			shown++;
+			holdStill(mc);
 			o.forwardKey.setPressed(false);
 			o.backKey.setPressed(false);
 			o.leftKey.setPressed(false);
@@ -40,6 +45,57 @@ public final class ClientCutscene {
 		if (active && previous != null && mc.options != null) mc.options.setPerspective(previous);
 		active = false;
 		previous = null;
+		anchor = null;
+	}
+
+	/** Float smoothly in place on our side (no rubber-banding from the server). */
+	private static void holdStill(MinecraftClient mc) {
+		if (anchor == null) return;
+		int total = ClientGhost.cutsceneKind == 2 ? com.phantompowers.GhostPowers.WAIL_FINALE_TICKS : com.phantompowers.GhostPowers.CUTSCENE_TICKS;
+		int elapsed = Math.max(0, total - ClientGhost.cutscene);
+		double lift;
+		if (ClientGhost.cutsceneKind == 2) {
+			lift = ClientGhost.cutscene > 30 ? Math.min(1.2, elapsed * 0.04) : 1.2 * ClientGhost.cutscene / 30.0;
+		} else {
+			lift = ClientGhost.cutsceneKind == 0 && ClientGhost.cutsceneToGhost ? Math.min(0.6, elapsed * 0.015) : 0;
+		}
+		var p = mc.player;
+		var want = anchor.add(0, lift, 0);
+		var now = p.getPos();
+		var next = now.lerp(want, 0.35);
+		p.setVelocity(0, 0, 0);
+		p.setPosition(next.x, next.y, next.z);
+		p.fallDistance = 0;
+	}
+
+	/**
+	 * Where the cutscene camera sits: in front of you and a little to the side, slowly circling,
+	 * framing your whole body. Pulled in if a wall is in the way. Returns {x, y, z, yaw, pitch} or null.
+	 */
+	public static float[] cameraShot(net.minecraft.entity.Entity e, float partial) {
+		if (!active || e == null) return null;
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (e != mc.player) return null;
+		float t = shown + partial;
+		boolean wail = ClientGhost.cutsceneKind == 2;
+		// Start facing you, then drift around to a three-quarter angle
+		double orbit = Math.toRadians(baseYaw + (wail ? 25 : 35) * Math.sin(t * 0.035) - 20);
+		double dist = wail ? 5.2 : 3.6 + 0.4 * Math.min(1f, t / 30f);
+		var pos = e.getLerpedPos(partial);
+		var target = pos.add(0, e.getHeight() * 0.55, 0);
+		double camY = target.y + (wail ? 0.6 : 0.15);
+		var from = new net.minecraft.util.math.Vec3d(target.x - Math.sin(orbit) * dist, camY, target.z + Math.cos(orbit) * dist);
+		// Don't put the camera inside a wall
+		var hit = mc.world.raycast(new net.minecraft.world.RaycastContext(target, from,
+				net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, e));
+		if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
+			var back = from.subtract(target).normalize();
+			from = hit.getPos().subtract(back.multiply(0.3));
+		}
+		var d = target.subtract(from);
+		float yaw = (float) (Math.toDegrees(Math.atan2(d.z, d.x)) - 90.0);
+		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
+		return new float[]{(float) from.x, (float) from.y, (float) from.z, yaw, pitch};
 	}
 
 	public static void renderHud(DrawContext ctx, RenderTickCounter tickCounter) {
@@ -48,7 +104,7 @@ public final class ClientCutscene {
 		int w = ctx.getScaledWindowWidth();
 		int h = ctx.getScaledWindowHeight();
 		float slide = Math.min(1f, (shown + tickCounter.getTickDelta(true)) / 6f);
-		int bar = (int) (h * 0.12f * slide);
+		int bar = (int) (h * 0.08f * slide);
 		ctx.fill(0, 0, w, bar, 0xFF000000);
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 

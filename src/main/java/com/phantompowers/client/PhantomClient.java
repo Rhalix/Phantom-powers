@@ -49,10 +49,11 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding SKILLS;
 	public static KeyBinding SUIT;
 	public static KeyBinding FROST;
+	public static KeyBinding FISTS;
 
 	/** Key bound to each skill, in skill order (used by the HUD and skills screen). */
 	public static KeyBinding[] skillKeys() {
-		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST};
+		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST, FISTS};
 	}
 
 	private static boolean intangibleHeld;
@@ -76,10 +77,14 @@ public class PhantomClient implements ClientModInitializer {
 		SKILLS = key("skills", GLFW.GLFW_KEY_K);
 		SUIT = key("suit", GLFW.GLFW_KEY_U);
 		FROST = key("frost", GLFW.GLFW_KEY_Z);
+		FISTS = key("fists", GLFW.GLFW_KEY_X);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
 			ClientRings.tick();
+			LookTransition.tick();
+			ClientTornado.tick(client);
+			FistGlowFeature.tick(client);
 			ClientShockwaves.tick();
 			ClientEntityFx.tick();
 			BlasterScope.tick(client);
@@ -135,6 +140,7 @@ public class PhantomClient implements ClientModInitializer {
 			if (fireDelay > 0) fireDelay--;
 			while (TORNADO.wasPressed()) send(GhostPowers.A_TORNADO);
 			while (INVISIBLE.wasPressed()) send(GhostPowers.A_INVISIBLE);
+			while (FISTS.wasPressed()) send(GhostPowers.A_FISTS);
 			while (SKILLS.wasPressed()) client.setScreen(new GhostSkillsScreen(null));
 
 			// Letting go of G lets go of whatever you were holding intangible
@@ -154,8 +160,11 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_SUITED.addAll(payload.suited());
 			GhostFlags.CLIENT_FLYING.clear();
 			GhostFlags.CLIENT_FLYING.addAll(payload.flying());
+			GhostFlags.CLIENT_FISTS.clear();
+			GhostFlags.CLIENT_FISTS.addAll(payload.fists());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.TornadoPayload.ID, (payload, context) -> ClientTornado.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.EntityFxPayload.ID, (payload, context) -> ClientEntityFx.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShockwavePayload.ID, (payload, context) -> ClientShockwaves.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(GhostSensePayload.ID, (payload, context) -> ClientGhostSense.add(payload));
@@ -173,9 +182,13 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(VoltageModel.LAYER, VoltageModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.VOLTAGE, VoltageRenderer::new);
 		EntityRendererRegistry.register(ModEntities.ROOM_GHOST, RoomGhostRenderer::new);
+		EntityRendererRegistry.register(ModEntities.GHOST_NET_PROJECTILE, GhostNetRenderer.Thrown::new);
+		EntityRendererRegistry.register(ModEntities.GHOST_NET_TRAP, GhostNetRenderer.Trap::new);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostTail.LAYER, GhostTail::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(FistGlowFeature.WIDE, () -> FistGlowFeature.layer(false));
+		EntityModelLayerRegistry.registerModelLayer(FistGlowFeature.SLIM, () -> FistGlowFeature.layer(true));
 		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.WIDE, () -> GhostSuitFeature.layer(false));
 		EntityModelLayerRegistry.registerModelLayer(GhostSuitFeature.SLIM, () -> GhostSuitFeature.layer(true));
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((type, renderer, helper, ctx) -> {
@@ -183,6 +196,8 @@ public class PhantomClient implements ClientModInitializer {
 				helper.register(new BackpackFeature(playerRenderer, ctx.getPart(BackpackFeature.LAYER)));
 				helper.register(new GuitarFeature(playerRenderer));
 				helper.register(new GhostTail(playerRenderer, ctx.getPart(GhostTail.LAYER)));
+				helper.register(new TransitionFeature(playerRenderer));
+				helper.register(new FistGlowFeature(playerRenderer, ctx.getPart(FistGlowFeature.WIDE), ctx.getPart(FistGlowFeature.SLIM)));
 				helper.register(new GhostSuitFeature(playerRenderer,
 						ctx.getPart(GhostSuitFeature.WIDE), ctx.getPart(GhostSuitFeature.SLIM)));
 			}
@@ -200,6 +215,9 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_FLYING.clear();
 			ClientBeams.clear();
 			ClientRings.clear();
+			LookTransition.clear();
+			ClientTornado.clear();
+			GhostFlags.CLIENT_FISTS.clear();
 			ClientShockwaves.clear();
 			ClientEntityFx.clear();
 			ClientGhostSense.clear();
@@ -222,6 +240,7 @@ public class PhantomClient implements ClientModInitializer {
 		WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
 			ClientBeams.render(ctx);
 			ClientRings.render(ctx);
+			ClientTornado.render(ctx);
 			ClientGhostSense.render(ctx);
 			ClientShockwaves.render(ctx);
 			ClientEntityFx.render(ctx);

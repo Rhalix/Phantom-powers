@@ -24,6 +24,12 @@ public abstract class PlayerEntityRendererMixin {
 	@Inject(method = "getTexture(Lnet/minecraft/client/network/AbstractClientPlayerEntity;)Lnet/minecraft/util/Identifier;",
 			at = @At("HEAD"), cancellable = true)
 	private void phantom$skin(AbstractClientPlayerEntity player, CallbackInfoReturnable<Identifier> cir) {
+		// Mid-transformation: the base body keeps the old look (the new one is painted on as the rings pass)
+		com.phantompowers.client.LookTransition.T t = com.phantompowers.client.LookTransition.get(player);
+		if (t != null) {
+			cir.setReturnValue(com.phantompowers.client.LookTransition.texture(player, t.before));
+			return;
+		}
 		Identifier skin = GhostFlags.clientSkinOverride(player);
 		if (skin != null) {
 			cir.setReturnValue(skin);
@@ -54,5 +60,14 @@ public abstract class PlayerEntityRendererMixin {
 	private Identifier phantom$sleeveSkin(Identifier original) {
 		Identifier skin = phantom$armPlayer == null ? null : GhostFlags.clientSkinOverride(phantom$armPlayer);
 		return skin != null ? skin : original;
+	}
+
+	/** Ecto Fists glow on your own first-person arm too. */
+	@Inject(method = "renderArm", at = @At("TAIL"))
+	private void phantom$fistGlow(MatrixStack matrices, VertexConsumerProvider consumers, int light,
+			AbstractClientPlayerEntity player, ModelPart arm, ModelPart sleeve, CallbackInfo ci) {
+		if (!com.phantompowers.client.FistGlowFeature.active(player)) return;
+		arm.render(matrices, consumers.getBuffer(net.minecraft.client.render.RenderLayer.getEyes(com.phantompowers.client.FistGlowFeature.TEXTURE)),
+				0xF000F0, net.minecraft.client.render.OverlayTexture.DEFAULT_UV, com.phantompowers.client.FistGlowFeature.pulse(0f));
 	}
 }

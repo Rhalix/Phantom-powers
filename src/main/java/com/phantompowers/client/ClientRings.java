@@ -40,12 +40,13 @@ public final class ClientRings {
 	public static void add(RingPayload p) {
 		ACTIVE.removeIf(r -> r.entityId == p.entityId());
 		ACTIVE.add(new Rings(p.entityId(), p.duration(), p.style()));
+		LookTransition.start(p.entityId(), p.style(), p.duration());
 	}
 
 	/** How far along this entity's ghost transformation is (0..1), or -1 if it isn't transforming. */
 	public static float transformProgress(int entityId, float partial) {
 		for (Rings r : ACTIVE) {
-			if (r.entityId == entityId && r.style == 0) return Math.min(1f, (r.age + partial) / r.duration);
+			if (r.entityId == entityId && (r.style == 0 || r.style == 4)) return Math.min(1f, (r.age + partial) / r.duration);
 		}
 		return -1f;
 	}
@@ -85,7 +86,7 @@ public final class ClientRings {
 			float h = e.getHeight();
 			float t = Math.min(1f, (r.age + partial) / r.duration);
 			if (r.style == 2) continue; // wail finale: a pose, not rings
-			if (r.style == 1) {
+			if (r.style == 1 || r.style == 5) {
 				suitWrap(consumers, m, pos, h, t, r.age + partial);
 				vc = consumers.getBuffer(RenderLayer.getLightning());
 				continue;

@@ -60,5 +60,11 @@
   "item.phantom.wishkeeper_spawn_egg": "Wishkeeper Spawn Egg",
   "item.phantom.wishkeeper_essence": "Wishkeeper Essence",
   "item.phantom.wishing_lamp": "Wishing Lamp",
-  "block.phantom.thermos_wall": "Thermos Wall"
+  "block.phantom.thermos_wall": "Thermos Wall",
+  "item.phantom.ghost_net": "Ghost Net",
+  "entity.phantom.ghost_net_projectile": "Ghost Net",
+  "entity.phantom.ghost_net_trap": "Ghost Net",
+  "key.phantom.fists": "Ecto Fists",
+  "subtitles.phantom.wail_tornado": "Wail Tornado roars",
+  "subtitles.phantom.net_zap": "Ghost Net crackles"
 }

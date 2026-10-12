@@ -46,7 +46,7 @@ public final class HunterSuit {
 		if (d.suitOn) {
 			d.suitOn = false;
 			apply(p, false);
-			if (wrapEffect) GhostPowers.sendRings(p, 18, 1);
+			if (wrapEffect) GhostPowers.sendRings(p, 18, 5);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.PLAYERS, 0.8f, 1.4f);
 			GhostPowers.bar(p, "Suit stowed.", Formatting.GRAY);
 		} else {

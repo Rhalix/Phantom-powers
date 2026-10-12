@@ -70,6 +70,8 @@ public class ThermosItem extends Item {
 	}
 
 	public static boolean canTrap(Entity e) {
+		// A boss tangled in a Ghost Net can be sucked up no matter how healthy it is
+		if (FrostLogic.isBoss(e) && com.phantompowers.entity.GhostNetTrapEntity.isNetted(e)) return true;
 		if (e instanceof GhostJailerEntity j) return j.getHealth() < j.getMaxHealth() * 0.3f;
 		if (e instanceof com.phantompowers.entity.CrateKingEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.VoltageEntity v) return v.getHealth() < v.getMaxHealth() * 0.2f;
@@ -238,7 +240,7 @@ public class ThermosItem extends Item {
 				if (t instanceof ServerPlayerEntity tp) {
 					w.playSound(null, tp.getX(), tp.getY(), tp.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 0.6f);
 					scream(w, tp);
-					ThermosPrison.imprison(tp, p);
+					ThermosPrison.imprison(tp, p, stack);
 					continue;
 				}
 				trap(w, p, c, stack, t);
@@ -292,6 +294,26 @@ public class ThermosItem extends Item {
 		data.remove(KEY);
 		stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(data));
 		return n;
+	}
+
+	/** Every Thermos has its own id, so everyone it catches ends up inside the same Thermos. */
+	public static UUID thermosId(ItemStack stack) {
+		NbtCompound data = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
+		if (data.containsUuid("ThermosId")) return data.getUuid("ThermosId");
+		UUID id = UUID.randomUUID();
+		data.putUuid("ThermosId", id);
+		stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(data));
+		return id;
+	}
+
+	/** The ghosts saved inside a Thermos (copies; the Thermos keeps the originals). */
+	public static List<NbtCompound> trappedGhosts(ItemStack stack) {
+		List<NbtCompound> out = new ArrayList<>();
+		NbtComponent c = stack.get(DataComponentTypes.CUSTOM_DATA);
+		if (c == null) return out;
+		NbtList list = c.copyNbt().getList(KEY, NbtElement.COMPOUND_TYPE);
+		for (int i = 0; i < list.size(); i++) out.add(list.getCompound(i).copy());
+		return out;
 	}
 
 	public static int trappedCount(ItemStack stack) {
