@@ -14,7 +14,7 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.util.math.MathHelper;
 
-/** The Ghost Jailer: a towering prison warden in a greatcoat and peaked cap, chains across his chest and a glowing baton. */
+/** The Ghost Jailer: a towering prison warden in a greatcoat and peaked cap: black three-piece suit with a vest, white tie, pocket square, cufflinks and polished shoes, plus a glowing baton. */
 public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(PhantomMod.id("ghost_jailer"), "main");
 	private final ModelPart root;
@@ -52,9 +52,10 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 		ModelPartData p_coat_tail = p_body.addChild("coat_tail", ModelPartBuilder.create()
 				.uv(16, 17).cuboid(-5f, 0f, -2.6f, 10f, 7f, 5.2f, new Dilation(0.2f)),
 				ModelTransform.of(0f, 11f, 0f, 0.05f, 0f, 0f));
-		ModelPartData p_bandolier = p_body.addChild("bandolier", ModelPartBuilder.create()
-				.uv(102, 0).cuboid(-0.6f, -7.5f, -0.4f, 1.2f, 15f, 0.8f),
-				ModelTransform.of(0f, 6f, -2.75f, 0f, 0f, 0.75f));
+		// Pocket square tucked into the jacket breast
+		p_body.addChild("pocket_square", ModelPartBuilder.create()
+				.uv(0, 64).cuboid(2.4f, 1.5f, -3.1f, 2f, 2f, 1f, new Dilation(-0.25f, -0.3f, -0.3f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_keys = p_body.addChild("keys", ModelPartBuilder.create()
 				.uv(58, 56).cuboid(-1f, -0.2f, -0.3f, 2f, 2f, 0.6f)
 				.uv(64, 56).cuboid(-0.3f, 1.6f, -0.3f, 0.6f, 2f, 0.6f)
@@ -70,6 +71,10 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 				.uv(84, 17).cuboid(-3.7f, 6.5f, -2.7f, 5.4f, 5.6f, 5.4f)
 				.uv(104, 45).cuboid(-3.9f, 10.6f, -2.9f, 5.8f, 1.4f, 2.2f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		p_right_arm.addChild("right_cuff", ModelPartBuilder.create()
+				.uv(0, 70).cuboid(-3.5f, 5.6f, -2.5f, 5f, 1f, 5f, new Dilation(-0.3f, -0.2f, -0.3f))
+				.uv(24, 64).cuboid(-3.85f, 5.6f, -0.5f, 1f, 1f, 1f, new Dilation(-0.25f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_baton = p_right_arm.addChild("baton", ModelPartBuilder.create()
 				.uv(0, 33).cuboid(-0.8f, -0.8f, -9f, 1.6f, 1.6f, 10f)
 				.uv(0, 56).cuboid(-1.1f, -1.1f, -9.6f, 2.2f, 2.2f, 1.2f),
@@ -84,6 +89,10 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 				.uv(24, 33).cuboid(-1.7f, 6.5f, -2.7f, 5.4f, 5.6f, 5.4f)
 				.uv(10, 56).cuboid(-1.9f, 10.6f, -2.9f, 5.8f, 1.4f, 2.2f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		p_left_arm.addChild("left_cuff", ModelPartBuilder.create()
+				.uv(0, 70).cuboid(-1.5f, 5.6f, -2.5f, 5f, 1f, 5f, new Dilation(-0.3f, -0.2f, -0.3f))
+				.uv(24, 64).cuboid(2.85f, 5.6f, -0.5f, 1f, 1f, 1f, new Dilation(-0.25f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_arm_chain = p_left_arm.addChild("arm_chain", ModelPartBuilder.create()
 				.uv(88, 45).cuboid(-1f, 2f, -2f, 4f, 2f, 4f, new Dilation(0.45f))
 				.uv(84, 45).cuboid(0.5f, 10f, -0.5f, 1f, 9f, 1f),
@@ -92,13 +101,13 @@ public class JailerModel extends SinglePartEntityModel<GhostJailerEntity> {
 				.uv(30, 0).cuboid(-2.25f, 0f, -2.25f, 4.5f, 12f, 4.5f),
 				ModelTransform.of(-2.4f, 12f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_boot = p_right_leg.addChild("right_boot", ModelPartBuilder.create()
-				.uv(48, 33).cuboid(-2.6f, 6.8f, -2.9f, 5.2f, 5.2f, 5.3f),
+				.uv(0, 80).cuboid(-3f, 9.4f, -4.3f, 6f, 3f, 7f, new Dilation(-0.4f, -0.4f, -0.3f)),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
 				.uv(50, 0).cuboid(-2.25f, 0f, -2.25f, 4.5f, 12f, 4.5f),
 				ModelTransform.of(2.4f, 12f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_boot = p_left_leg.addChild("left_boot", ModelPartBuilder.create()
-				.uv(72, 33).cuboid(-2.6f, 6.8f, -2.9f, 5.2f, 5.2f, 5.3f),
+				.uv(32, 80).cuboid(-3f, 9.4f, -4.3f, 6f, 3f, 7f, new Dilation(-0.4f, -0.4f, -0.3f)),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		return TexturedModelData.of(data, 128, 128);
 	}

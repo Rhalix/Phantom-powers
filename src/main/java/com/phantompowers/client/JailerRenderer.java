@@ -35,7 +35,7 @@ public class JailerRenderer extends MobEntityRenderer<GhostJailerEntity, JailerM
 
 	@Override
 	protected void scale(GhostJailerEntity e, MatrixStack matrices, float amount) {
-		float s = 1.75f;
+		float s = 1.95f;
 		matrices.scale(s, s, s);
 	}
 

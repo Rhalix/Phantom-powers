@@ -29,7 +29,7 @@ public final class ModEntities {
 	public static final EntityType<GhostJailerEntity> GHOST_JAILER = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("ghost_jailer"),
 			EntityType.Builder.create(GhostJailerEntity::new, SpawnGroup.MONSTER)
-					.dimensions(1.3f, 3.4f).maxTrackingRange(12).makeFireImmune().build("ghost_jailer"));
+					.dimensions(1.45f, 3.8f).maxTrackingRange(12).makeFireImmune().build("ghost_jailer"));
 
 	public static final EntityType<GliderEntity> GLIDER = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("hover_glider"),
