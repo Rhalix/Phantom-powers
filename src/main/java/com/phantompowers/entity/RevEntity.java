@@ -290,8 +290,8 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.5f, 1.5f);
 		org.slf4j.LoggerFactory.getLogger("phantom").info("The Biker Couple went Ride or Die (couple stage two)");
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Roxy: "Ride or die, babe!"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
-			p.sendMessage(Text.literal("Rev: "Hang on tight. Shade, you too!"").formatted(Formatting.GRAY, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Roxy: \"Ride or die, babe!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Rev: \"Hang on tight. Shade, you too!\"").formatted(Formatting.GRAY, Formatting.BOLD), false);
 		}
 	}
 
@@ -310,7 +310,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		bossBar.setColor(BossBar.Color.RED);
 		if (!shadowPhase()) startShadowPhase(w);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Rev: "ROXY!! ...You're gonna pay for that."").formatted(Formatting.RED, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Rev: \"ROXY!! ...You're gonna pay for that.\"").formatted(Formatting.RED, Formatting.BOLD), false);
 		}
 	}
 
@@ -352,7 +352,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 			lapTicks = 70;
 			lapAngle = Math.atan2(getZ() - target.getZ(), getX() - target.getX());
 			for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
-				p.sendMessage(Text.literal("Roxy: "Love lap!"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
+				p.sendMessage(Text.literal("Roxy: \"Love lap!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
 			}
 			return true;
 		}

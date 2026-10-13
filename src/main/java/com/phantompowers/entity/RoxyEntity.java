@@ -206,7 +206,7 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 		bossBar.setColor(BossBar.Color.RED);
 		if (!heartbreak()) dataTracker.set(HEARTBREAK, true);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Roxy: "REV!! ...Nobody hurts my guy!"").formatted(Formatting.RED, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Roxy: \"REV!! ...Nobody hurts my guy!\"").formatted(Formatting.RED, Formatting.BOLD), false);
 		}
 	}
 
