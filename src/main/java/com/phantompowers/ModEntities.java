@@ -16,6 +16,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public final class ModEntities {
+	public static final EntityType<com.phantompowers.entity.GhostCloneEntity> GHOST_CLONE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("ghost_clone"),
+			EntityType.Builder.create(com.phantompowers.entity.GhostCloneEntity::new, SpawnGroup.MISC)
+					.dimensions(0.6f, 1.8f).maxTrackingRange(10).trackingTickInterval(2).build("ghost_clone"));
+
 	public static final EntityType<com.phantompowers.entity.GhostBikeEntity> GHOST_BIKE = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("ghost_bike"),
 			EntityType.Builder.<com.phantompowers.entity.GhostBikeEntity>create(com.phantompowers.entity.GhostBikeEntity::new, SpawnGroup.MISC)
@@ -109,6 +114,7 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(GHOST_JAILER, GhostJailerEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(CRATE_KING, CrateKingEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(REV, com.phantompowers.entity.RevEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(GHOST_CLONE, com.phantompowers.entity.GhostCloneEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROXY, com.phantompowers.entity.RoxyEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(SHADE, com.phantompowers.entity.ShadeEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());

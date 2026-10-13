@@ -70,10 +70,10 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7, SHIELD = 8;
-	public static final int SKILL_COUNT = 9;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists", "Ecto Shield"};
-	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4, 6};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7, SHIELD = 8, DUPLICATE = 9;
+	public static final int SKILL_COUNT = 10;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists", "Ecto Shield", "Duplication"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4, 6, 9};
 	/** Ghost suit looks you can pick in the suit customizer. */
 	public static final String[] SUIT_VARIANTS = {"Classic", "Shadow", "Ecto Glow", "Crimson", "Frostbite", "Royal"};
 	public static final String[] DESCRIPTIONS = {
@@ -85,13 +85,14 @@ public final class GhostPowers {
 			"Turn completely invisible, armor and all.",
 			"Hold to breathe ice. Freeze enemies solid, then punch to shatter.",
 			"Wrap your fists in glowing ecto energy. Punches hit way harder and blast enemies back.",
-			"Hold to raise a dome of green energy all around you that blocks attacks and bounces arrows back."
+			"Hold to raise a dome of green energy all around you that blocks attacks and bounces arrows back.",
+			"Split into 3 ghost clones. They wail at whatever you attack or whatever hits you, and wail with you."
 	};
 
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -133,6 +134,7 @@ public final class GhostPowers {
 			case A_FISTS -> { if (ready(p, d, st, FISTS)) toggleFists(p, d); }
 			case A_SHIELD -> { if (ready(p, d, st, SHIELD)) d.shieldHeld = true; }
 			case A_SHIELD_RELEASE -> d.shieldHeld = false;
+			case A_DUPLICATE -> { if (ready(p, d, st, DUPLICATE)) com.phantompowers.entity.GhostCloneEntity.toggle(p, d); }
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
@@ -232,10 +234,18 @@ public final class GhostPowers {
 		d.fists = false;
 		d.shieldHeld = false;
 		if (d.shieldUp) setShield(p, d, false);
+		com.phantompowers.entity.GhostCloneEntity.dismiss(p);
 		fistMods(p, d);
 		setFlight(p, false);
 		applyStats(p, d, false);
 		broadcastStates(p.getServer());
+	}
+
+	/** Where the player is aiming: the creature under the crosshair, or the block, or a point far ahead. */
+	public static Vec3d aimPoint(ServerPlayerEntity p, double range) {
+		Entity e = aimEntity(p, GhostState.of(p.getServer()).data(p.getUuid()), (int) range);
+		if (e != null) return e.getPos().add(0, e.getHeight() * 0.6, 0);
+		return aimBlockPos(p, (int) range);
 	}
 
 	// ------------------------------------------------------------ ecto shield
@@ -607,7 +617,6 @@ public final class GhostPowers {
 		sendRings(p, WAIL_FINALE_TICKS - 30, 2); // the screaming pose, seen by everyone nearby
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 6.0f, 0.85f);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 2.0f, 0.8f);
 		syncNow(p);
 	}
 
@@ -626,7 +635,7 @@ public final class GhostPowers {
 			if (t % 8 == 0) {
 				for (int k = 0; k < 4; k++) {
 					Vec3d dir = look.rotateY((float) (k * Math.PI / 2 + t * 0.1));
-					com.phantompowers.entity.BossMoves.soundWave(w, eye.add(dir.multiply(0.6)), dir, 22f, 0x66FF99);
+					com.phantompowers.entity.BossMoves.wailWave(w, eye.add(dir.multiply(0.6)), dir, 22f);
 				}
 			}
 			if (t % 18 == 0) {
@@ -634,7 +643,7 @@ public final class GhostPowers {
 			}
 			// Kept light so the cutscene stays smooth and you can still see yourself
 			if (t % 2 == 0) w.spawnParticles(GREEN, eye.x, eye.y, eye.z, 4, 1.4, 0.8, 1.4, 0.2);
-			if (t % 6 == 0) w.spawnParticles(ParticleTypes.SONIC_BOOM, eye.x + look.x * 3, eye.y + look.y * 3, eye.z + look.z * 3, 1, 0, 0, 0, 0);
+
 		}
 		if (d.cutscene == 30) {
 			// Out of power: the rings come back and take you human again
@@ -1062,7 +1071,6 @@ public final class GhostPowers {
 		d.wailTicks = 1;
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 1.0f);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 1.0f, 1.4f);
 		bar(p, "GHOSTLY WAIL! (hold B to keep wailing)", Formatting.GREEN);
 	}
 
@@ -1090,6 +1098,8 @@ public final class GhostPowers {
 		}
 		if (d.wailTicks % 5 == 1) {
 			WAVES.add(new WailWave(w, p.getUuid(), p.getEyePos(), p.getRotationVec(1f)));
+			// your clones wail with you, all aimed at the spot you're aiming at
+			if (d.wailTicks % 10 == 1) com.phantompowers.entity.GhostCloneEntity.wailWith(p, aimPoint(p, 24));
 		}
 		if (d.wailTicks % 56 == 0) {
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.PLAYERS, 4.0f, 0.95f + w.random.nextFloat() * 0.1f);
@@ -1113,6 +1123,7 @@ public final class GhostPowers {
 			this.owner = owner;
 			this.origin = origin;
 			this.dir = dir.normalize();
+			com.phantompowers.entity.BossMoves.wailWave(world, origin.add(this.dir.multiply(0.5)), this.dir, 16f);
 		}
 
 		/** Returns true when finished. */
@@ -1122,20 +1133,7 @@ public final class GhostPowers {
 			Entity ownerEntity = world.getServer().getPlayerManager().getPlayer(owner);
 			double cone = 0.80;
 
-			// Visuals: a sonic ring travelling outwards
-			Vec3d center = origin.add(dir.multiply(radius));
-			world.spawnParticles(ParticleTypes.SONIC_BOOM, center.x, center.y, center.z, 1, 0, 0, 0, 0);
-			Vec3d u = dir.crossProduct(new Vec3d(0, 1, 0));
-			if (u.lengthSquared() < 1.0E-4) u = new Vec3d(1, 0, 0);
-			u = u.normalize();
-			Vec3d v = dir.crossProduct(u).normalize();
-			double ringRadius = radius * 0.6;
-			int points = 10 + radius * 3;
-			for (int i = 0; i < points; i++) {
-				double a = i * Math.PI * 2 / points;
-				Vec3d pt = center.add(u.multiply(Math.cos(a) * ringRadius)).add(v.multiply(Math.sin(a) * ringRadius));
-				world.spawnParticles(GREEN, pt.x, pt.y, pt.z, 1, 0, 0, 0, 0);
-			}
+			// (the glowing green rings are drawn by each client; see ClientShockwaves)
 
 			// Break blocks in this shell of the cone
 			BlockPos o = BlockPos.ofFloored(origin);

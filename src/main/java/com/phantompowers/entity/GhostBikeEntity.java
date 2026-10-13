@@ -70,7 +70,7 @@ public class GhostBikeEntity extends Entity {
 
 	@Override
 	protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
-		return new Vec3d(0, 1.0, -0.3);
+		return new Vec3d(0, 0.92, -0.32);
 	}
 
 	public float wheelRoll(float delta) {

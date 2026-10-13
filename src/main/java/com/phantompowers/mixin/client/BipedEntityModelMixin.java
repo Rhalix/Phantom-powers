@@ -32,8 +32,13 @@ public abstract class BipedEntityModelMixin {
 
 	@Inject(method = "setAngles(Lnet/minecraft/entity/LivingEntity;FFFFF)V", at = @At("TAIL"))
 	private void phantom$poses(LivingEntity entity, float limbAngle, float limbDistance, float age, float headYaw, float headPitch, CallbackInfo ci) {
+		if (entity instanceof com.phantompowers.entity.GhostCloneEntity clone) {
+			phantom$clonePose(clone.wailing(), age);
+			return;
+		}
 		if (!(entity instanceof PlayerEntity)) return;
 		if (entity.getVehicle() instanceof GliderEntity) phantom$gliderPose(age);
+		if (entity.getVehicle() instanceof com.phantompowers.entity.GhostBikeEntity) phantom$bikePose(age);
 		if (com.phantompowers.client.GuitarFeature.guitarOf(entity) != null) phantom$guitarPose(entity, age);
 		float hero = com.phantompowers.client.ClientRings.transformProgress(entity.getId(), age - (int) age);
 		if (hero >= 0f) {
@@ -44,6 +49,54 @@ public abstract class BipedEntityModelMixin {
 		if (wail >= 0f) phantom$wailPose(wail, age);
 		float lean = com.phantompowers.client.SupermanFlight.lean(entity, age - (int) age);
 		if (lean > 0f) phantom$supermanPose(lean, age);
+	}
+
+	/** A ghost clone: floats with its legs hanging; when it wails, head thrust forward and arms flung back. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$clonePose(float wail, float age) {
+		float sway = MathHelper.sin(age * 0.08f) * 0.1f;
+		rightLeg.pitch = 0.15f + sway;
+		leftLeg.pitch = -0.1f - sway;
+		rightLeg.yaw = leftLeg.yaw = 0;
+		rightArm.pitch = MathHelper.lerp(wail, sway * 0.5f, 0.5f);
+		leftArm.pitch = MathHelper.lerp(wail, -sway * 0.5f, 0.5f);
+		rightArm.roll = MathHelper.lerp(wail, 0.1f, 1.1f);
+		leftArm.roll = MathHelper.lerp(wail, -0.1f, -1.1f);
+		head.pitch = MathHelper.lerp(wail, head.pitch, 0.15f);
+		hat.copyTransform(head);
+	}
+
+	/** Riding Rev's bike: tucked forward over the tank, hands on the bars, knees bent to the pegs. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$bikePose(float age) {
+		float lean = 0.55f;
+		body.pitch = lean;
+		// the hips swing back as the torso leans forward
+		float hipY = 12f * MathHelper.cos(lean), hipZ = 12f * MathHelper.sin(lean);
+		rightLeg.pivotY = hipY;
+		leftLeg.pivotY = hipY;
+		rightLeg.pivotZ = hipZ;
+		leftLeg.pivotZ = hipZ;
+		rightLeg.pitch = -1.15f;
+		leftLeg.pitch = -1.15f;
+		rightLeg.yaw = 0.18f;
+		leftLeg.yaw = -0.18f;
+		rightLeg.roll = 0;
+		leftLeg.roll = 0;
+		float shoulderY = 2f * MathHelper.cos(lean), shoulderZ = 2f * MathHelper.sin(lean);
+		rightArm.pivotY = shoulderY;
+		leftArm.pivotY = shoulderY;
+		rightArm.pivotZ = shoulderZ;
+		leftArm.pivotZ = shoulderZ;
+		float bump = MathHelper.sin(age * 1.3f) * 0.02f;
+		rightArm.pitch = -1.25f + bump;
+		leftArm.pitch = -1.25f + bump;
+		rightArm.yaw = -0.1f;
+		leftArm.yaw = 0.1f;
+		rightArm.roll = 0;
+		leftArm.roll = 0;
+		head.pitch -= 0.35f;
+		hat.copyTransform(head);
 	}
 
 	/** Superman flight: head up looking ahead, right fist punched forward, left arm along the side, legs together. */

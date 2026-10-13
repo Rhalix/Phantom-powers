@@ -36,9 +36,9 @@ public final class ClientShockwaves {
 			this.kind = p.kind();
 		}
 
-		int rings() { return kind == 0 ? 7 : 3; }
-		float spacing() { return kind == 0 ? 1.6f : 3.5f; }
-		float speed() { return kind == 0 ? 1.5f : 0.9f; }
+		int rings() { return kind == 0 ? 7 : kind == 2 ? 4 : 3; }
+		float spacing() { return kind == 0 ? 1.6f : kind == 2 ? 2.2f : 3.5f; }
+		float speed() { return kind == 0 ? 1.5f : kind == 2 ? 1.25f : 0.9f; }
 		int life() { return (int) (range / speed() + rings() * spacing()) + 3; }
 	}
 
@@ -53,7 +53,17 @@ public final class ClientShockwaves {
 		if (mc.world == null) return;
 		DustParticleEffect dust = new DustParticleEffect(new Vector3f(((w.color >> 16) & 255) / 255f,
 				((w.color >> 8) & 255) / 255f, (w.color & 255) / 255f), 1.5f);
-		if (w.kind == 0) {
+		if (w.kind == 2) {
+			// Ghostly Wail: green ecto-mist and sparkles streaming along with the rings
+			DustParticleEffect pale = new DustParticleEffect(new Vector3f(0.8f, 1f, 0.88f), 1.0f);
+			for (int i = 0; i < 18; i++) {
+				double t = Math.random() * w.range;
+				double spread = 0.3 + t * 0.35;
+				Vec3d at = w.origin.add(w.dir.multiply(t)).add((Math.random() - 0.5) * spread, (Math.random() - 0.5) * spread, (Math.random() - 0.5) * spread);
+				mc.world.addParticle(i % 3 == 0 ? ParticleTypes.END_ROD : i % 3 == 1 ? dust : pale, at.x, at.y, at.z,
+						w.dir.x * 0.25, w.dir.y * 0.25, w.dir.z * 0.25);
+			}
+		} else if (w.kind == 0) {
 			// Musical notes and sparks riding the wave
 			for (int i = 0; i < 24; i++) {
 				double t = Math.random() * w.range;
@@ -103,7 +113,17 @@ public final class ClientShockwaves {
 				boolean light = k % 2 == 1;
 				int r = light ? (cr + 255) / 2 : cr, g = light ? (cg + 255) / 2 : cg, b = light ? (cb + 255) / 2 : cb;
 				float phase = a * 0.7f + k * 1.3f;
-				if (w.kind == 0) {
+				if (w.kind == 2) {
+					// Ghostly Wail: a fat glowing green ring with a white-hot core, an outer haze,
+					// and a fainter echo ring spinning just behind it
+					Vec3d c = w.origin.add(w.dir.multiply(dist + 0.3));
+					float radius = 0.5f + dist * 0.55f;
+					float wob = 0.05f + 0.04f * MathHelper.sin(a * 0.5f);
+					ring(vc, m, c, w.dir, radius * 1.18f, 0.45f + 0.3f * (1 - frac), 60, 230, 120, alpha / 4, phase, wob * 1.5f);
+					ring(vc, m, c, w.dir, radius, 0.22f + 0.22f * (1 - frac), 70, 255, 140, alpha, phase, wob);
+					ring(vc, m, c, w.dir, radius, 0.07f, 235, 255, 240, alpha, phase, wob);
+					ring(vc, m, c.subtract(w.dir.multiply(0.6)), w.dir, radius * 0.82f, 0.08f, 160, 255, 200, alpha / 2, -phase * 1.4f, 0.12f);
+				} else if (w.kind == 0) {
 					Vec3d c = w.origin.add(w.dir.multiply(dist + 0.6));
 					float radius = 0.45f + dist * 0.42f;
 					ring(vc, m, c, w.dir, radius, 0.16f + 0.18f * (1 - frac), r, g, b, alpha, phase, 0.08f);

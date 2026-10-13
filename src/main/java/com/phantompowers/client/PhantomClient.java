@@ -51,10 +51,11 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding FROST;
 	public static KeyBinding FISTS;
 	public static KeyBinding SHIELD;
+	public static KeyBinding DUPLICATE;
 
 	/** Key bound to each skill, in skill order (used by the HUD and skills screen). */
 	public static KeyBinding[] skillKeys() {
-		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST, FISTS, SHIELD};
+		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST, FISTS, SHIELD, DUPLICATE};
 	}
 
 	private static boolean intangibleHeld;
@@ -81,6 +82,7 @@ public class PhantomClient implements ClientModInitializer {
 		FROST = key("frost", GLFW.GLFW_KEY_Z);
 		FISTS = key("fists", GLFW.GLFW_KEY_X);
 		SHIELD = key("shield", GLFW.GLFW_KEY_Y);
+		DUPLICATE = key("duplicate", GLFW.GLFW_KEY_C);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
@@ -154,6 +156,7 @@ public class PhantomClient implements ClientModInitializer {
 			while (FISTS.wasPressed()) send(GhostPowers.A_FISTS);
 			// Y: hold to keep the Ecto Shield up
 			while (SHIELD.wasPressed()) send(GhostPowers.A_SHIELD);
+			while (DUPLICATE.wasPressed()) send(GhostPowers.A_DUPLICATE);
 			boolean shieldNow = SHIELD.isPressed();
 			if (shieldHeld && !shieldNow) send(GhostPowers.A_SHIELD_RELEASE);
 			shieldHeld = shieldNow;
@@ -212,6 +215,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.SHADE, ShadeRenderer::new);
 		EntityRendererRegistry.register(ModEntities.KISS, EnergyProjectileRenderer.Kiss::new);
 		EntityRendererRegistry.register(ModEntities.GHOST_BIKE, GhostBikeRenderer::new);
+		EntityRendererRegistry.register(ModEntities.GHOST_CLONE, GhostCloneRenderer::new);
 		EntityRendererRegistry.register(ModEntities.PINK_ORB, EnergyProjectileRenderer.Orb::new);
 		EntityRendererRegistry.register(ModEntities.GHOST_NET_TRAP, GhostNetRenderer.Trap::new);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));

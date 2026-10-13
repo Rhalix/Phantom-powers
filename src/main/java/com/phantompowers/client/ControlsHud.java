@@ -76,7 +76,8 @@ public final class ControlsHud {
 					"invisible",
 					"Frost Breath (hold)",
 					"Ecto Fists (punch harder)",
-					"Ecto Shield (hold)"};
+					"Ecto Shield (hold)",
+					"Duplication (clones)"};
 			for (int i = 0; i < keys.length; i++) {
 				if (!ClientGhost.has(i)) continue;
 				if (i == GhostPowers.BLAST && ClientGhost.possessing && ClientGhost.hostAbility >= 0) {

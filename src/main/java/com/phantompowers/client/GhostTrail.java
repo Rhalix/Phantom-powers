@@ -92,14 +92,25 @@ public final class GhostTrail {
 			}
 			boolean self = p == mc.player && mc.options.getPerspective().isFirstPerson();
 			float fade = self ? 0.35f : 1f;
-			ribbon(vc, m, pts, cam, 0.32f, fade, 0f, 0f);
-			ribbon(vc, m, pts, cam, 0.07f, fade, 0.22f, clock + partial);
+			int v = p instanceof net.minecraft.client.network.AbstractClientPlayerEntity cp ? GhostSuitFeature.variantOf(cp) : 0;
+			int[] col = COLORS[Math.max(0, Math.min(COLORS.length - 1, v))];
+			ribbon(vc, m, pts, cam, 0.32f, fade, 0f, 0f, col);
+			ribbon(vc, m, pts, cam, 0.07f, fade, 0.22f, clock + partial, col);
 		}
 		ms.pop();
 	}
 
 	/** A camera-facing strip along the points, tapering to nothing; optionally wound around the path (twist). */
-	private static void ribbon(VertexConsumer vc, Matrix4f m, List<Vec3d> pts, Vec3d cam, float width, float fade, float twist, float time) {
+	/** Streak colours per suit look: {head r,g,b, tail r,g,b}. */
+	private static final int[][] COLORS = {
+			{235, 255, 235, 40, 255, 200},   // classic: white-hot to green-teal
+			{235, 235, 245, 110, 90, 150},   // shadow: white to dusky violet
+			{210, 255, 225, 40, 255, 130},   // ecto glow: bright green
+			{255, 225, 225, 225, 40, 60},    // crimson
+			{240, 250, 255, 70, 165, 255},   // frostbite: icy blue
+			{255, 240, 200, 150, 80, 230}};  // royal: gold to purple
+
+	private static void ribbon(VertexConsumer vc, Matrix4f m, List<Vec3d> pts, Vec3d cam, float width, float fade, float twist, float time, int[] col) {
 		int n = pts.size();
 		Vec3d[] left = new Vec3d[n], right = new Vec3d[n];
 		int[] r = new int[n], g = new int[n], b = new int[n], a = new int[n];
@@ -120,9 +131,9 @@ public final class GhostTrail {
 			left[i] = p.add(side.multiply(w));
 			right[i] = p.subtract(side.multiply(w));
 			// white-hot -> green -> teal
-			r[i] = (int) MathHelper.lerp(f, 235, 40);
-			g[i] = 255;
-			b[i] = (int) MathHelper.lerp(f, 235, 200);
+			r[i] = (int) MathHelper.lerp(f, col[0], col[3]);
+			g[i] = (int) MathHelper.lerp(f, col[1], col[4]);
+			b[i] = (int) MathHelper.lerp(f, col[2], col[5]);
 			a[i] = (int) (255 * fade * (1 - f) * (twist > 0 ? 0.9f : 0.6f));
 		}
 		for (int i = 0; i < n - 1; i++) {

@@ -85,5 +85,7 @@
   "entity.phantom.ghost_bike": "Ghost Bike",
   "item.phantom.shade_essence": "Shade's Essence",
   "item.phantom.shade_tendril": "Shade's Tendril",
-  "item.phantom.shade_spawn_egg": "Shade Spawn Egg"
+  "item.phantom.shade_spawn_egg": "Shade Spawn Egg",
+  "key.phantom.duplicate": "Duplication",
+  "entity.phantom.ghost_clone": "Ghost Clone"
 }

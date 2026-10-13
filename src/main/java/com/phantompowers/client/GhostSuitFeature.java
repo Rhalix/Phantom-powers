@@ -36,6 +36,14 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 		GLOWS[4] = PhantomMod.id("textures/entity/ghost_suit_4_glow.png");
 	}
 
+	public static Identifier texture(int variant) {
+		return VARIANTS[Math.max(0, Math.min(VARIANTS.length - 1, variant))];
+	}
+
+	public static Identifier glow(int variant) {
+		return GLOWS[Math.max(0, Math.min(GLOWS.length - 1, variant))];
+	}
+
 	/** Which suit look this player picked (the customizer's preview wins while it's open). */
 	public static int variantOf(AbstractClientPlayerEntity player) {
 		if (GhostSuitScreen.previewing && player == net.minecraft.client.MinecraftClient.getInstance().player) return GhostSuitScreen.preview;

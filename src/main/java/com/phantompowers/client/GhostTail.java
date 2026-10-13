@@ -39,6 +39,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(PhantomMod.id("ghost_tail"), "main");
 	private static final Identifier TEXTURE = PhantomMod.id("textures/entity/ghost_tail.png");
+	/** The tail matches whichever ghost suit you picked. */
+	private static final Identifier[] VARIANTS = new Identifier[com.phantompowers.GhostPowers.SUIT_VARIANTS.length];
+
+	static {
+		VARIANTS[0] = TEXTURE;
+		for (int i = 1; i < VARIANTS.length; i++) VARIANTS[i] = PhantomMod.id("textures/entity/ghost_tail_" + i + ".png");
+	}
+
+	/** Hovering in place shows your legs; the tail only forms once you're actually moving. */
+	private static final Map<UUID, Integer> MOVING = new ConcurrentHashMap<>();
+
+	public static boolean moving(Entity e) {
+		Integer m = MOVING.get(e.getUuid());
+		return m != null && m > 0;
+	}
 	private static final DustParticleEffect WISP = new DustParticleEffect(new Vector3f(0.85f, 1f, 0.92f), 1.1f);
 	private static final DustParticleEffect GREEN = new DustParticleEffect(new Vector3f(0.35f, 1f, 0.55f), 0.8f);
 	/** Ticks each ghost has been off the ground (a quick hop doesn't count). */
@@ -75,8 +90,8 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 		if (!(e instanceof PlayerEntity p) || GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(p.getUuid())) return false;
 		if (p.hasVehicle() || p.isSwimming() || p.isFallFlying()) return false;
 		// Only while really flying (not for jumps or falls)
-		if (p.isMainPlayer()) return p.getAbilities().flying;
-		return GhostFlags.CLIENT_FLYING.contains(p.getUuid());
+		boolean flying = p.isMainPlayer() ? p.getAbilities().flying : GhostFlags.CLIENT_FLYING.contains(p.getUuid());
+		return flying && moving(p);
 	}
 
 	public static void tick(MinecraftClient mc) {
@@ -92,8 +107,16 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 			UUID id = p.getUuid();
 			if (!GhostFlags.CLIENT_GHOSTS.contains(id)) {
 				AIR.remove(id);
+				MOVING.remove(id);
 				continue;
 			}
+			// moving counter with a little hysteresis: forms after ~2 ticks of motion, melts back into legs after ~8 still ticks
+			double dx = p.getX() - p.prevX, dy = p.getY() - p.prevY, dz = p.getZ() - p.prevZ;
+			double sp = Math.sqrt(dx * dx + dy * dy * 0.5 + dz * dz);
+			int m = MOVING.getOrDefault(id, 0);
+			if (sp > 0.06) m = Math.min(8, m + 4);
+			else if (sp < 0.03) m = Math.max(0, m - 1);
+			MOVING.put(id, m);
 			AIR.merge(id, 1, Integer::sum);
 			if (p.isOnGround() || p.isTouchingWater()) AIR.put(id, 0);
 			if (!isTailed(p) || p.isInvisible()) continue;
@@ -124,7 +147,7 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 		matrices.push();
 		getContextModel().body.rotate(matrices);
 		// The body's pivot is at the neck; the tail hangs from the hips
-		root.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE)), 0xF000F0, OverlayTexture.DEFAULT_UV, 0xE6FFFFFF);
+		root.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(VARIANTS[GhostSuitFeature.variantOf(player)])), 0xF000F0, OverlayTexture.DEFAULT_UV, 0xE6FFFFFF);
 		matrices.pop();
 	}
 }

@@ -13,7 +13,7 @@ import net.minecraft.util.math.MathHelper;
  * unlocked power showing its key, a cooldown sweep, and a highlight when it's switched on.
  */
 public final class GhostHud {
-	private static final String[] SHORT = {"BLAST", "PHASE", "POSSESS", "WAIL", "TWISTER", "INVIS", "FROST", "FISTS", "SHIELD"};
+	private static final String[] SHORT = {"BLAST", "PHASE", "POSSESS", "WAIL", "TWISTER", "INVIS", "FROST", "FISTS", "SHIELD", "CLONES"};
 	private static final int SLOT = 20, GAP = 2;
 
 	private GhostHud() {}

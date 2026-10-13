@@ -88,6 +88,12 @@ public final class BossMoves {
 				(float) dir.x, (float) dir.y, (float) dir.z, range, color, 0));
 	}
 
+	/** The Ghostly Wail: big glowing green rings racing out from the mouth along {@code dir}. */
+	public static void wailWave(ServerWorld w, Vec3d from, Vec3d dir, float range) {
+		send(w, new ShockwavePayload((float) from.x, (float) from.y, (float) from.z,
+				(float) dir.x, (float) dir.y, (float) dir.z, range, 0x55FF88, 2));
+	}
+
 	/** The ground straight below a point (or the point itself if there's nothing close). */
 	public static Vec3d ground(ServerWorld w, Vec3d at) {
 		BlockHitResult hit = w.raycast(new RaycastContext(at.add(0, 1, 0), at.add(0, -14, 0),
