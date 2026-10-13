@@ -78,7 +78,7 @@ public class ThermosItem extends Item {
 		if (e instanceof com.phantompowers.entity.WishkeeperEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.RevEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.RoxyEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
-		if (e instanceof com.phantompowers.entity.ShadeEntity) return true;
+		if (e instanceof com.phantompowers.entity.ShadeEntity s) return !s.isBoss() || s.getHealth() < s.getMaxHealth() * 0.25f;
 		return e instanceof AbstractGhostEntity || e instanceof VexEntity || e instanceof PhantomEntity;
 	}
 
@@ -109,7 +109,7 @@ public class ThermosItem extends Item {
 			return TypedActionResult.fail(stack);
 		}
 		if (FrostLogic.isBoss(target) && !canTrap(target)) {
-			p.sendMessage(Text.literal("It's too strong! Weaken it first.").formatted(Formatting.RED), true);
+			p.sendMessage(Text.literal("It's too strong! Weaken it below a quarter of its health first.").formatted(Formatting.RED), true);
 			return TypedActionResult.fail(stack);
 		}
 		if (target instanceof MobEntity m) m.setAiDisabled(true);

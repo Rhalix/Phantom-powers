@@ -135,6 +135,10 @@ public class PhantomClient implements ClientModInitializer {
 				suitHeld = 0;
 			}
 
+			// Rev's ghost bike: sprint = nitro, jump = hop
+			boolean onBike = client.player.getVehicle() instanceof com.phantompowers.entity.GhostBikeEntity;
+			com.phantompowers.entity.GhostBikeEntity.clientNitro = onBike && client.options.sprintKey.isPressed();
+			com.phantompowers.entity.GhostBikeEntity.clientHop = onBike && client.options.jumpKey.isPressed();
 			// Sprint on the Hover Glider = afterburners
 			GliderEntity.clientBoost = client.options.sprintKey.isPressed() && client.player.getVehicle() instanceof GliderEntity;
 			// Right-click on the Hover Glider fires its lasers
@@ -207,6 +211,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(ShadeModel.LAYER, ShadeModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.SHADE, ShadeRenderer::new);
 		EntityRendererRegistry.register(ModEntities.KISS, EnergyProjectileRenderer.Kiss::new);
+		EntityRendererRegistry.register(ModEntities.GHOST_BIKE, GhostBikeRenderer::new);
 		EntityRendererRegistry.register(ModEntities.PINK_ORB, EnergyProjectileRenderer.Orb::new);
 		EntityRendererRegistry.register(ModEntities.GHOST_NET_TRAP, GhostNetRenderer.Trap::new);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));

@@ -170,12 +170,21 @@ public final class PhantomCommands {
 						roxy.setHealth(roxy.getMaxHealth() * 0.3f);
 						rev.startRideOrDie(zone, roxy);
 					}
-					boolean ok = riding && rev.hasShade(zone) && rev.shadowPhase() && rev.rideOrDie() && roxy != null && roxy.getVehicle() == rev;
+					var shadeBoss = ModEntities.SHADE.create(zone);
+					boolean shadeOk = false;
+					if (shadeBoss != null) {
+						shadeBoss.refreshPositionAndAngles(36.5, 190, 60.5, 0, 0);
+						zone.spawnEntity(shadeBoss);
+						shadeBoss.testMoves(zone, dummy);
+						shadeOk = shadeBoss.isBoss() && com.phantompowers.FrostLogic.isBoss(shadeBoss);
+						shadeBoss.discard();
+					}
+					boolean ok = shadeOk && riding && rev.hasShade(zone) && rev.shadowPhase() && rev.rideOrDie() && roxy != null && roxy.getVehicle() == rev;
 					rev.discard();
 					if (roxy != null) roxy.discard();
 					dummy.discard();
 					if (!ok) {
-						ctx.getSource().sendError(Text.literal("Biker test: FAILED (riding=" + riding + ")"));
+						ctx.getSource().sendError(Text.literal("Biker test: FAILED (riding=" + riding + ", shadeBoss=" + shadeOk + ")"));
 						return 0;
 					}
 					ctx.getSource().sendFeedback(() -> Text.literal("Biker test: OK"), false);

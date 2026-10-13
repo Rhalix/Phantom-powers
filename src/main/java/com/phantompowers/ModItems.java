@@ -45,6 +45,16 @@ public final class ModItems {
 	public static final Item BIKER_COUPLE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("biker_couple_spawn_egg"),
 			new BikerCoupleItem(new Item.Settings().rarity(Rarity.RARE)));
 
+	public static final Item BIKE_KEYS = Registry.register(Registries.ITEM, PhantomMod.id("rev_bike_keys"),
+			new GhostBikeKeysItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
+	public static final Item HEART_CHARM = Registry.register(Registries.ITEM, PhantomMod.id("heart_charm"),
+			new HeartCharmItem(new Item.Settings().maxDamage(250).rarity(Rarity.EPIC)));
+
+	public static final Item SHADE_TENDRIL = Registry.register(Registries.ITEM, PhantomMod.id("shade_tendril"),
+			new ShadeTendrilItem(new Item.Settings().maxDamage(300).rarity(Rarity.EPIC)));
+	public static final Item SHADE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("shade_spawn_egg"),
+			new net.minecraft.item.SpawnEggItem(ModEntities.SHADE, 0x221A30, 0xFF8C28, new Item.Settings()));
+
 	public static final Item HOVER_GLIDER = Registry.register(Registries.ITEM, PhantomMod.id("hover_glider"),
 			new HoverGliderItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
@@ -83,7 +93,10 @@ public final class ModItems {
 			essence("jailer_essence", GhostPowers.ESS_JAILER, Rarity.EPIC),
 			essence("crate_king_essence", GhostPowers.ESS_CRATE, Rarity.EPIC),
 			essence("voltage_essence", GhostPowers.ESS_VOLTAGE, Rarity.EPIC),
-			essence("wishkeeper_essence", GhostPowers.ESS_WISH, Rarity.EPIC)};
+			essence("wishkeeper_essence", GhostPowers.ESS_WISH, Rarity.EPIC),
+			essence("rev_essence", GhostPowers.ESS_REV, Rarity.EPIC),
+			essence("roxy_essence", GhostPowers.ESS_ROXY, Rarity.EPIC),
+			essence("shade_essence", GhostPowers.ESS_SHADE, Rarity.EPIC)};
 
 	public static final Item WISHKEEPER_EGG = Registry.register(Registries.ITEM, PhantomMod.id("wishkeeper_spawn_egg"),
 			new SpawnEggItem(ModEntities.WISHKEEPER, 0x2FC9B8, 0xF2C230, new Item.Settings()));

@@ -16,6 +16,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public final class ModEntities {
+	public static final EntityType<com.phantompowers.entity.GhostBikeEntity> GHOST_BIKE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("ghost_bike"),
+			EntityType.Builder.<com.phantompowers.entity.GhostBikeEntity>create(com.phantompowers.entity.GhostBikeEntity::new, SpawnGroup.MISC)
+					.dimensions(1.1f, 1.2f).maxTrackingRange(10).build("ghost_bike"));
+
 	public static final EntityType<com.phantompowers.entity.RevEntity> REV = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("rev"),
 			EntityType.Builder.create(com.phantompowers.entity.RevEntity::new, SpawnGroup.MONSTER)

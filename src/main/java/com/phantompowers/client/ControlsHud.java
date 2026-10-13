@@ -31,6 +31,13 @@ public final class ControlsHud {
 			lines.add(new Line(name(mc.options.useKey), "fire lasers"));
 			lines.add(new Line(name(mc.options.sneakKey), "hop off"));
 		}
+		if (mc.player.getVehicle() instanceof com.phantompowers.entity.GhostBikeEntity) {
+			lines.add(new Line("LOOK", "steer"));
+			lines.add(new Line(name(mc.options.forwardKey) + "/" + name(mc.options.backKey), "throttle / brake"));
+			lines.add(new Line(name(mc.options.sprintKey), "nitro"));
+			lines.add(new Line(name(mc.options.jumpKey), "hop"));
+			lines.add(new Line(name(mc.options.sneakKey), "get off"));
+		}
 		var held = mc.player.getMainHandStack();
 		String use = name(mc.options.useKey), sneak = name(mc.options.sneakKey);
 		if (held.isOf(com.phantompowers.ModItems.GHOST_BLASTER)) lines.add(new Line(use, "fire the Ghost Blaster"));
@@ -43,6 +50,14 @@ public final class ControlsHud {
 			lines.add(new Line(sneak + "+" + use, "release all ghosts"));
 		}
 		if (held.isOf(com.phantompowers.ModItems.GHOST_NET)) lines.add(new Line(use, "throw the Ghost Net"));
+		if (held.isOf(com.phantompowers.ModItems.SHADE_TENDRIL)) {
+			lines.add(new Line(use, "yank a creature to you"));
+			lines.add(new Line(sneak + "+" + use, "grapple to a block"));
+		}
+		if (held.isOf(com.phantompowers.ModItems.HEART_CHARM)) {
+			lines.add(new Line(use, "blow a homing kiss"));
+			lines.add(new Line(sneak + "+" + use, "sonic shriek"));
+		}
 		if (held.isOf(com.phantompowers.ModItems.ECTO_LAUNCHER)) lines.add(new Line(use, "fire a pink energy blast"));
 		if (held.isOf(com.phantompowers.ModItems.PANDORAS_BOX)) lines.add(new Line(use, "dark shockwave"));
 		if (held.getItem() instanceof com.phantompowers.EssenceItem) lines.add(new Line(use + " (hold)", "eat: gain this ghost's power"));

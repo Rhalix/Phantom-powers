@@ -34,7 +34,7 @@ public class ShadeRenderer extends MobEntityRenderer<ShadeEntity, ShadeModel> {
 
 	@Override
 	protected void scale(ShadeEntity e, MatrixStack matrices, float amount) {
-		float s = 1.3f;
+		float s = e.isClone() ? 1.05f : e.isBoss() ? 1.5f : 1.3f;
 		matrices.scale(s, s, s);
 	}
 

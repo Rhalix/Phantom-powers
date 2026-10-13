@@ -22,7 +22,17 @@ import net.minecraft.world.World;
 /** One of Roxy's blown kisses: a glowing pink heart. It leaves you lovestruck (slow and weak); heartbreaker kisses explode. */
 public class KissEntity extends ThrownItemEntity {
 	private boolean explosive;
+	private boolean fromPlayer;
 	private LivingEntity homing;
+
+	/** Thrown by a player with Roxy's Heart Charm: these ones hit ghosts too. */
+	public void setFromPlayer() {
+		this.fromPlayer = true;
+	}
+
+	private boolean ignores(Entity t) {
+		return t == getOwner() || (!fromPlayer && t instanceof AbstractGhostEntity);
+	}
 
 	public KissEntity(EntityType<? extends KissEntity> type, World world) {
 		super(type, world);
@@ -67,9 +77,11 @@ public class KissEntity extends ThrownItemEntity {
 	protected void onEntityHit(EntityHitResult hit) {
 		super.onEntityHit(hit);
 		Entity t = hit.getEntity();
-		if (t == getOwner() || t instanceof AbstractGhostEntity) return;
+		if (ignores(t)) return;
 		Entity owner = getOwner();
-		t.damage(getDamageSources().indirectMagic(this, owner), explosive ? 6f : 5f);
+		float dmg = explosive ? 6f : 5f;
+		if (fromPlayer) dmg *= com.phantompowers.HunterSuit.ghostBonus(t);
+		t.damage(getDamageSources().indirectMagic(this, owner), dmg);
 		if (t instanceof LivingEntity le) {
 			le.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 70, 1));
 			le.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 70, 0));
@@ -79,7 +91,7 @@ public class KissEntity extends ThrownItemEntity {
 
 	@Override
 	protected void onCollision(HitResult hit) {
-		if (hit instanceof EntityHitResult eh && (eh.getEntity() == getOwner() || eh.getEntity() instanceof AbstractGhostEntity)) return;
+		if (hit instanceof EntityHitResult eh && ignores(eh.getEntity())) return;
 		super.onCollision(hit);
 		if (getWorld() instanceof ServerWorld w && !isRemoved()) {
 			w.spawnParticles(ParticleTypes.HEART, getX(), getY(), getZ(), explosive ? 14 : 6, 0.4, 0.4, 0.4, 0.1);
@@ -102,11 +114,13 @@ public class KissEntity extends ThrownItemEntity {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putBoolean("Explosive", explosive);
+		nbt.putBoolean("FromPlayer", fromPlayer);
 	}
 
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
 		explosive = nbt.getBoolean("Explosive");
+		fromPlayer = nbt.getBoolean("FromPlayer");
 	}
 }

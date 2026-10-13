@@ -77,5 +77,10 @@
   "item.phantom.rev_spawn_egg": "Rev Spawn Egg",
   "item.phantom.roxy_spawn_egg": "Roxy Spawn Egg",
   "item.phantom.biker_couple_spawn_egg": "Biker Couple Spawn Egg",
-  "key.phantom.shield": "Ecto Shield (hold)"
+  "key.phantom.shield": "Ecto Shield (hold)",
+  "item.phantom.rev_essence": "Rev's Essence",
+  "item.phantom.roxy_essence": "Roxy's Essence",
+  "item.phantom.rev_bike_keys": "Rev's Bike Keys",
+  "item.phantom.heart_charm": "Roxy's Heart Charm",
+  "entity.phantom.ghost_bike": "Ghost Bike"
 }

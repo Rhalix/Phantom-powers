@@ -268,6 +268,18 @@ public class RevModel extends SinglePartEntityModel<RevEntity> {
 		return TexturedModelData.of(data, 256, 128);
 	}
 
+	/** Draw just the bike (for the rideable ghost bike): hide Rev, roll the wheels, rumble the engine. */
+	public void poseBikeOnly(float wheelRoll, float age, boolean moving) {
+		body.visible = false;
+		rightArm.visible = false;
+		leftArm.visible = false;
+		rightLeg.visible = false;
+		leftLeg.visible = false;
+		frontWheel.pitch = -wheelRoll;
+		rearWheel.pitch = -wheelRoll;
+		bike.pivotY = MathHelper.sin(age * 2.3f) * (moving ? 0.1f : 0.05f);
+	}
+
 	@Override
 	public ModelPart getPart() {
 		return root;
@@ -275,6 +287,7 @@ public class RevModel extends SinglePartEntityModel<RevEntity> {
 
 	@Override
 	public void setAngles(RevEntity e, float limbAngle, float limbDistance, float age, float headYaw, float headPitch) {
+		body.visible = rightArm.visible = leftArm.visible = rightLeg.visible = leftLeg.visible = true;
 		float charge = e.charge();
 		// wheels roll with movement; when revving the back wheel spins in place
 		float roll = limbAngle * 1.6f + (charge > 0 ? age * 1.4f : 0);

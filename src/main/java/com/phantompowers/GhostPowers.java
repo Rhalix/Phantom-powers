@@ -382,15 +382,18 @@ public final class GhostPowers {
 
 	// ------------------------------------------------------- devoured essences
 
-	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4, ESS_WISH = 5;
-	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage", "Wishkeeper"};
+	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4, ESS_WISH = 5, ESS_REV = 6, ESS_ROXY = 7, ESS_SHADE = 8;
+	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage", "Wishkeeper", "Rev", "Roxy", "Shade"};
 	public static final String[] ESSENCE_POWERS = {
 			"Strength and night vision",
 			"Constant healing",
 			"Toughness, and your hits chain enemies (slow them)",
 			"A crate-armor shield that keeps coming back",
 			"Speed, and every 4th hit calls down lightning",
-			"Luck, and a free wish (a random blessing) every minute"};
+			"Luck, and a free wish (a random blessing) every minute",
+			"Speed and fire immunity, and your hits set enemies ablaze with ghost-fire",
+			"Higher jumps, and your hits leave enemies lovestruck (slow and weak) while healing you",
+			"See in the dark, and your hits blind enemies and drain their life into you"};
 
 	public static void eatEssence(ServerPlayerEntity p, int power) {
 		GhostState st = GhostState.of(p.getServer());
@@ -427,6 +430,16 @@ public final class GhostPowers {
 		if ((d.eaten & (1 << ESS_VOLTAGE)) != 0) {
 			p.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 120, 1, true, false, true));
 		}
+		if ((d.eaten & (1 << ESS_REV)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 120, 0, true, false, true));
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 120, 0, true, false, true));
+		}
+		if ((d.eaten & (1 << ESS_ROXY)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 120, 1, true, false, true));
+		}
+		if ((d.eaten & (1 << ESS_SHADE)) != 0) {
+			p.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 320, 0, true, false, true));
+		}
 		if ((d.eaten & (1 << ESS_WISH)) != 0) {
 			p.addStatusEffect(new StatusEffectInstance(StatusEffects.LUCK, 120, 1, true, false, true));
 			if (p.age % 1200 < 40) WishingLampItem.grantWish(p, false);
@@ -441,6 +454,21 @@ public final class GhostPowers {
 		if ((d.eaten & (1 << ESS_JAILER)) != 0) {
 			target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 1), p);
 			w.spawnParticles(ParticleTypes.CRIT, target.getX(), target.getY() + 1, target.getZ(), 6, 0.3, 0.3, 0.3, 0.1);
+		}
+		if ((d.eaten & (1 << ESS_REV)) != 0) {
+			target.setOnFireFor(4);
+			w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, target.getX(), target.getY() + 1, target.getZ(), 10, 0.3, 0.5, 0.3, 0.02);
+		}
+		if ((d.eaten & (1 << ESS_SHADE)) != 0) {
+			target.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 60, 0), p);
+			p.heal(1.5f);
+			w.spawnParticles(ParticleTypes.SQUID_INK, target.getX(), target.getY() + 1, target.getZ(), 6, 0.3, 0.4, 0.3, 0.05);
+		}
+		if ((d.eaten & (1 << ESS_ROXY)) != 0) {
+			target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 1), p);
+			target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 60, 0), p);
+			p.heal(1.0f);
+			w.spawnParticles(ParticleTypes.HEART, target.getX(), target.getY() + target.getHeight(), target.getZ(), 3, 0.3, 0.2, 0.3, 0.05);
 		}
 		if ((d.eaten & (1 << ESS_VOLTAGE)) != 0 && ++d.hitCount % 4 == 0) {
 			net.minecraft.entity.LightningEntity bolt = net.minecraft.entity.EntityType.LIGHTNING_BOLT.create(w);

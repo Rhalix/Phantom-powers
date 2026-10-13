@@ -295,7 +295,7 @@ public final class GhostZoneLife {
 			case 1 -> ModEntities.CRATE_KING.create(ow);
 			case 2 -> ModEntities.WISHKEEPER.create(ow);
 			case 3 -> ModEntities.REV.create(ow);
-			case 4 -> ModEntities.ROXY.create(ow);
+			case 4 -> r.nextBoolean() ? ModEntities.ROXY.create(ow) : ModEntities.SHADE.create(ow);
 			default -> ModEntities.VOLTAGE.create(ow);
 		};
 		if (boss == null) return null;
