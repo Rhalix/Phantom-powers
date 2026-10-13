@@ -153,7 +153,7 @@ public class GhostNetTrapEntity extends Entity {
 		// The mesh zaps whatever's inside
 		if (life % 20 == 0 && target instanceof LivingEntity le) {
 			DamageSource src = owner instanceof LivingEntity o ? w.getDamageSources().indirectMagic(this, o) : w.getDamageSources().magic();
-			le.damage(src, 1.5f);
+			le.damage(src, 1.5f * com.phantompowers.HunterSuit.ghostBonus(le));
 			Vec3d c = target.getPos().add(0, target.getHeight() / 2, 0);
 			w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, c.x, c.y, c.z, 14, 0.5, 0.7, 0.5, 0.2);
 			w.playSound(null, c.x, c.y, c.z, ModSounds.NET_ZAP, SoundCategory.PLAYERS, 0.6f, 1.2f + w.random.nextFloat() * 0.3f);

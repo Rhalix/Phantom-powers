@@ -97,19 +97,7 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 			AIR.merge(id, 1, Integer::sum);
 			if (p.isOnGround() || p.isTouchingWater()) AIR.put(id, 0);
 			if (!isTailed(p) || p.isInvisible()) continue;
-			// Wisp trail from the tip of the tail, thicker the faster you go
-			Vec3d move = new Vec3d(p.getX() - p.prevX, p.getY() - p.prevY, p.getZ() - p.prevZ);
-			double speed = move.length();
-			Vec3d back = move.lengthSquared() > 1.0E-4 ? move.normalize().multiply(-1) : new Vec3d(0, -1, 0);
-			Vec3d tip = p.getPos().add(0, 0.25, 0).add(back.multiply(0.4));
-			int n = speed > 0.3 ? 3 : speed > 0.05 ? 2 : (p.age % 3 == 0 ? 1 : 0);
-			for (int i = 0; i < n; i++) {
-				double t = i / 3.0;
-				Vec3d at = tip.subtract(move.multiply(t));
-				mc.world.addParticle(i % 2 == 0 ? WISP : GREEN, at.x + (p.getRandom().nextDouble() - 0.5) * 0.25, at.y + (p.getRandom().nextDouble() - 0.5) * 0.25,
-						at.z + (p.getRandom().nextDouble() - 0.5) * 0.25, 0, 0.005, 0);
-			}
-			if (speed > 0.2 && p.age % 2 == 0) mc.world.addParticle(ParticleTypes.END_ROD, tip.x, tip.y, tip.z, back.x * 0.02, 0.01, back.z * 0.02);
+			// (the glowing streak behind flying ghosts is drawn by GhostTrail)
 		}
 	}
 

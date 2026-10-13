@@ -35,6 +35,10 @@ public final class GhostFlags {
 		return null;
 	}
 
+	/** Players with their Ecto Shield up, as told to this client. */
+	public static final Set<UUID> CLIENT_SHIELDED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	/** Each player's chosen ghost suit look (missing = classic), as told to this client. */
+	public static final java.util.Map<UUID, Integer> CLIENT_SUIT_VARIANT = new java.util.concurrent.ConcurrentHashMap<>();
 	/** Players with Ecto Fists switched on, as told to this client. */
 	public static final Set<UUID> CLIENT_FISTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Players in ghost form, as told to this client (for the ghost look). */

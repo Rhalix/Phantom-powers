@@ -196,7 +196,7 @@ public class GliderEntity extends Entity {
 					e -> e != p && e != this && !e.isSpectator() && e.canHit(), from.squaredDistanceTo(end));
 			if (eh != null) {
 				end = eh.getPos();
-				eh.getEntity().damage(w.getDamageSources().indirectMagic(this, p), 6.0f);
+				eh.getEntity().damage(w.getDamageSources().indirectMagic(this, p), 6.0f * com.phantompowers.HunterSuit.ghostBonus(eh.getEntity()));
 				if (eh.getEntity() instanceof LivingEntity le) le.takeKnockback(0.3, -look.x, -look.z);
 			}
 			BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z, 0xFF3344);

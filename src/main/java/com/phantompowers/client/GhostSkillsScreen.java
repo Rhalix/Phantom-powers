@@ -10,7 +10,7 @@ import net.minecraft.text.Text;
 /** Spend stat points to unlock ghost powers. Opened from the inventory tab or the K key. */
 public class GhostSkillsScreen extends Screen {
 	private static final int PANEL_W = 320;
-	private static final int ROW_H = 28;
+	private static final int ROW_H = 21;
 	private static final String[] ROMAN = {"I", "II", "III", "IV", "V"};
 
 	private final Screen parent;
@@ -35,11 +35,14 @@ public class GhostSkillsScreen extends Screen {
 			final int skill = i;
 			unlockButtons[i] = addDrawableChild(ButtonWidget.builder(Text.literal("Unlock"),
 							b -> PhantomClient.send(GhostPowers.A_UNLOCK + skill))
-					.dimensions(left + PANEL_W - 76, top + 40 + i * ROW_H + 2, 68, 20)
+					.dimensions(left + PANEL_W - 76, top + 40 + i * ROW_H + 1, 68, 19)
 					.build());
 		}
+		addDrawableChild(ButtonWidget.builder(Text.literal("Customize Suit"), b -> client.setScreen(new GhostSuitScreen(this)))
+				.dimensions(width / 2 - 104, top + panelHeight() - 26, 100, 20)
+				.build());
 		addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close())
-				.dimensions(width / 2 - 40, top + panelHeight() - 26, 80, 20)
+				.dimensions(width / 2 + 4, top + panelHeight() - 26, 80, 20)
 				.build());
 	}
 
@@ -75,8 +78,12 @@ public class GhostSkillsScreen extends Screen {
 			int nameColor = has ? 0xFF66FF99 : 0xFFBBBBBB;
 			String title = GhostPowers.NAMES[i] + "  [" + PhantomClient.keyName(keys[i]) + "]";
 			if (!has) title += "  - " + GhostPowers.COSTS[i] + " pts";
-			ctx.drawTextWithShadow(textRenderer, title, left + 10, y + 4, nameColor);
-			ctx.drawTextWithShadow(textRenderer, GhostPowers.DESCRIPTIONS[i], left + 10, y + 16, 0xFF888888);
+			ctx.drawTextWithShadow(textRenderer, title, left + 10, y + 2, nameColor);
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(left + 10, y + 12.5f, 0);
+			ctx.getMatrices().scale(0.75f, 0.75f, 1f);
+			ctx.drawTextWithShadow(textRenderer, GhostPowers.DESCRIPTIONS[i], 0, 0, 0xFF8A9A90);
+			ctx.getMatrices().pop();
 		}
 	}
 

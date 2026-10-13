@@ -13,7 +13,7 @@ import net.minecraft.util.math.MathHelper;
  * unlocked power showing its key, a cooldown sweep, and a highlight when it's switched on.
  */
 public final class GhostHud {
-	private static final String[] SHORT = {"BLAST", "PHASE", "POSSESS", "WAIL", "TWISTER", "INVIS", "FROST", "FISTS"};
+	private static final String[] SHORT = {"BLAST", "PHASE", "POSSESS", "WAIL", "TWISTER", "INVIS", "FROST", "FISTS", "SHIELD"};
 	private static final int SLOT = 20, GAP = 2;
 
 	private GhostHud() {}
@@ -100,7 +100,8 @@ public final class GhostHud {
 				: skill == GhostPowers.FROST ? ClientGhost.frostCooldown : 0;
 		int maxCd = skill == GhostPowers.WAIL ? 260 : skill == GhostPowers.TORNADO ? 1200 : 200;
 		boolean on = (skill == GhostPowers.INTANGIBLE && ClientGhost.intangible) || (skill == GhostPowers.INVISIBLE && ClientGhost.invisible)
-				|| (skill == GhostPowers.FISTS && FistGlowFeature.active(MinecraftClient.getInstance().player));
+				|| (skill == GhostPowers.FISTS && FistGlowFeature.active(MinecraftClient.getInstance().player))
+				|| (skill == GhostPowers.SHIELD && com.phantompowers.GhostFlags.CLIENT_SHIELDED.contains(MinecraftClient.getInstance().player.getUuid()));
 		boolean usable = ghost || skill == GhostPowers.INTANGIBLE || skill == GhostPowers.INVISIBLE;
 
 		int border = on ? 0xFF7FF6FF : usable && cd <= 0 ? 0xFF3FD978 : 0xFF4A524D;

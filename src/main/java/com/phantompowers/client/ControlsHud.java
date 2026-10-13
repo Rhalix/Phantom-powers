@@ -13,7 +13,7 @@ import java.util.List;
 
 /** A small "how to use" guide on the right edge of the screen. */
 public final class ControlsHud {
-	private static final float SCALE = 0.6f;
+	private static final float SCALE = 0.5f;
 
 	private ControlsHud() {}
 
@@ -43,9 +43,13 @@ public final class ControlsHud {
 			lines.add(new Line(sneak + "+" + use, "release all ghosts"));
 		}
 		if (held.isOf(com.phantompowers.ModItems.GHOST_NET)) lines.add(new Line(use, "throw the Ghost Net"));
+		if (held.isOf(com.phantompowers.ModItems.ECTO_LAUNCHER)) lines.add(new Line(use, "fire a pink energy blast"));
 		if (held.isOf(com.phantompowers.ModItems.PANDORAS_BOX)) lines.add(new Line(use, "dark shockwave"));
 		if (held.getItem() instanceof com.phantompowers.EssenceItem) lines.add(new Line(use + " (hold)", "eat: gain this ghost's power"));
-		if (ClientGhost.powers) {
+		// Holding a mod item: just show how to use it (keeps the panel small)
+		boolean itemHelp = !lines.isEmpty();
+		if (ClientGhost.powers && itemHelp) lines.add(new Line(name(PhantomClient.SKILLS), "Ghost Skills"));
+		if (ClientGhost.powers && !itemHelp) {
 			lines.add(new Line(name(PhantomClient.TRANSFORM), ClientGhost.transformed ? "go human (hold: cutscene)" : "go ghost (hold: cutscene)"));
 			KeyBinding[] keys = PhantomClient.skillKeys();
 			String[] help = {
@@ -56,7 +60,8 @@ public final class ControlsHud {
 					"Wail Tornado",
 					"invisible",
 					"Frost Breath (hold)",
-					"Ecto Fists (punch harder)"};
+					"Ecto Fists (punch harder)",
+					"Ecto Shield (hold)"};
 			for (int i = 0; i < keys.length; i++) {
 				if (!ClientGhost.has(i)) continue;
 				if (i == GhostPowers.BLAST && ClientGhost.possessing && ClientGhost.hostAbility >= 0) {
@@ -69,7 +74,7 @@ public final class ControlsHud {
 			}
 			lines.add(new Line(name(PhantomClient.SKILLS), "Ghost Skills (unlock powers)"));
 		}
-		if (mc.player.getInventory().getArmorStack(2).getItem() == com.phantompowers.ModItems.HUNTER_SUIT) {
+		if (!itemHelp && mc.player.getInventory().getArmorStack(2).getItem() == com.phantompowers.ModItems.HUNTER_SUIT) {
 			lines.add(new Line(name(PhantomClient.SUIT), "suit on/off (hold: cutscene)"));
 		}
 		if (lines.isEmpty()) return;
@@ -94,17 +99,28 @@ public final class ControlsHud {
 		ctx.fill(x - 6, y - 6, x - 4, y + lines.size() * lineH + 3, 0xFF3FD978);
 		for (Line l : lines) {
 			int kw = tr.getWidth(l.key());
-			ctx.fill(x, y - 2, x + keyW + 8, y + 9, 0xFF1E2A23);
-			ctx.fill(x, y + 8, x + keyW + 8, y + 9, 0xFF0C120E);
-			ctx.drawText(tr, l.key(), x + 4 + (keyW - kw) / 2, y, 0xFFFFE066, false);
+			int cx = x + keyW + 8 - (kw + 8);
+			ctx.fill(cx, y - 2, x + keyW + 8, y + 9, 0xFF1E2A23);
+			ctx.fill(cx, y + 8, x + keyW + 8, y + 9, 0xFF0C120E);
+			ctx.drawText(tr, l.key(), cx + 4, y, 0xFFFFE066, false);
 			ctx.drawTextWithShadow(tr, l.text(), x + keyW + 14, y, 0xFFE4ECE7);
 			y += lineH;
 		}
 		ctx.getMatrices().pop();
 	}
 
+	/** Short key names so the panel stays narrow ("RIGHT BUTTON" -> "RMB", "LEFT SHIFT" -> "SHIFT"). */
 	private static String name(KeyBinding k) {
-		return k.getBoundKeyLocalizedText().getString().toUpperCase();
+		String n = k.getBoundKeyLocalizedText().getString().toUpperCase();
+		return switch (n) {
+			case "RIGHT BUTTON" -> "RMB";
+			case "LEFT BUTTON" -> "LMB";
+			case "MIDDLE BUTTON" -> "MMB";
+			case "LEFT SHIFT", "RIGHT SHIFT" -> "SHIFT";
+			case "LEFT CONTROL", "RIGHT CONTROL" -> "CTRL";
+			case "LEFT ALT", "RIGHT ALT" -> "ALT";
+			default -> n.length() > 6 ? n.substring(0, 6) : n;
+		};
 	}
 
 	@SuppressWarnings("unused")

@@ -71,7 +71,8 @@ public final class FrostLogic {
 	private FrostLogic() {}
 
 	public static boolean isBoss(Entity e) {
-		return e instanceof GhostJailerEntity || e instanceof CrateKingEntity || e instanceof VoltageEntity || e instanceof WishkeeperEntity;
+		return e instanceof GhostJailerEntity || e instanceof CrateKingEntity || e instanceof VoltageEntity || e instanceof WishkeeperEntity
+				|| e instanceof com.phantompowers.entity.RevEntity || e instanceof com.phantompowers.entity.RoxyEntity;
 	}
 
 	public static boolean isFrozen(Entity e) {

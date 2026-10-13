@@ -25,6 +25,10 @@ public class GhostData {
 	public String thermosDim;
 	/** Ecto Fists switched on (not saved). */
 	public boolean fists;
+	/** Ecto Shield: key held / shield actually up (not saved). */
+	public boolean shieldHeld, shieldUp;
+	/** Chosen ghost suit look (saved). */
+	public int suitVariant;
 	/** Which Thermos cell this player is locked in (saved). */
 	public BlockPos thermosCell;
 	public BlockPos thermosPos;
@@ -70,6 +74,7 @@ public class GhostData {
 		n.putInt("formTicks", formTicks);
 		n.putInt("unlocked", unlocked);
 		n.putFloat("energy", energy);
+		n.putInt("suitVariant", suitVariant);
 		if (respawnDim != null && respawnPos != null) {
 			n.putString("respawnDim", respawnDim);
 			n.putLong("respawnPos", respawnPos.asLong());
@@ -95,6 +100,7 @@ public class GhostData {
 		d.eaten = n.getInt("eaten");
 		d.formTicks = n.getInt("formTicks");
 		d.unlocked = n.getInt("unlocked");
+		d.suitVariant = n.getInt("suitVariant");
 		d.energy = n.contains("energy") ? n.getFloat("energy") : GhostPowers.MAX_ENERGY;
 		if (n.contains("respawnDim")) {
 			d.respawnDim = n.getString("respawnDim");

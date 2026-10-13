@@ -70,10 +70,12 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7;
-	public static final int SKILL_COUNT = 8;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists"};
-	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7, SHIELD = 8;
+	public static final int SKILL_COUNT = 9;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists", "Ecto Shield"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4, 6};
+	/** Ghost suit looks you can pick in the suit customizer. */
+	public static final String[] SUIT_VARIANTS = {"Classic", "Shadow", "Ecto Glow", "Crimson", "Frostbite", "Royal"};
 	public static final String[] DESCRIPTIONS = {
 			"Fire a beam of green ecto energy.",
 			"Walk through walls. Sneak to sink, fly to rise. Sneak+hold to phase others.",
@@ -82,13 +84,14 @@ public final class GhostPowers {
 			"A giant tornado of wail energy that rips up the ground.",
 			"Turn completely invisible, armor and all.",
 			"Hold to breathe ice. Freeze enemies solid, then punch to shatter.",
-			"Wrap your fists in glowing ecto energy. Punches hit way harder and blast enemies back."
+			"Wrap your fists in glowing ecto energy. Punches hit way harder and blast enemies back.",
+			"Hold to raise a dome of green energy all around you that blocks attacks and bounces arrows back."
 	};
 
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_UNLOCK = 100;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -128,6 +131,8 @@ public final class GhostPowers {
 				GhostNet.struggle(p);
 			}
 			case A_FISTS -> { if (ready(p, d, st, FISTS)) toggleFists(p, d); }
+			case A_SHIELD -> { if (ready(p, d, st, SHIELD)) d.shieldHeld = true; }
+			case A_SHIELD_RELEASE -> d.shieldHeld = false;
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
 			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
@@ -140,6 +145,12 @@ public final class GhostPowers {
 			case A_INTANGIBLE_RELEASE -> releaseHold(p, d, true);
 			default -> {
 				if (action >= A_UNLOCK && action < A_UNLOCK + SKILL_COUNT) tryUnlock(p, d, st, action - A_UNLOCK);
+				if (action >= A_SUIT_VARIANT && action < A_SUIT_VARIANT + SUIT_VARIANTS.length) {
+					d.suitVariant = action - A_SUIT_VARIANT;
+					st.markDirty();
+					broadcastStates(p.getServer());
+					bar(p, "Ghost suit: " + SUIT_VARIANTS[d.suitVariant], Formatting.GREEN);
+				}
 			}
 		}
 		st.markDirty();
@@ -219,10 +230,88 @@ public final class GhostPowers {
 		releaseHold(p, d, false);
 		stopInvisible(p, d);
 		d.fists = false;
+		d.shieldHeld = false;
+		if (d.shieldUp) setShield(p, d, false);
 		fistMods(p, d);
 		setFlight(p, false);
 		applyStats(p, d, false);
 		broadcastStates(p.getServer());
+	}
+
+	// ------------------------------------------------------------ ecto shield
+
+	private static final float SHIELD_DRAIN = 0.3f;
+	public static final double SHIELD_RADIUS = 1.7;
+
+	private static void setShield(ServerPlayerEntity p, GhostData d, boolean up) {
+		if (d.shieldUp == up) return;
+		d.shieldUp = up;
+		ServerWorld w = p.getServerWorld();
+		if (up) {
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 0.9f, 1.9f);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.PLAYERS, 0.6f, 1.6f);
+		} else {
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 0.7f, 1.9f);
+		}
+		broadcastStates(p.getServer());
+		d.syncTimer = 0;
+	}
+
+	private static void tickShield(ServerPlayerEntity p, GhostData d) {
+		boolean want = d.shieldHeld && d.transformed && p.isAlive() && d.energy > 0 && d.possessing == null && d.cutscene == 0;
+		if (want != d.shieldUp) {
+			if (!want && d.shieldHeld && d.energy <= 0) bar(p, "Out of ghost energy, your shield collapsed!", Formatting.RED);
+			setShield(p, d, want);
+		}
+		if (!d.shieldUp) return;
+		d.energy = Math.max(0, d.energy - SHIELD_DRAIN);
+		// Bounce incoming projectiles straight back
+		ServerWorld w = p.getServerWorld();
+		Vec3d c = p.getPos().add(0, p.getHeight() / 2, 0);
+		for (net.minecraft.entity.projectile.ProjectileEntity pr : w.getEntitiesByClass(net.minecraft.entity.projectile.ProjectileEntity.class,
+				p.getBoundingBox().expand(SHIELD_RADIUS + 1.5), pr -> pr.getOwner() != p)) {
+			Vec3d to = c.subtract(pr.getPos());
+			Vec3d v = pr.getVelocity();
+			if (to.length() > SHIELD_RADIUS + 1.2 || v.dotProduct(to) <= 0) continue;
+			pr.setVelocity(v.multiply(-0.8));
+			pr.velocityModified = true;
+			pr.setOwner(p);
+			shieldHit(p, pr.getPos());
+		}
+	}
+
+	/** Called when something hits a raised shield: green ripple, a zap, and some energy drained. */
+	public static void shieldHit(ServerPlayerEntity p, Vec3d at) {
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, at.x, at.y, at.z, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, SoundCategory.PLAYERS, 1.2f, 1.6f);
+		w.playSound(null, at.x, at.y, at.z, SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.PLAYERS, 0.8f, 1.3f);
+		com.phantompowers.network.ShieldHitPayload msg = new com.phantompowers.network.ShieldHitPayload(p.getId(), (float) at.x, (float) at.y, (float) at.z);
+		for (ServerPlayerEntity viewer : PlayerLookup.around(w, at, 64)) {
+			if (ServerPlayNetworking.canSend(viewer, com.phantompowers.network.ShieldHitPayload.ID)) ServerPlayNetworking.send(viewer, msg);
+		}
+	}
+
+	/** Blocks a hit if the player's Ecto Shield is up. Returns true when the damage was stopped. */
+	public static boolean shieldBlocks(ServerPlayerEntity p, net.minecraft.entity.damage.DamageSource source, float amount) {
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		if (!d.shieldUp || amount <= 0) return false;
+		if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_INVULNERABILITY)
+				|| source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FALL)
+				|| source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_DROWNING)
+				|| source.isOf(net.minecraft.entity.damage.DamageTypes.STARVE)
+				|| source.isOf(net.minecraft.entity.damage.DamageTypes.IN_WALL)) return false;
+		d.energy = Math.max(0, d.energy - amount * 1.5f);
+		Vec3d from = source.getPosition() != null ? source.getPosition() : p.getEyePos().add(p.getRotationVec(1f));
+		Vec3d c = p.getPos().add(0, p.getHeight() / 2, 0);
+		Vec3d dir = from.subtract(c);
+		dir = dir.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : dir.normalize();
+		shieldHit(p, c.add(dir.multiply(SHIELD_RADIUS)));
+		// Shove melee attackers back off the shield
+		if (source.getAttacker() instanceof LivingEntity att && source.getSource() == att && att.squaredDistanceTo(p) < 16) {
+			att.takeKnockback(0.9, -dir.x, -dir.z);
+		}
+		d.syncTimer = 0;
+		return true;
 	}
 
 	// ------------------------------------------------------------ ecto fists
@@ -796,7 +885,19 @@ public final class GhostPowers {
 			GhostData gd = st.data(pl.getUuid());
 			if (gd.fists && gd.transformed) fists.add(pl.getUuid());
 		}
-		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING), fists);
+		List<UUID> shielded = new ArrayList<>();
+		List<UUID> variantIds = new ArrayList<>();
+		List<Integer> variants = new ArrayList<>();
+		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
+			GhostData gd = st.data(pl.getUuid());
+			if (gd.shieldUp) shielded.add(pl.getUuid());
+			if (gd.suitVariant != 0) {
+				variantIds.add(pl.getUuid());
+				variants.add(gd.suitVariant);
+			}
+		}
+		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING), fists,
+				shielded, variantIds, variants);
 		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
 			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}
@@ -862,18 +963,30 @@ public final class GhostPowers {
 		}
 		p.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, 10, 0, false, false, false));
 		if (t instanceof ServerPlayerEntity tp) {
-			tp.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch());
+			if (tp.squaredDistanceTo(p) > 0.0025 || Math.abs(tp.getYaw() - p.getYaw()) > 1f)
+				tp.networkHandler.requestTeleport(p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch());
 		} else {
-			t.refreshPositionAndAngles(p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch());
+			// The body goes wherever you go
+			t.setVelocity(Vec3d.ZERO);
+			t.setPosition(p.getX(), p.getY(), p.getZ());
+			t.setYaw(p.getYaw());
+			t.setPitch(p.getPitch());
 			t.setHeadYaw(p.getHeadYaw());
 			t.setBodyYaw(p.getYaw());
-			t.setVelocity(Vec3d.ZERO);
 		}
 		t.fallDistance = 0;
 		if (d.possessTicks % 5 == 0) calmHostiles(p, t);
 		if (d.possessTicks % 4 == 0) {
 			p.getServerWorld().spawnParticles(GREEN, t.getX(), t.getY() + t.getHeight() * 0.6, t.getZ(), 3, 0.3, 0.4, 0.3, 0);
 		}
+	}
+
+	private static boolean hostCanFly(Entity e) {
+		return e instanceof net.minecraft.entity.mob.FlyingEntity || e instanceof net.minecraft.entity.passive.BatEntity
+				|| e instanceof net.minecraft.entity.passive.BeeEntity || e instanceof net.minecraft.entity.mob.VexEntity
+				|| e instanceof net.minecraft.entity.passive.ParrotEntity || e instanceof net.minecraft.entity.passive.AllayEntity
+				|| e instanceof net.minecraft.entity.mob.BlazeEntity || e instanceof net.minecraft.entity.boss.WitherEntity
+				|| e instanceof com.phantompowers.entity.AbstractGhostEntity || FrostLogic.isBoss(e);
 	}
 
 	/** Hostile mobs forget about you and the body you're hiding in. */
@@ -1221,7 +1334,9 @@ public final class GhostPowers {
 				p.sendMessage(Text.literal("+1 Stat Point! (" + d.points + " total)").formatted(Formatting.GREEN), true);
 				sound(p, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.2f);
 			}
-			setFlight(p, true);
+			// Possessing something that can't fly: walk around in it (no drifting ghost-flight)
+			if (d.possessing == null || hostCanFly(d.possessing)) setFlight(p, true);
+			else if (p.getAbilities().allowFlying && !p.isCreative()) setFlight(p, false);
 			if (p.age % 40 == 0) applyStats(p, d, true);
 
 			// Intangibility and invisibility are free; energy refills while you're in ghost form
@@ -1242,6 +1357,7 @@ public final class GhostPowers {
 		}
 
 		tickPossession(p, d);
+		tickShield(p, d);
 		if (p.age % 40 == 0 && p.isAlive()) applyEaten(p, d);
 		tickHold(p, d);
 		tickCutscene(p, d);
@@ -1430,7 +1546,8 @@ public final class GhostPowers {
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
 				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d), d.cutsceneKind,
-				d.holding != null || HELD_BLOCKS.containsKey(p.getUuid()), d.frostCooldown, d.possessing == null ? -1 : HostPowers.kind(d.possessing)));
+				d.holding != null || HELD_BLOCKS.containsKey(p.getUuid()), d.frostCooldown, d.possessing == null ? -1 : HostPowers.kind(d.possessing),
+				d.possessing == null ? -1 : d.possessing.getId(), d.suitVariant));
 	}
 
 	private static boolean useEnergy(ServerPlayerEntity p, GhostData d, float amount) {

@@ -26,6 +26,22 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 	public static final EntityModelLayer WIDE = new EntityModelLayer(PhantomMod.id("ghost_suit"), "wide");
 	public static final EntityModelLayer SLIM = new EntityModelLayer(PhantomMod.id("ghost_suit"), "slim");
 	private static final Identifier TEXTURE = PhantomMod.id("textures/entity/ghost_suit.png");
+	private static final Identifier[] VARIANTS = new Identifier[com.phantompowers.GhostPowers.SUIT_VARIANTS.length];
+	private static final Identifier[] GLOWS = new Identifier[VARIANTS.length];
+
+	static {
+		VARIANTS[0] = TEXTURE;
+		for (int i = 1; i < VARIANTS.length; i++) VARIANTS[i] = PhantomMod.id("textures/entity/ghost_suit_" + i + ".png");
+		GLOWS[2] = PhantomMod.id("textures/entity/ghost_suit_2_glow.png");
+		GLOWS[4] = PhantomMod.id("textures/entity/ghost_suit_4_glow.png");
+	}
+
+	/** Which suit look this player picked (the customizer's preview wins while it's open). */
+	public static int variantOf(AbstractClientPlayerEntity player) {
+		if (GhostSuitScreen.previewing && player == net.minecraft.client.MinecraftClient.getInstance().player) return GhostSuitScreen.preview;
+		Integer v = GhostFlags.CLIENT_SUIT_VARIANT.get(player.getUuid());
+		return v == null || v < 0 || v >= VARIANTS.length ? 0 : v;
+	}
 
 	private final PlayerEntityModel<AbstractClientPlayerEntity> wide;
 	private final PlayerEntityModel<AbstractClientPlayerEntity> slim;
@@ -47,8 +63,9 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 			float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
 		if (player.isInvisible()) return;
 		LookTransition.T t = LookTransition.get(player);
-		if (t == null) {
-			if (GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(player.getUuid())) return;
+		boolean preview = GhostSuitScreen.previewing && player == net.minecraft.client.MinecraftClient.getInstance().player;
+		if (t == null || preview) {
+			if (!preview && (GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(player.getUuid()))) return;
 			draw(matrices, consumers, light, player, vc -> vc);
 			return;
 		}
@@ -81,7 +98,11 @@ public class GhostSuitFeature extends FeatureRenderer<AbstractClientPlayerEntity
 			m.rightLeg.visible = false;
 			m.leftLeg.visible = false;
 		}
-		m.render(matrices, wrap.apply(consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE))), light, OverlayTexture.DEFAULT_UV, -1);
+		int v = variantOf(player);
+		m.render(matrices, wrap.apply(consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(VARIANTS[v]))), light, OverlayTexture.DEFAULT_UV, -1);
+		if (GLOWS[v] != null) {
+			m.render(matrices, wrap.apply(consumers.getBuffer(RenderLayer.getEyes(GLOWS[v]))), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
+		}
 		// Glowing red eyes
 		Identifier eyes = GhostSkins.eyes(player.getSkinTextures().texture());
 		if (eyes != null) {

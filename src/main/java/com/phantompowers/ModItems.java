@@ -36,6 +36,15 @@ public final class ModItems {
 	public static final Item GHOST_NET = Registry.register(Registries.ITEM, PhantomMod.id("ghost_net"),
 			new GhostNetItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
 
+	public static final Item ECTO_LAUNCHER = Registry.register(Registries.ITEM, PhantomMod.id("ecto_launcher"),
+			new EctoLauncherItem(new Item.Settings().maxDamage(300).rarity(Rarity.RARE)));
+	public static final Item REV_EGG = Registry.register(Registries.ITEM, PhantomMod.id("rev_spawn_egg"),
+			new net.minecraft.item.SpawnEggItem(ModEntities.REV, 0x1C1C22, 0xC8CCD6, new Item.Settings()));
+	public static final Item ROXY_EGG = Registry.register(Registries.ITEM, PhantomMod.id("roxy_spawn_egg"),
+			new net.minecraft.item.SpawnEggItem(ModEntities.ROXY, 0x1C9696, 0xFF50B4, new Item.Settings()));
+	public static final Item BIKER_COUPLE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("biker_couple_spawn_egg"),
+			new BikerCoupleItem(new Item.Settings().rarity(Rarity.RARE)));
+
 	public static final Item HOVER_GLIDER = Registry.register(Registries.ITEM, PhantomMod.id("hover_glider"),
 			new HoverGliderItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 

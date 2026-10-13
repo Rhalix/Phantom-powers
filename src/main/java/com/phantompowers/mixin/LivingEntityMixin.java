@@ -11,6 +11,12 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 /** The Ghost Hunter Suit soaks up damage (see HunterSuit.reduceDamage). */
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
+	/** A raised Ecto Shield stops the hit completely. */
+	@org.spongepowered.asm.mixin.injection.Inject(method = "damage", at = @At("HEAD"), cancellable = true)
+	private void phantom$ectoShield(DamageSource source, float amount, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+		if ((Object) this instanceof ServerPlayerEntity p && com.phantompowers.GhostPowers.shieldBlocks(p, source, amount)) cir.setReturnValue(false);
+	}
+
 	@ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true, ordinal = 0)
 	private float phantom$suitProtection(float amount, DamageSource source, float originalAmount) {
 		if ((Object) this instanceof ServerPlayerEntity p) return HunterSuit.reduceDamage(p, source, amount);

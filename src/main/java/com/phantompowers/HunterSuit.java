@@ -25,6 +25,14 @@ public final class HunterSuit {
 
 	private HunterSuit() {}
 
+	/** Ghost-hunting gear is built to hurt ghosts: extra damage against ghosts, ghost bosses and half-ghosts in ghost form. */
+	public static float ghostBonus(net.minecraft.entity.Entity target) {
+		if (target instanceof com.phantompowers.entity.AbstractGhostEntity || FrostLogic.isBoss(target)
+				|| target instanceof net.minecraft.entity.mob.VexEntity || target instanceof net.minecraft.entity.mob.PhantomEntity) return 1.8f;
+		if (target instanceof ServerPlayerEntity sp && GhostState.of(sp.getServer()).data(sp.getUuid()).transformed) return 1.7f;
+		return 1f;
+	}
+
 	public static boolean wearing(ServerPlayerEntity p) {
 		return p.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.HUNTER_SUIT);
 	}

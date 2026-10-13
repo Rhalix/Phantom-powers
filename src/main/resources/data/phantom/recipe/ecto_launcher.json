@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "IGI",
+    "EBE",
+    "I I"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "G": {
+      "item": "minecraft:pink_dye"
+    },
+    "B": {
+      "item": "phantom:ghost_blaster"
+    }
+  },
+  "result": {
+    "id": "phantom:ecto_launcher",
+    "count": 1
+  }
+}

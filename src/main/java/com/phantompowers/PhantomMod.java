@@ -66,6 +66,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.EntityFxPayload.ID, com.phantompowers.network.EntityFxPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShockwavePayload.ID, com.phantompowers.network.ShockwavePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.TornadoPayload.ID, com.phantompowers.network.TornadoPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShieldHitPayload.ID, com.phantompowers.network.ShieldHitPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));

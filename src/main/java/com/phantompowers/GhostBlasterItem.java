@@ -63,7 +63,7 @@ public class GhostBlasterItem extends Item {
 		if (eh != null) {
 			end = eh.getPos();
 			Entity t = eh.getEntity();
-			float dmg = t instanceof AbstractGhostEntity ? 9f : 5f;
+			float dmg = 5f * HunterSuit.ghostBonus(t);
 			if (suited) dmg *= 1.5f;
 			if (scoped) dmg *= 1.35f;
 			t.damage(w.getDamageSources().indirectMagic(p, p), dmg);

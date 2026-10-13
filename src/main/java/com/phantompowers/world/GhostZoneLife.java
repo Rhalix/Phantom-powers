@@ -41,7 +41,7 @@ public final class GhostZoneLife {
 
 	private GhostZoneLife() {}
 
-	private enum Lair { PRISON, CRATE_KEEP, STAGE, PALACE }
+	private enum Lair { PRISON, CRATE_KEEP, STAGE, PALACE, ROAD }
 
 	public static void tick(MinecraftServer server) {
 		int t = server.getTicks();
@@ -115,6 +115,7 @@ public final class GhostZoneLife {
 			case CRATE_KEEP -> nearestCrateKeep(zone, near);
 			case STAGE -> nearestStage(zone, near);
 			case PALACE -> nearestPalace(zone, near);
+			case ROAD -> nearestRoad(zone, near);
 		};
 	}
 
@@ -141,12 +142,26 @@ public final class GhostZoneLife {
 				prison.getZ() < cz ? prison.getZ() + 200 : prison.getZ() - 200);
 	}
 
+	/** The Biker Couple's ghost highway loops halfway out on the other diagonal from the prison. */
+	public static BlockPos nearestRoad(ServerWorld zone, BlockPos pos) {
+		BlockPos prison = nearestPrison(zone, pos);
+		int cx = Math.floorDiv(prison.getX(), REGION) * REGION + REGION / 2;
+		int cz = Math.floorDiv(prison.getZ(), REGION) * REGION + REGION / 2;
+		return new BlockPos(prison.getX() < cx ? prison.getX() + 110 : prison.getX() - 110, prison.getY() - 8,
+				prison.getZ() < cz ? prison.getZ() - 110 : prison.getZ() + 110);
+	}
+
+	public static boolean ensureRoad(ServerWorld zone, BlockPos c) {
+		return ensureLair(zone, c, Lair.ROAD);
+	}
+
 	private static long key(BlockPos c, Lair lair) {
 		return switch (lair) {
 			case PRISON -> c.asLong();
 			case CRATE_KEEP -> c.asLong() ^ 0x5C0FFEE5L;
 			case STAGE -> c.asLong() ^ 0x5717A9E5L;
 			case PALACE -> c.asLong() ^ 0x31511E5L;
+			case ROAD -> c.asLong() ^ 0xB1CE5L;
 		};
 	}
 
@@ -161,6 +176,7 @@ public final class GhostZoneLife {
 			case CRATE_KEEP -> CrateKeep.build(zone, c, Random.create(key));
 			case STAGE -> ConcertStage.build(zone, c, Random.create(key));
 			case PALACE -> WishPalace.build(zone, c, Random.create(key));
+			case ROAD -> GhostHighway.build(zone, c, Random.create(key));
 		}
 		return true;
 	}
@@ -192,6 +208,7 @@ public final class GhostZoneLife {
 			case CRATE_KEEP -> CrateKingEntity.class;
 			case STAGE -> VoltageEntity.class;
 			case PALACE -> com.phantompowers.entity.WishkeeperEntity.class;
+			case ROAD -> com.phantompowers.entity.RevEntity.class;
 		};
 		if (!zone.getEntitiesByClass(boss, area, e -> e.isAlive()).isEmpty()) {
 			rs.markBoss(key, zone.getTime()); // still alive: check again later
@@ -212,6 +229,10 @@ public final class GhostZoneLife {
 					zone.spawnEntity(k);
 				}
 				name = "The Crate King is back in his warehouse!";
+			}
+			case ROAD -> {
+				GhostHighway.spawnBosses(zone, c);
+				name = "Engines roar on the ghost highway... the Biker Couple is back!";
 			}
 			case PALACE -> {
 				WishPalace.spawnBoss(zone, c);
@@ -269,10 +290,12 @@ public final class GhostZoneLife {
 		int x = near.getX() + (int) (Math.cos(a) * (30 + r.nextInt(15)));
 		int z = near.getZ() + (int) (Math.sin(a) * (30 + r.nextInt(15)));
 		int y = ow.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z) + 3;
-		AbstractGhostEntity boss = switch (r.nextInt(4)) {
+		AbstractGhostEntity boss = switch (r.nextInt(6)) {
 			case 0 -> ModEntities.GHOST_JAILER.create(ow);
 			case 1 -> ModEntities.CRATE_KING.create(ow);
 			case 2 -> ModEntities.WISHKEEPER.create(ow);
+			case 3 -> ModEntities.REV.create(ow);
+			case 4 -> ModEntities.ROXY.create(ow);
 			default -> ModEntities.VOLTAGE.create(ow);
 		};
 		if (boss == null) return null;

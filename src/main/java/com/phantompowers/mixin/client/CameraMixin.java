@@ -23,7 +23,17 @@ public abstract class CameraMixin {
 	@Inject(method = "update", at = @At("TAIL"))
 	private void phantom$cutsceneCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView,
 			float tickDelta, CallbackInfo ci) {
-		if (!thirdPerson) return;
+		if (!thirdPerson) {
+			// Possessing something: see the world from its eyes
+			if (com.phantompowers.client.ClientGhost.possessing && com.phantompowers.client.ClientGhost.hostId >= 0 && focusedEntity != null) {
+				Entity host = focusedEntity.getWorld().getEntityById(com.phantompowers.client.ClientGhost.hostId);
+				if (host != null && host != focusedEntity) {
+					Vec3d at = focusedEntity.getLerpedPos(tickDelta);
+					setPos(at.x, at.y + host.getStandingEyeHeight(), at.z);
+				}
+			}
+			return;
+		}
 		float[] shot = ClientCutscene.cameraShot(focusedEntity, tickDelta);
 		if (shot == null) return;
 		setPos(shot[0], shot[1], shot[2]);

@@ -16,6 +16,31 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public final class ModEntities {
+	public static final EntityType<com.phantompowers.entity.RevEntity> REV = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("rev"),
+			EntityType.Builder.create(com.phantompowers.entity.RevEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.7f, 2.3f).maxTrackingRange(12).trackingTickInterval(1).makeFireImmune().build("rev"));
+
+	public static final EntityType<com.phantompowers.entity.RoxyEntity> ROXY = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("roxy"),
+			EntityType.Builder.create(com.phantompowers.entity.RoxyEntity::new, SpawnGroup.MONSTER)
+					.dimensions(0.7f, 2.0f).maxTrackingRange(12).makeFireImmune().build("roxy"));
+
+	public static final EntityType<com.phantompowers.entity.ShadeEntity> SHADE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("shade"),
+			EntityType.Builder.create(com.phantompowers.entity.ShadeEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.0f, 2.8f).maxTrackingRange(10).makeFireImmune().build("shade"));
+
+	public static final EntityType<com.phantompowers.entity.KissEntity> KISS = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("kiss"),
+			EntityType.Builder.<com.phantompowers.entity.KissEntity>create(com.phantompowers.entity.KissEntity::new, SpawnGroup.MISC)
+					.dimensions(0.4f, 0.4f).maxTrackingRange(8).trackingTickInterval(2).build("kiss"));
+
+	public static final EntityType<com.phantompowers.entity.PinkOrbEntity> PINK_ORB = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("pink_orb"),
+			EntityType.Builder.<com.phantompowers.entity.PinkOrbEntity>create(com.phantompowers.entity.PinkOrbEntity::new, SpawnGroup.MISC)
+					.dimensions(0.5f, 0.5f).maxTrackingRange(8).trackingTickInterval(2).build("pink_orb"));
+
 	public static final EntityType<com.phantompowers.entity.GhostNetProjectile> GHOST_NET_PROJECTILE = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("ghost_net_projectile"),
 			EntityType.Builder.<com.phantompowers.entity.GhostNetProjectile>create(com.phantompowers.entity.GhostNetProjectile::new, SpawnGroup.MISC)
@@ -78,6 +103,9 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(FRIENDLY_GHOST, FriendlyGhostEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(GHOST_JAILER, GhostJailerEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(CRATE_KING, CrateKingEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(REV, com.phantompowers.entity.RevEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(ROXY, com.phantompowers.entity.RoxyEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(SHADE, com.phantompowers.entity.ShadeEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROOM_GHOST, RoomGhostEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(WISHKEEPER, WishkeeperEntity.createAttributes());

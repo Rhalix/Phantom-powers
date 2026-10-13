@@ -44,6 +44,8 @@ public final class ClientGhost {
 		holding = p.holding();
 		frostCooldown = p.frostCooldown();
 		hostAbility = p.hostAbility();
+		hostId = p.hostId();
+		suitVariant = p.suitVariant();
 		GhostFlags.clientSelfIntangible = intangible;
 		GhostFlags.clientSelfHolding = holding;
 	}
@@ -51,10 +53,13 @@ public final class ClientGhost {
 	public static boolean holding;
 	public static int frostCooldown;
 	public static int hostAbility = -1;
+	public static int hostId = -1;
+	public static int suitVariant;
 
 	public static void reset() {
 		holding = false;
 		hostAbility = -1;
+		hostId = -1;
 		GhostFlags.clientSelfHolding = false;
 		powers = transformed = intangible = possessing = invisible = false;
 		energy = 0;
