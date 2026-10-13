@@ -70,7 +70,7 @@
   "itemGroup.phantom.main": "Phantom Powers",
   "entity.phantom.rev": "Rev",
   "entity.phantom.roxy": "Roxy",
-  "entity.phantom.shade": "Rev's Shade",
+  "entity.phantom.shade": "The Shade",
   "entity.phantom.kiss": "Kiss",
   "entity.phantom.pink_orb": "Pink Energy Orb",
   "item.phantom.ecto_launcher": "Ecto Launcher",
@@ -82,5 +82,8 @@
   "item.phantom.roxy_essence": "Roxy's Essence",
   "item.phantom.rev_bike_keys": "Rev's Bike Keys",
   "item.phantom.heart_charm": "Roxy's Heart Charm",
-  "entity.phantom.ghost_bike": "Ghost Bike"
+  "entity.phantom.ghost_bike": "Ghost Bike",
+  "item.phantom.shade_essence": "Shade's Essence",
+  "item.phantom.shade_tendril": "Shade's Tendril",
+  "item.phantom.shade_spawn_egg": "Shade Spawn Egg"
 }
