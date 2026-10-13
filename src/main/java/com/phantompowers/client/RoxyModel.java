@@ -81,7 +81,21 @@ public class RoxyModel extends SinglePartEntityModel<RoxyEntity> {
 		head.roll = 0;
 		body.pitch = 0;
 		int pose = e.pose();
-		if (e.hasVehicle()) {
+		if (e.standingOnBike()) {
+			// Ride or Die: standing up on the back seat, one fist pumping in the air
+			float pump = MathHelper.sin(age * 0.3f);
+			rightLeg.pitch = 0.1f;
+			leftLeg.pitch = -0.1f;
+			rightLeg.yaw = 0.2f;
+			leftLeg.yaw = -0.2f;
+			rightArm.pitch = -2.7f + pump * 0.25f;
+			rightArm.yaw = 0;
+			rightArm.roll = 0.2f;
+			leftArm.pitch = -0.4f;
+			leftArm.yaw = 0;
+			leftArm.roll = -0.5f;
+			head.pitch -= 0.15f;
+		} else if (e.hasVehicle()) {
 			// riding pillion: knees up, hands on Rev's waist
 			rightLeg.pitch = -1.4f;
 			leftLeg.pitch = -1.4f;

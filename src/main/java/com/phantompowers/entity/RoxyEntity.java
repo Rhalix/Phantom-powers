@@ -43,6 +43,18 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 	private int kissCooldown = 40, volleyCooldown = 140, shriekCooldown = 90, repath;
 	/** Animation timers (synced): kiss pose and shriek pose. */
 	private int kissAnim, shriekAnim;
+	/** Rev, if this is the Biker Couple fight. */
+	private java.util.UUID partner;
+	private boolean vengeful;
+
+	public void setCoupleMode(java.util.UUID rev) {
+		this.partner = rev;
+	}
+
+	/** Standing on the back seat during Ride or Die (client animation). */
+	public boolean standingOnBike() {
+		return getVehicle() instanceof RevEntity rev && rev.rideOrDie();
+	}
 
 	public RoxyEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -101,9 +113,12 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 		if (kissAnim > 0) kissAnim--;
 		if (shriekAnim > 0) shriekAnim--;
 		dataTracker.set(POSE, shriekAnim > 0 ? 100 + shriekAnim : kissAnim);
-		if (!heartbreak() && getHealth() <= getMaxHealth() * 0.4f) heartbreaker(w);
-		// riding along and taking a beating? hop off
-		if (hasVehicle() && getHealth() < getMaxHealth() * 0.6f) stopRiding();
+		if (partner == null && getVehicle() instanceof RevEntity rev) partner = rev.getUuid();
+		boolean together = getVehicle() instanceof RevEntity rev2 && rev2.rideOrDie();
+		if (partner != null && !vengeful && !(w.getEntity(partner) instanceof RevEntity r && r.isAlive())) goVengeful(w);
+		if (!together && !heartbreak() && getHealth() <= getMaxHealth() * 0.4f) heartbreaker(w);
+		// in the couple fight she stays on the bike until Ride or Die; Rev handles the combo moves then
+		if (together) return;
 		LivingEntity target = getTarget();
 		if (target == null || !target.isAlive()) return;
 		float speed = heartbreak() ? 0.65f : 1f;
@@ -179,6 +194,20 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 				e -> !(e instanceof AbstractGhostEntity));
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.5f, 1.55f);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.HOSTILE, 1.0f, 1.6f);
+	}
+
+	/** Rev fell: Roxy goes Vengeful. */
+	private void goVengeful(ServerWorld w) {
+		vengeful = true;
+		if (hasVehicle()) stopRiding();
+		heal(getMaxHealth() * 0.25f);
+		kissCooldown = 10;
+		bossBar.setName(Text.literal("Roxy: VENGEFUL").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setColor(BossBar.Color.RED);
+		if (!heartbreak()) dataTracker.set(HEARTBREAK, true);
+		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
+			p.sendMessage(Text.literal("Roxy: "REV!! ...Nobody hurts my guy!"").formatted(Formatting.RED, Formatting.BOLD), false);
+		}
 	}
 
 	private void heartbreaker(ServerWorld w) {

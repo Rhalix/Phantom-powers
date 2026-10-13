@@ -164,7 +164,13 @@ public final class PhantomCommands {
 					boolean riding = roxy != null;
 					rev.testMoves(zone, dummy);
 					if (roxy != null) roxy.testMoves(zone, dummy);
-					boolean ok = riding && rev.hasShade(zone) && rev.shadowPhase();
+					// the couple's special stage: put them both below half and make sure they team up
+					if (roxy != null) {
+						rev.setHealth(rev.getMaxHealth() * 0.3f);
+						roxy.setHealth(roxy.getMaxHealth() * 0.3f);
+						rev.startRideOrDie(zone, roxy);
+					}
+					boolean ok = riding && rev.hasShade(zone) && rev.shadowPhase() && rev.rideOrDie() && roxy != null && roxy.getVehicle() == rev;
 					rev.discard();
 					if (roxy != null) roxy.discard();
 					dummy.discard();

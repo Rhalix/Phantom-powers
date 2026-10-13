@@ -43,6 +43,7 @@ import java.util.UUID;
 public class RevEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> SHADOW_PHASE = DataTracker.registerData(RevEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> CHARGE = DataTracker.registerData(RevEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	private static final TrackedData<Boolean> RIDE_OR_DIE = DataTracker.registerData(RevEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Rev").formatted(Formatting.GRAY),
 			BossBar.Color.WHITE, BossBar.Style.NOTCHED_10);
 	private int ramCooldown = 70, burnCooldown = 160, shadeCooldown;
@@ -50,6 +51,12 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 	private Vec3d ramDir = Vec3d.ZERO;
 	private double orbit;
 	private UUID shade;
+	// ---- the Biker Couple fight (Roxy started on the back seat)
+	private UUID partner;
+	private boolean vengeful;
+	private int lapCooldown = 60, jumpCooldown = 160, heartTrailCooldown = 110;
+	private int lapTicks, jumpTicks;
+	private double lapAngle;
 
 	public RevEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -72,6 +79,12 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		super.initDataTracker(builder);
 		builder.add(SHADOW_PHASE, false);
 		builder.add(CHARGE, 0);
+		builder.add(RIDE_OR_DIE, false);
+	}
+
+	/** The couple's special second stage: Roxy stands up on the back seat and they fight as one. */
+	public boolean rideOrDie() {
+		return dataTracker.get(RIDE_OR_DIE);
 	}
 
 	public boolean shadowPhase() {
@@ -98,7 +111,8 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 
 	@Override
 	protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
-		return new Vec3d(0, 0.32, -0.62);
+		// in Ride or Die she stands up on the seat
+		return rideOrDie() ? new Vec3d(0, 0.95, -0.55) : new Vec3d(0, 0.32, -0.62);
 	}
 
 	@Override
@@ -122,7 +136,15 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		super.mobTick();
 		bossBar.setPercent(getHealth() / getMaxHealth());
 		if (!(getWorld() instanceof ServerWorld w)) return;
-		if (!shadowPhase() && getHealth() <= getMaxHealth() * 0.5f) startShadowPhase(w);
+		RoxyEntity roxy = partner(w);
+		if (partner == null && getFirstPassenger() instanceof RoxyEntity r) partner = r.getUuid();
+		if (partner != null) {
+			coupleTick(w, roxy);
+			if (rideOrDie() && roxy != null) {
+				if (tickRideOrDie(w, roxy)) return;
+			}
+		}
+		if (!shadowPhase() && !rideOrDie() && partner == null && getHealth() <= getMaxHealth() * 0.5f) startShadowPhase(w);
 		if (shadowPhase() && --shadeCooldown <= 0 && shadeGone(w)) {
 			shadeCooldown = 600;
 			summonShade(w);
@@ -228,6 +250,153 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		}
 	}
 
+	// ---------------------------------------------------------- biker couple
+
+	private RoxyEntity partner(ServerWorld w) {
+		if (partner == null) return null;
+		return w.getEntity(partner) instanceof RoxyEntity r && r.isAlive() ? r : null;
+	}
+
+	/** Fighting together: at half their combined health they go Ride or Die. If one falls, the other goes Vengeful. */
+	private void coupleTick(ServerWorld w, RoxyEntity roxy) {
+		if (roxy == null) {
+			if (!vengeful) goVengeful(w);
+			return;
+		}
+		float both = (getHealth() + roxy.getHealth()) / (getMaxHealth() + roxy.getMaxHealth());
+		if (rideOrDie()) {
+			bossBar.setPercent(both);
+			if (!roxy.hasVehicle()) roxy.startRiding(this, true);
+		} else if (both <= 0.5f) {
+			startRideOrDie(w, roxy);
+		}
+	}
+
+	public void startRideOrDie(ServerWorld w, RoxyEntity roxy) {
+		dataTracker.set(RIDE_OR_DIE, true);
+		dataTracker.set(SHADOW_PHASE, true);
+		if (!roxy.hasVehicle()) roxy.startRiding(this, true);
+		roxy.setCoupleMode(getUuid());
+		heal(getMaxHealth() * 0.12f);
+		roxy.heal(roxy.getMaxHealth() * 0.12f);
+		summonShade(w);
+		shadeCooldown = 500;
+		bossBar.setName(Text.literal("The Biker Couple: RIDE OR DIE").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
+		bossBar.setColor(BossBar.Color.PINK);
+		bossBar.setStyle(BossBar.Style.NOTCHED_20);
+		w.spawnParticles(ParticleTypes.HEART, getX(), getY() + 2, getZ(), 30, 1.5, 1, 1.5, 0.1);
+		w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, getX(), getY() + 0.3, getZ(), 80, 2.5, 0.2, 2.5, 0.05);
+		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.HOSTILE, 2.5f, 1.4f);
+		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.5f, 1.5f);
+		org.slf4j.LoggerFactory.getLogger("phantom").info("The Biker Couple went Ride or Die (couple stage two)");
+		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
+			p.sendMessage(Text.literal("Roxy: "Ride or die, babe!"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Rev: "Hang on tight. Shade, you too!"").formatted(Formatting.GRAY, Formatting.BOLD), false);
+		}
+	}
+
+	/** One of them fell: the other gets a burst of rage. */
+	private void goVengeful(ServerWorld w) {
+		vengeful = true;
+		dataTracker.set(RIDE_OR_DIE, false);
+		heal(getMaxHealth() * 0.25f);
+		var speed = getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+		if (speed != null && speed.getModifier(com.phantompowers.PhantomMod.id("vengeful")) == null) {
+			speed.addPersistentModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(com.phantompowers.PhantomMod.id("vengeful"), 0.1,
+					net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE));
+		}
+		ramCooldown = 20;
+		bossBar.setName(Text.literal("Rev: VENGEFUL").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setColor(BossBar.Color.RED);
+		if (!shadowPhase()) startShadowPhase(w);
+		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
+			p.sendMessage(Text.literal("Rev: "ROXY!! ...You're gonna pay for that."").formatted(Formatting.RED, Formatting.BOLD), false);
+		}
+	}
+
+	/** Ride or Die combo moves. Returns true if a move is steering the bike this tick. */
+	private boolean tickRideOrDie(ServerWorld w, RoxyEntity roxy) {
+		LivingEntity target = getTarget();
+		if (target == null || !target.isAlive()) return false;
+		Vec3d ground = BossMoves.ground(w, getPos());
+		if (jumpTicks > 0) {
+			// Heartbreak Jump: a big arc through the air, landing with a pink and ghost-fire blast
+			jumpTicks--;
+			double arc = Math.sin((30 - jumpTicks) / 30.0 * Math.PI) * 6;
+			Vec3d to = new Vec3d(target.getX() - getX(), 0, target.getZ() - getZ());
+			Vec3d v = to.lengthSquared() > 1 ? to.normalize().multiply(0.45) : Vec3d.ZERO;
+			setVelocity(v.x, (ground.y + arc - getY()) * 0.5, v.z);
+			faceAlong(v);
+			if (jumpTicks == 15) roxy.shriek(w, target);
+			if (jumpTicks == 0) {
+				BossMoves.groundWave(w, this, ground, 9, 10f, 0xFF66CC);
+				w.spawnParticles(ParticleTypes.HEART, getX(), getY() + 1, getZ(), 20, 2, 0.5, 2, 0.1);
+			}
+			return true;
+		}
+		if (lapTicks > 0) {
+			// Love Lap: a fast circle around you while Roxy throws kisses inward
+			lapTicks--;
+			lapAngle += 0.11;
+			Vec3d spot = target.getPos().add(Math.cos(lapAngle) * 8, 0, Math.sin(lapAngle) * 8);
+			Vec3d to = spot.subtract(getPos()).multiply(1, 0, 1);
+			Vec3d v = to.lengthSquared() > 0.01 ? to.normalize().multiply(Math.min(1.1, to.length())) : Vec3d.ZERO;
+			setVelocity(v.x, (ground.y - getY()) * 0.3, v.z);
+			faceAlong(v);
+			w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, getX(), getY() + 0.2, getZ(), 2, 0.2, 0.05, 0.2, 0.01);
+			if (lapTicks % 12 == 0) roxy.blowKiss(w, target, 1);
+			return true;
+		}
+		if (--lapCooldown <= 0) {
+			lapCooldown = 150;
+			lapTicks = 70;
+			lapAngle = Math.atan2(getZ() - target.getZ(), getX() - target.getX());
+			for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
+				p.sendMessage(Text.literal("Roxy: "Love lap!"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
+			}
+			return true;
+		}
+		if (--jumpCooldown <= 0) {
+			jumpCooldown = 190;
+			jumpTicks = 30;
+			BossMoves.warn(w, BossMoves.ground(w, target.getPos()), 4.0, 30, 0xFF66CC);
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.HOSTILE, 2f, 1.2f);
+			return true;
+		}
+		if (--heartTrailCooldown <= 0) {
+			heartTrailCooldown = 130;
+			kissOfFire(w, target);
+		}
+		return false;
+	}
+
+	/** Kiss of Fire: Roxy blows a kiss into Rev's exhaust and a line of burning hearts sweeps toward you. */
+	public void kissOfFire(ServerWorld w, LivingEntity target) {
+		Vec3d start = BossMoves.ground(w, getPos());
+		Vec3d dir = new Vec3d(target.getX() - getX(), 0, target.getZ() - getZ());
+		dir = dir.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : dir.normalize();
+		final Vec3d d = dir;
+		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.HOSTILE, 2f, 0.7f);
+		for (int i = 1; i <= 10; i++) {
+			final int k = i;
+			BossMoves.later(i * 2, () -> {
+				if (!isAlive()) return;
+				Vec3d at = BossMoves.ground(w, start.add(d.multiply(k * 1.8)));
+				w.spawnParticles(ParticleTypes.HEART, at.x, at.y + 0.5, at.z, 3, 0.4, 0.3, 0.4, 0.05);
+				w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y + 0.2, at.z, 10, 0.5, 0.4, 0.5, 0.03);
+				for (Entity e : w.getOtherEntities(this, new net.minecraft.util.math.Box(at, at).expand(1.6, 2, 1.6),
+						e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity))) {
+					e.damage(getDamageSources().inFire(), 7f);
+					e.setOnFireFor(3);
+				}
+			});
+		}
+	}
+
+	public boolean isVengeful() {
+		return vengeful;
+	}
+
 	// ---------------------------------------------------------------- shadow
 
 	private void startShadowPhase(ServerWorld w) {
@@ -275,6 +444,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		startRam(w, target);
 		burnout(w);
 		startShadowPhase(w);
+		kissOfFire(w, target);
 	}
 
 	public boolean hasShade(ServerWorld w) {
@@ -300,12 +470,18 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putBoolean("ShadowPhase", shadowPhase());
+		nbt.putBoolean("RideOrDie", rideOrDie());
+		nbt.putBoolean("Vengeful", vengeful);
+		if (partner != null) nbt.putUuid("Partner", partner);
 	}
 
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
 		if (nbt.getBoolean("ShadowPhase")) dataTracker.set(SHADOW_PHASE, true);
+		if (nbt.getBoolean("RideOrDie")) dataTracker.set(RIDE_OR_DIE, true);
+		vengeful = nbt.getBoolean("Vengeful");
+		if (nbt.containsUuid("Partner")) partner = nbt.getUuid("Partner");
 	}
 
 	@Override
