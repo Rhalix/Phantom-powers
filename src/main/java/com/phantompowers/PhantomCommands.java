@@ -154,11 +154,10 @@ public final class PhantomCommands {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;
 					com.phantompowers.world.GhostHighway.build(zone, new BlockPos(40000, 110, -40000), net.minecraft.util.math.random.Random.create(9));
-					zone.getChunk(2, -3);
-					var rev = BikerCoupleItem.spawnCouple(zone, new net.minecraft.util.math.Vec3d(40.5, 190, -40.5), 0f);
+					var rev = BikerCoupleItem.spawnCouple(zone, new net.minecraft.util.math.Vec3d(40.5, 190, 60.5), 0f);
 					var dummy = net.minecraft.entity.EntityType.ARMOR_STAND.create(zone);
 					if (rev == null || dummy == null) return 0;
-					dummy.refreshPositionAndAngles(40.5, 190, -34.5, 0, 0);
+					dummy.refreshPositionAndAngles(40.5, 190, 66.5, 0, 0);
 					dummy.setNoGravity(true);
 					zone.spawnEntity(dummy);
 					var roxy = rev.getFirstPassenger() instanceof com.phantompowers.entity.RoxyEntity r ? r : null;
