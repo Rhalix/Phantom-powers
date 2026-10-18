@@ -5,8 +5,6 @@ import com.phantompowers.network.GhostSensePayload;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.mob.Monster;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -19,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/** Your ghost sense goes off (a wisp of icy blue breath) when a ghost or hostile mob comes close. */
+/** Your ghost sense goes off (a wisp of icy blue breath) when a ghost comes close (ghosts, ghost bosses and other half-ghosts in ghost form only). */
 public final class GhostSense {
 	private static final double RANGE = 16;
 	private static final int COOLDOWN = 160;
@@ -38,7 +36,7 @@ public final class GhostSense {
 				continue;
 			}
 			List<Entity> near = p.getServerWorld().getOtherEntities(p, p.getBoundingBox().expand(RANGE),
-					e -> e.isAlive() && e != d.possessing && (e instanceof AbstractGhostEntity || (e instanceof Monster && e instanceof LivingEntity)));
+					e -> e.isAlive() && e != d.possessing && isGhost(st, p, e));
 			Set<Integer> ids = new HashSet<>();
 			for (Entity e : near) ids.add(e.getId());
 			Set<Integer> prev = SEEN.getOrDefault(p.getUuid(), Set.of());
@@ -52,6 +50,13 @@ public final class GhostSense {
 			LAST.put(p.getUuid(), now);
 			trigger(p);
 		}
+	}
+
+	/** Only real ghosts set it off: ghosts, ghost bosses, and other half-ghosts in ghost form (not zombies, creepers and the like). */
+	private static boolean isGhost(GhostState st, ServerPlayerEntity self, Entity e) {
+		if (e instanceof com.phantompowers.entity.GhostCloneEntity clone && clone.owner().map(self.getUuid()::equals).orElse(false)) return false;
+		if (e instanceof AbstractGhostEntity || FrostLogic.isBoss(e)) return true;
+		return e instanceof ServerPlayerEntity other && st.data(other.getUuid()).transformed;
 	}
 
 	public static void trigger(ServerPlayerEntity p) {
