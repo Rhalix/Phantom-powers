@@ -46,6 +46,10 @@ public final class ClientGhost {
 		hostAbility = p.hostAbility();
 		hostId = p.hostId();
 		suitVariant = p.suitVariant();
+		loadout = p.loadout();
+		dark = p.dark();
+		darkMode = p.darkMode();
+		acne = p.acne();
 		GhostFlags.clientSelfIntangible = intangible;
 		GhostFlags.clientSelfHolding = holding;
 	}
@@ -55,12 +59,22 @@ public final class ClientGhost {
 	public static int hostAbility = -1;
 	public static int hostId = -1;
 	public static int suitVariant;
+	public static int loadout;
+	public static boolean dark, darkMode;
+	public static int acne;
+
+	public static boolean equipped(int skill) {
+		return (loadout & (1 << skill)) != 0;
+	}
 
 	public static void reset() {
 		holding = false;
 		hostAbility = -1;
 		hostId = -1;
 		GhostFlags.clientSelfHolding = false;
+		loadout = 0;
+		dark = darkMode = false;
+		acne = 0;
 		powers = transformed = intangible = possessing = invisible = false;
 		energy = 0;
 		points = progress = unlocked = wailCooldown = tornadoCooldown = exhaust = cutscene = 0;

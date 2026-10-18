@@ -13,7 +13,7 @@ import net.minecraft.util.math.MathHelper;
  * unlocked power showing its key, a cooldown sweep, and a highlight when it's switched on.
  */
 public final class GhostHud {
-	private static final String[] SHORT = {"BLAST", "PHASE", "POSSESS", "WAIL", "TWISTER", "INVIS", "FROST", "FISTS", "SHIELD", "CLONES"};
+	private static final String[] SHORT = {"BLAST", "PHASE", "POSSESS", "WAIL", "TWISTER", "INVIS", "FROST", "FISTS", "SHIELD", "CLONES", "CONSTRUCT", "SPIN", "STINGER", "ABSORB"};
 	private static final int SLOT = 20, GAP = 2;
 
 	private GhostHud() {}
@@ -26,7 +26,7 @@ public final class GhostHud {
 
 		KeyBinding[] keys = PhantomClient.skillKeys();
 		int count = 0;
-		for (int i = 0; i < keys.length; i++) if (ClientGhost.has(i)) count++;
+		for (int i = 0; i < keys.length; i++) if (shown(i)) count++;
 		int barW = Math.max(96, count * (SLOT + GAP) - GAP);
 
 		int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
@@ -39,13 +39,14 @@ public final class GhostHud {
 		ctx.getMatrices().scale(scale, scale, 1f);
 		// Local coordinates: (0,0) is the bottom-left corner of the bar
 		boolean ghost = ClientGhost.transformed;
-		int accent = ghost ? 0xFF4DFF88 : 0xFF9AA7A0;
+		boolean dark = ClientGhost.darkMode;
+		int accent = ghost ? (dark ? 0xFFFF4466 : 0xFF4DFF88) : 0xFF9AA7A0;
 
 		// --- skill slots
 		int y = -SLOT;
 		int x = 0;
 		for (int i = 0; i < keys.length; i++) {
-			if (!ClientGhost.has(i)) continue;
+			if (!shown(i)) continue;
 			slot(ctx, tr, x, y, i, keys[i], ghost, time);
 			x += SLOT + GAP;
 		}
@@ -57,7 +58,8 @@ public final class GhostHud {
 		ctx.fill(-1, ey - 1, barW + 1, ey + 6, 0xC0101814);
 		ctx.fill(0, ey, barW, ey + 5, 0xFF1C2A22);
 		if (fill > 0) {
-			ctx.fillGradient(1, ey + 1, 1 + fill, ey + 4, 0xFF9CFFC0, 0xFF22C860);
+			if (dark) ctx.fillGradient(1, ey + 1, 1 + fill, ey + 4, 0xFFFFA0B0, 0xFFC81838);
+			else ctx.fillGradient(1, ey + 1, 1 + fill, ey + 4, 0xFF9CFFC0, 0xFF22C860);
 			ctx.fill(1, ey + 1, 1 + fill, ey + 2, 0x80FFFFFF);
 			// moving shimmer
 			int sx = (int) ((time * 2.2f) % (barW + 30)) - 15;
@@ -67,7 +69,7 @@ public final class GhostHud {
 
 		// --- status chip
 		int sy = ey - 12;
-		String status = ghost ? "GHOST" : "HUMAN";
+		String status = ghost ? (dark ? "DARK GHOST" : "GHOST") : "HUMAN";
 		if (ClientGhost.exhaust > 0 && !ghost) status = "DRAINED " + (ClientGhost.exhaust / 20 + 1) + "s";
 		String extra = ClientGhost.possessing ? "possessing" : ClientGhost.intangible ? "intangible" : ClientGhost.invisible ? "invisible" : "";
 		int chipW = tr.getWidth(status) + 8;
@@ -84,6 +86,14 @@ public final class GhostHud {
 			lx += tr.getWidth(pts) + 6;
 		}
 		if (!extra.isEmpty()) ctx.drawTextWithShadow(tr, extra, lx, sy + 1, 0xFF7FF6FF);
+		if (ClientGhost.acne > 0) {
+			int secs = ClientGhost.acne / 20;
+			String a = "ECTO ACNE " + secs / 60 + ":" + String.format("%02d", secs % 60);
+			int ax = 0, ay = sy - (ghost ? 11 : 19);
+			ctx.fill(ax, ay, ax + tr.getWidth(a) + 8, ay + 10, 0xD0101814);
+			ctx.fill(ax, ay, ax + 2, ay + 10, 0xFF9CFF40);
+			ctx.drawText(tr, a, ax + 5, ay + 1, (int) (time / 6) % 2 == 0 ? 0xFFB8FF60 : 0xFF7FD040, false);
+		}
 		if (!ghost && ClientGhost.exhaust <= 0) {
 			String hint = "[" + PhantomClient.keyName(PhantomClient.TRANSFORM) + "] go ghost";
 			ctx.getMatrices().push();
@@ -93,6 +103,11 @@ public final class GhostHud {
 			ctx.getMatrices().pop();
 		}
 		ctx.getMatrices().pop();
+	}
+
+	/** Only powers in your loadout get a slot (dark powers only while you're in your dark form). */
+	private static boolean shown(int i) {
+		return ClientGhost.has(i) && ClientGhost.equipped(i) && (!GhostPowers.darkOnly(i) || ClientGhost.darkMode);
 	}
 
 	private static void slot(DrawContext ctx, TextRenderer tr, int x, int y, int skill, KeyBinding key, boolean ghost, float time) {

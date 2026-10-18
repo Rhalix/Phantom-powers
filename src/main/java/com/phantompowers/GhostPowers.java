@@ -70,10 +70,19 @@ public final class GhostPowers {
 	/** Ticks spent in ghost form per stat point (600 ticks = 30 seconds). */
 	public static final int POINT_TICKS = 600;
 
-	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7, SHIELD = 8, DUPLICATE = 9;
-	public static final int SKILL_COUNT = 10;
-	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists", "Ecto Shield", "Duplication"};
-	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4, 6, 9};
+	public static final int BLAST = 0, INTANGIBLE = 1, POSSESS = 2, WAIL = 3, TORNADO = 4, INVISIBLE = 5, FROST = 6, FISTS = 7, SHIELD = 8, DUPLICATE = 9,
+			CONSTRUCT = 10, SPIN = 11, STINGER = 12, ABSORB = 13;
+	public static final int SKILL_COUNT = 14;
+	/** How many powers fit in your loadout at once. */
+	public static final int LOADOUT_MAX = 6;
+	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists", "Ecto Shield", "Duplication",
+			"Ecto Constructs", "Tornado Spin", "Ghost Stinger", "Energy Absorption"};
+	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4, 6, 9, 8, 10, 7, 6};
+
+	/** Powers only the dark half-ghost can use. */
+	public static boolean darkOnly(int skill) {
+		return skill >= CONSTRUCT;
+	}
 	/** Ghost suit looks you can pick in the suit customizer. */
 	public static final String[] SUIT_VARIANTS = {"Classic", "Shadow", "Ecto Glow", "Crimson", "Frostbite", "Royal"};
 	public static final String[] DESCRIPTIONS = {
@@ -86,13 +95,17 @@ public final class GhostPowers {
 			"Hold to breathe ice. Freeze enemies solid, then punch to shatter.",
 			"Wrap your fists in glowing ecto energy. Punches hit way harder and blast enemies back.",
 			"Hold to raise a dome of green energy all around you that blocks attacks and bounces arrows back.",
-			"Split into 3 ghost clones. They wail at whatever you attack or whatever hits you, and wail with you."
+			"Split into 3 ghost clones. They wail at whatever you attack or whatever hits you, and wail with you.",
+			"DARK FORM: conjure a giant ecto weapon (sword, hammer or fist) that smashes down on your target.",
+			"DARK FORM: while it's on, move or fly fast and you whip up a tornado around yourself.",
+			"DARK FORM: grab whoever you're facing and shock them with ecto lightning. Half-ghosts get forced human.",
+			"DARK FORM: for a few seconds, soak up magic, fire, blasts and lightning as ghost energy and health."
 	};
 
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_CONSTRUCT = 20, A_SPIN = 21, A_STINGER = 22, A_ABSORB = 23, A_DARK_TOGGLE = 24, A_EQUIP = 500, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -123,8 +136,14 @@ public final class GhostPowers {
 			case A_TRANSFORM_CUTSCENE -> startCutscene(p, d);
 			case A_BLAST -> {
 				if (d.possessing != null) HostPowers.active(p, d);
+				else if (d.suitOn && !d.transformed) HunterGear.fireMissiles(p, d);
 				else if (ready(p, d, st, BLAST)) blast(p, d);
 			}
+			case A_CONSTRUCT -> { if (ready(p, d, st, CONSTRUCT)) DarkPowers.construct(p, d); }
+			case A_SPIN -> { if (ready(p, d, st, SPIN)) DarkPowers.toggleSpin(p, d); }
+			case A_STINGER -> { if (ready(p, d, st, STINGER)) DarkPowers.stinger(p, d); }
+			case A_ABSORB -> { if (ready(p, d, st, ABSORB)) DarkPowers.absorb(p, d); }
+			case A_DARK_TOGGLE -> DarkPowers.toggleDarkMode(p, d);
 			case A_FROST -> { if (ready(p, d, st, FROST)) FrostLogic.start(p, d); }
 			case A_FROST_RELEASE -> d.frostHeld = false;
 			case A_STRUGGLE -> {
@@ -137,7 +156,10 @@ public final class GhostPowers {
 			case A_DUPLICATE -> { if (ready(p, d, st, DUPLICATE)) com.phantompowers.entity.GhostCloneEntity.toggle(p, d); }
 			case A_INTANGIBLE -> { if (ready(p, d, st, INTANGIBLE)) intangibility(p, d); }
 			case A_POSSESS -> { if (ready(p, d, st, POSSESS)) possession(p, d, st); }
-			case A_WAIL -> { if (ready(p, d, st, WAIL)) wail(p, d); }
+			case A_WAIL -> {
+				if (d.suitOn && !d.transformed) HunterGear.toggleCannons(p, d);
+				else if (ready(p, d, st, WAIL)) wail(p, d);
+			}
 			case A_WAIL_RELEASE -> d.wailHeld = false;
 			case A_SUIT -> { if (d.cutscene == 0) HunterSuit.toggle(p, d, true); }
 			case A_SUIT_CUTSCENE -> startSuitCutscene(p, d);
@@ -147,6 +169,7 @@ public final class GhostPowers {
 			case A_INTANGIBLE_RELEASE -> releaseHold(p, d, true);
 			default -> {
 				if (action >= A_UNLOCK && action < A_UNLOCK + SKILL_COUNT) tryUnlock(p, d, st, action - A_UNLOCK);
+				if (action >= A_EQUIP && action < A_EQUIP + SKILL_COUNT) toggleEquip(p, d, action - A_EQUIP);
 				if (action >= A_SUIT_VARIANT && action < A_SUIT_VARIANT + SUIT_VARIANTS.length) {
 					d.suitVariant = action - A_SUIT_VARIANT;
 					st.markDirty();
@@ -168,9 +191,18 @@ public final class GhostPowers {
 			bar(p, NAMES[skill] + " is locked. Unlock it in Ghost Skills (press K or open your inventory).", Formatting.YELLOW);
 			return false;
 		}
+		initLoadout(d);
+		if (!d.equipped(skill)) {
+			bar(p, NAMES[skill] + " isn't in your loadout. Equip it in Ghost Skills (K).", Formatting.YELLOW);
+			return false;
+		}
 		// Intangibility and invisibility work in human form too
 		if (!d.transformed && skill != INTANGIBLE && skill != INVISIBLE) {
 			bar(p, "Go ghost first! Press V", Formatting.YELLOW);
+			return false;
+		}
+		if (darkOnly(skill) && !(d.dark && d.darkMode)) {
+			bar(p, NAMES[skill] + " only works in your dark form.", Formatting.DARK_RED);
 			return false;
 		}
 		return true;
@@ -187,12 +219,54 @@ public final class GhostPowers {
 					+ "). Stay in ghost form to earn more!", Formatting.YELLOW);
 			return;
 		}
+		if (darkOnly(skill) && !d.dark) {
+			bar(p, NAMES[skill] + " belongs to the dark half-ghost. Use a Prototype Ghost Portal first...", Formatting.DARK_RED);
+			return;
+		}
 		d.points -= COSTS[skill];
 		d.unlocked |= 1 << skill;
+		initLoadout(d);
+		if (Integer.bitCount(d.loadout) < LOADOUT_MAX) d.loadout |= 1 << skill;
 		st.markDirty();
 		p.sendMessage(Text.literal("New ghost power unlocked: " + NAMES[skill] + "!").formatted(Formatting.GREEN, Formatting.BOLD), false);
 		syncNow(p);
 		sound(p, SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
+	}
+
+	// ---------------------------------------------------------------- loadout
+
+	/** First time: fill the loadout with the first powers you already have. */
+	public static void initLoadout(GhostData d) {
+		if (d.loadoutInit) return;
+		d.loadoutInit = true;
+		d.loadout = 0;
+		for (int i = 0; i < SKILL_COUNT && Integer.bitCount(d.loadout) < LOADOUT_MAX; i++) if (d.has(i)) d.loadout |= 1 << i;
+	}
+
+	private static void toggleEquip(ServerPlayerEntity p, GhostData d, int skill) {
+		initLoadout(d);
+		if (d.equipped(skill)) {
+			d.loadout &= ~(1 << skill);
+			bar(p, NAMES[skill] + " taken out of your loadout.", Formatting.GRAY);
+		} else if (!d.has(skill)) {
+			bar(p, "Unlock " + NAMES[skill] + " first.", Formatting.YELLOW);
+		} else if (Integer.bitCount(d.loadout) >= LOADOUT_MAX) {
+			bar(p, "Your loadout is full (" + LOADOUT_MAX + " powers). Take one out first.", Formatting.YELLOW);
+		} else {
+			d.loadout |= 1 << skill;
+			bar(p, NAMES[skill] + " equipped!", Formatting.GREEN);
+		}
+		syncNow(p);
+	}
+
+	/** The customizer sent new suit colours. */
+	public static void setSuitColors(ServerPlayerEntity p, int[] colors) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		d.suitColors = SuitColors.sanitize(colors);
+		st.markDirty();
+		broadcastStates(p.getServer());
+		bar(p, "Ghost suit updated!", Formatting.GREEN);
 	}
 
 	// -------------------------------------------------------------- transform
@@ -235,6 +309,7 @@ public final class GhostPowers {
 		d.shieldHeld = false;
 		if (d.shieldUp) setShield(p, d, false);
 		com.phantompowers.entity.GhostCloneEntity.dismiss(p);
+		DarkPowers.endForm(p, d);
 		fistMods(p, d);
 		setFlight(p, false);
 		applyStats(p, d, false);
@@ -922,19 +997,19 @@ public final class GhostPowers {
 			GhostData gd = st.data(pl.getUuid());
 			if (gd.fists && gd.transformed) fists.add(pl.getUuid());
 		}
-		List<UUID> shielded = new ArrayList<>();
-		List<UUID> variantIds = new ArrayList<>();
-		List<Integer> variants = new ArrayList<>();
+		List<UUID> shielded = new ArrayList<>(), colorIds = new ArrayList<>(), dark = new ArrayList<>(), acne = new ArrayList<>(), cannons = new ArrayList<>();
+		List<int[]> colors = new ArrayList<>();
 		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
 			GhostData gd = st.data(pl.getUuid());
 			if (gd.shieldUp) shielded.add(pl.getUuid());
-			if (gd.suitVariant != 0) {
-				variantIds.add(pl.getUuid());
-				variants.add(gd.suitVariant);
-			}
+			colorIds.add(pl.getUuid());
+			colors.add(gd.suitColors);
+			if (gd.dark && gd.darkMode) dark.add(pl.getUuid());
+			if (gd.acneTicks > 0) acne.add(pl.getUuid());
+			if (gd.cannons && gd.suitOn) cannons.add(pl.getUuid());
 		}
 		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING), fists,
-				shielded, variantIds, variants);
+				shielded, colorIds, colors, dark, acne, cannons);
 		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
 			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}
@@ -1214,7 +1289,7 @@ public final class GhostPowers {
 
 		/** Tell nearby players where to draw the funnel. */
 		void send(boolean done) {
-			com.phantompowers.network.TornadoPayload msg = new com.phantompowers.network.TornadoPayload(id, pos.x, pos.y, pos.z, age, done);
+			com.phantompowers.network.TornadoPayload msg = new com.phantompowers.network.TornadoPayload(id, pos.x, pos.y, pos.z, age, done, 1f);
 			for (ServerPlayerEntity viewer : PlayerLookup.around(world, pos, 128)) {
 				if (ServerPlayNetworking.canSend(viewer, com.phantompowers.network.TornadoPayload.ID)) ServerPlayNetworking.send(viewer, msg);
 			}
@@ -1384,6 +1459,8 @@ public final class GhostPowers {
 
 		tickPossession(p, d);
 		tickShield(p, d);
+		DarkPowers.tick(p, d);
+		HunterGear.tick(p, d);
 		if (p.age % 40 == 0 && p.isAlive()) applyEaten(p, d);
 		tickHold(p, d);
 		tickCutscene(p, d);
@@ -1573,7 +1650,7 @@ public final class GhostPowers {
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
 				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d), d.cutsceneKind,
 				d.holding != null || HELD_BLOCKS.containsKey(p.getUuid()), d.frostCooldown, d.possessing == null ? -1 : HostPowers.kind(d.possessing),
-				d.possessing == null ? -1 : d.possessing.getId(), d.suitVariant));
+				d.possessing == null ? -1 : d.possessing.getId(), d.suitVariant, d.loadout, d.dark, d.darkMode, d.acneTicks));
 	}
 
 	private static boolean useEnergy(ServerPlayerEntity p, GhostData d, float amount) {
@@ -1586,7 +1663,7 @@ public final class GhostPowers {
 	}
 
 	/** Finds the entity the player is aiming at (ignores the body they're possessing). */
-	private static Entity aimEntity(ServerPlayerEntity p, GhostData d, double range) {
+	public static Entity aimEntity(ServerPlayerEntity p, GhostData d, double range) {
 		Vec3d start = p.getEyePos();
 		Vec3d end = aimBlockPos(p, range);
 		Entity host = d.possessing;

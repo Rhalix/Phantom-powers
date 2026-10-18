@@ -16,6 +16,16 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public final class ModEntities {
+	public static final EntityType<com.phantompowers.entity.MissileEntity> MISSILE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("wrist_missile"),
+			EntityType.Builder.<com.phantompowers.entity.MissileEntity>create(com.phantompowers.entity.MissileEntity::new, SpawnGroup.MISC)
+					.dimensions(0.3f, 0.3f).maxTrackingRange(8).trackingTickInterval(1).build("wrist_missile"));
+
+	public static final EntityType<com.phantompowers.entity.EctoConstructEntity> ECTO_CONSTRUCT = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("ecto_construct"),
+			EntityType.Builder.<com.phantompowers.entity.EctoConstructEntity>create(com.phantompowers.entity.EctoConstructEntity::new, SpawnGroup.MISC)
+					.dimensions(1.0f, 1.0f).maxTrackingRange(10).trackingTickInterval(1).makeFireImmune().build("ecto_construct"));
+
 	public static final EntityType<com.phantompowers.entity.GhostCloneEntity> GHOST_CLONE = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("ghost_clone"),
 			EntityType.Builder.create(com.phantompowers.entity.GhostCloneEntity::new, SpawnGroup.MISC)

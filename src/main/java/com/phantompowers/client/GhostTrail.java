@@ -92,23 +92,21 @@ public final class GhostTrail {
 			}
 			boolean self = p == mc.player && mc.options.getPerspective().isFirstPerson();
 			float fade = self ? 0.35f : 1f;
-			int v = p instanceof net.minecraft.client.network.AbstractClientPlayerEntity cp ? GhostSuitFeature.variantOf(cp) : 0;
-			int[] col = COLORS[Math.max(0, Math.min(COLORS.length - 1, v))];
+			int[] col = trailColors(SuitTextures.colorsOf(en.getKey()));
 			ribbon(vc, m, pts, cam, 0.32f, fade, 0f, 0f, col);
 			ribbon(vc, m, pts, cam, 0.07f, fade, 0.22f, clock + partial, col);
 		}
 		ms.pop();
 	}
 
+	/** Streak colours from the suit's Trail & Glow colour: {head r,g,b, tail r,g,b}, the head washed toward white. */
+	private static int[] trailColors(int[] suit) {
+		int g = suit[com.phantompowers.SuitColors.GLOW];
+		int r = (g >> 16) & 255, gg = (g >> 8) & 255, b = g & 255;
+		return new int[]{(r + 255 * 2) / 3, (gg + 255 * 2) / 3, (b + 255 * 2) / 3, r, gg, b};
+	}
+
 	/** A camera-facing strip along the points, tapering to nothing; optionally wound around the path (twist). */
-	/** Streak colours per suit look: {head r,g,b, tail r,g,b}. */
-	private static final int[][] COLORS = {
-			{235, 255, 235, 40, 255, 200},   // classic: white-hot to green-teal
-			{235, 235, 245, 110, 90, 150},   // shadow: white to dusky violet
-			{210, 255, 225, 40, 255, 130},   // ecto glow: bright green
-			{255, 225, 225, 225, 40, 60},    // crimson
-			{240, 250, 255, 70, 165, 255},   // frostbite: icy blue
-			{255, 240, 200, 150, 80, 230}};  // royal: gold to purple
 
 	private static void ribbon(VertexConsumer vc, Matrix4f m, List<Vec3d> pts, Vec3d cam, float width, float fade, float twist, float time, int[] col) {
 		int n = pts.size();

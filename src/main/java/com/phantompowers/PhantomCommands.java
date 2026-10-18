@@ -210,6 +210,24 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Net test: OK"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testdark").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var c = ModEntities.ECTO_CONSTRUCT.create(zone);
+					var m = new com.phantompowers.entity.MissileEntity(ModEntities.MISSILE, zone);
+					int[] col = SuitColors.sanitize(new int[]{0x123456, 0xFFFFFFFF, 1, 2, 3, 7});
+					boolean ok = c != null && col[1] == 0xFFFFFF && col[SuitColors.FLAGS] == 1
+							&& GhostPowers.darkOnly(GhostPowers.STINGER) && !GhostPowers.darkOnly(GhostPowers.BLAST)
+							&& GhostPowers.NAMES.length == GhostPowers.SKILL_COUNT && GhostPowers.DESCRIPTIONS.length == GhostPowers.SKILL_COUNT
+							&& GhostPowers.COSTS.length == GhostPowers.SKILL_COUNT
+							&& HunterGear.tier(new net.minecraft.item.ItemStack(ModItems.HUNTER_SUIT)) == 0 && m.getStack() != null;
+					if (!ok) {
+						ctx.getSource().sendError(Text.literal("Dark test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Dark test: OK"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("testpalace").executes(ctx -> {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;

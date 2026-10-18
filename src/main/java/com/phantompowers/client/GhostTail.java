@@ -38,15 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(PhantomMod.id("ghost_tail"), "main");
-	private static final Identifier TEXTURE = PhantomMod.id("textures/entity/ghost_tail.png");
-	/** The tail matches whichever ghost suit you picked. */
-	private static final Identifier[] VARIANTS = new Identifier[com.phantompowers.GhostPowers.SUIT_VARIANTS.length];
-
-	static {
-		VARIANTS[0] = TEXTURE;
-		for (int i = 1; i < VARIANTS.length; i++) VARIANTS[i] = PhantomMod.id("textures/entity/ghost_tail_" + i + ".png");
-	}
-
 	/** Hovering in place shows your legs; the tail only forms once you're actually moving. */
 	private static final Map<UUID, Integer> MOVING = new ConcurrentHashMap<>();
 
@@ -87,6 +78,7 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 
 	/** Is this player in ghost form and flying (so they get a tail instead of legs)? */
 	public static boolean isTailed(Entity e) {
+		if (GhostSuitScreen.previewing && GhostSuitScreen.previewTail && e == MinecraftClient.getInstance().player) return true;
 		if (!(e instanceof PlayerEntity p) || GhostFlags.CLIENT_GHOSTS.isEmpty() || !GhostFlags.CLIENT_GHOSTS.contains(p.getUuid())) return false;
 		if (p.hasVehicle() || p.isSwimming() || p.isFallFlying()) return false;
 		// Only while really flying (not for jumps or falls)
@@ -147,7 +139,7 @@ public class GhostTail extends FeatureRenderer<AbstractClientPlayerEntity, Playe
 		matrices.push();
 		getContextModel().body.rotate(matrices);
 		// The body's pivot is at the neck; the tail hangs from the hips
-		root.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(VARIANTS[GhostSuitFeature.variantOf(player)])), 0xF000F0, OverlayTexture.DEFAULT_UV, 0xE6FFFFFF);
+		root.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(SuitTextures.of(player).tail())), 0xF000F0, OverlayTexture.DEFAULT_UV, 0xE6FFFFFF);
 		matrices.pop();
 	}
 }

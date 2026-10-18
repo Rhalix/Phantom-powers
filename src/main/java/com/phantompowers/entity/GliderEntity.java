@@ -49,10 +49,25 @@ public class GliderEntity extends Entity {
 
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
+		tier = nbt.getInt("GliderTier");
+	}
+
+	/** Upgrade tier 0-3 (from Glider Upgrade Kits): faster, harder-hitting lasers, quicker fire. */
+	public int tier;
+
+	public ItemStack asItem() {
+		ItemStack stack = new ItemStack(ModItems.HOVER_GLIDER);
+		if (tier > 0) {
+			NbtCompound n = new NbtCompound();
+			n.putInt("GliderTier", tier);
+			stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA, net.minecraft.component.type.NbtComponent.of(n));
+		}
+		return stack;
 	}
 
 	@Override
 	protected void writeCustomDataToNbt(NbtCompound nbt) {
+		nbt.putInt("GliderTier", tier);
 	}
 
 	@Override
@@ -82,10 +97,23 @@ public class GliderEntity extends Entity {
 
 	@Override
 	public ActionResult interact(PlayerEntity player, Hand hand) {
+		if (player.getStackInHand(hand).isOf(ModItems.GLIDER_UPGRADE)) {
+			if (!getWorld().isClient) {
+				if (tier >= 3) {
+					player.sendMessage(net.minecraft.text.Text.literal("This glider is fully upgraded.").formatted(net.minecraft.util.Formatting.YELLOW), true);
+				} else {
+					tier++;
+					player.getStackInHand(hand).decrementUnlessCreative(1, player);
+					player.sendMessage(net.minecraft.text.Text.literal("Glider upgraded to tier " + tier + "! Faster, with stronger lasers.").formatted(net.minecraft.util.Formatting.AQUA), true);
+					getWorld().playSound(null, getX(), getY(), getZ(), net.minecraft.sound.SoundEvents.BLOCK_SMITHING_TABLE_USE, net.minecraft.sound.SoundCategory.PLAYERS, 1f, 1.2f);
+				}
+			}
+			return ActionResult.success(getWorld().isClient);
+		}
 		if (player.isSneaking()) {
 			// Pick it back up
 			if (!getWorld().isClient && !hasPassengers()) {
-				ItemStack stack = new ItemStack(ModItems.HOVER_GLIDER);
+				ItemStack stack = asItem();
 				if (!player.giveItemStack(stack)) dropStack(stack);
 				discard();
 			}
@@ -100,7 +128,7 @@ public class GliderEntity extends Entity {
 	public boolean damage(DamageSource source, float amount) {
 		if (isInvulnerableTo(source) || getWorld().isClient || isRemoved()) return false;
 		if (source.getAttacker() instanceof PlayerEntity player) {
-			if (!player.getAbilities().creativeMode) dropStack(new ItemStack(ModItems.HOVER_GLIDER));
+			if (!player.getAbilities().creativeMode) dropStack(asItem());
 			discard();
 			return true;
 		}
@@ -149,7 +177,7 @@ public class GliderEntity extends Entity {
 				v = v.add(0, -0.02, 0); // drifts down slowly when nobody is riding
 			}
 			v = v.multiply(0.94);
-			double max = MAX_SPEED * (1 + 0.9 * boostLevel);
+			double max = MAX_SPEED * (1 + 0.15 * tier) * (1 + 0.9 * boostLevel);
 			if (v.length() > max) v = v.normalize().multiply(max);
 			setVelocity(v);
 			move(MovementType.SELF, v);
@@ -181,7 +209,7 @@ public class GliderEntity extends Entity {
 	/** Twin laser cannons on the nose. */
 	public void fire(ServerPlayerEntity p) {
 		if (fireCooldown > 0) return;
-		fireCooldown = 6;
+		fireCooldown = 6 - tier;
 		ServerWorld w = p.getServerWorld();
 		Vec3d look = p.getRotationVec(1f);
 		Vec3d fwd = getRotationVector(0, getYaw());
@@ -196,7 +224,7 @@ public class GliderEntity extends Entity {
 					e -> e != p && e != this && !e.isSpectator() && e.canHit(), from.squaredDistanceTo(end));
 			if (eh != null) {
 				end = eh.getPos();
-				eh.getEntity().damage(w.getDamageSources().indirectMagic(this, p), 6.0f * com.phantompowers.HunterSuit.ghostBonus(eh.getEntity()));
+				eh.getEntity().damage(w.getDamageSources().indirectMagic(this, p), (6.0f + tier * 2f) * com.phantompowers.HunterSuit.ghostBonus(eh.getEntity()));
 				if (eh.getEntity() instanceof LivingEntity le) le.takeKnockback(0.3, -look.x, -look.z);
 			}
 			BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z, 0xFF3344);

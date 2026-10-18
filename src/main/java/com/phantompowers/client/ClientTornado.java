@@ -28,6 +28,8 @@ public final class ClientTornado {
 	private static final class Twister {
 		Vec3d prev, cur;
 		int age, life, fadeOut = -1;
+		float scale = 1f;
+		boolean dark;
 
 		Twister(Vec3d at, int age) {
 			prev = cur = at;
@@ -39,6 +41,7 @@ public final class ClientTornado {
 	private static final float HEIGHT = 17f;
 	private static final int LAYERS = 30, SEGS = 36;
 	private static final DustParticleEffect GREEN = new DustParticleEffect(new Vector3f(0.3f, 1f, 0.5f), 1.6f);
+	private static final DustParticleEffect RED = new DustParticleEffect(new Vector3f(1f, 0.2f, 0.35f), 1.4f);
 	private static final DustParticleEffect PALE = new DustParticleEffect(new Vector3f(0.85f, 1f, 0.9f), 1.2f);
 
 	private ClientTornado() {}
@@ -48,6 +51,7 @@ public final class ClientTornado {
 		Twister t = ACTIVE.get(p.id());
 		if (t == null) {
 			t = new Twister(at, p.age());
+			t.dark = p.id() >= 1_000_000;
 			ACTIVE.put(p.id(), t);
 		} else {
 			t.prev = t.cur;
@@ -55,6 +59,7 @@ public final class ClientTornado {
 			t.age = p.age();
 			t.life = 0;
 		}
+		t.scale = p.scale() <= 0 ? 1f : p.scale();
 		if (p.done()) t.fadeOut = 0;
 	}
 
@@ -79,17 +84,20 @@ public final class ClientTornado {
 			Vec3d c = t.cur;
 			if (mc.world == null || t.fadeOut >= 0) continue;
 			// Debris and dust whipping round the funnel
-			for (int i = 0; i < 4; i++) {
+			float sc = t.scale;
+			for (int i = 0; i < (sc < 0.6f ? 2 : 4); i++) {
 				double y = r.nextDouble() * HEIGHT * 0.9;
 				double rad = radius(y) * (0.9 + r.nextDouble() * 0.35);
+				y *= sc;
+				rad *= sc;
 				double a = r.nextDouble() * Math.PI * 2;
 				double x = c.x + Math.cos(a) * rad, z = c.z + Math.sin(a) * rad;
 				double vx = -Math.sin(a) * 0.55, vz = Math.cos(a) * 0.55;
 				mc.world.addParticle(i == 0 ? ParticleTypes.CLOUD : ParticleTypes.POOF, x, c.y + y, z, vx, 0.08, vz);
 			}
 			for (int i = 0; i < 3; i++) {
-				double a = r.nextDouble() * Math.PI * 2, rad = 1.5 + r.nextDouble() * 2.5;
-				mc.world.addParticle(i == 0 ? PALE : GREEN, c.x + Math.cos(a) * rad, c.y + 0.2 + r.nextDouble() * 0.8, c.z + Math.sin(a) * rad, 0, 0, 0);
+				double a = r.nextDouble() * Math.PI * 2, rad = (1.5 + r.nextDouble() * 2.5) * sc;
+				mc.world.addParticle(i == 0 ? PALE : (t.dark ? RED : GREEN), c.x + Math.cos(a) * rad, c.y + 0.2 + r.nextDouble() * 0.8, c.z + Math.sin(a) * rad, 0, 0, 0);
 			}
 		}
 	}
@@ -118,13 +126,28 @@ public final class ClientTornado {
 		VertexConsumer vc = consumers.getBuffer(RenderLayer.getLightning());
 		ms.push();
 		ms.translate(-cam.x, -cam.y, -cam.z);
-		Matrix4f m = ms.peek().getPositionMatrix();
 		for (Twister t : ACTIVE.values()) {
 			Vec3d c = t.prev.lerp(t.cur, partial);
+			ms.push();
+			ms.translate(c.x, c.y, c.z);
+			ms.scale(t.scale, t.scale, t.scale);
+			ms.translate(-c.x, -c.y, -c.z);
+			Matrix4f m = ms.peek().getPositionMatrix();
+			darkNow = t.dark;
+			draw(vc, m, t, c, partial);
+			ms.pop();
+		}
+		ms.pop();
+	}
+
+	private static boolean darkNow;
+
+	private static void draw(VertexConsumer vc, Matrix4f m, Twister t, Vec3d c, float partial) {
+		{
 			float time = t.age + partial;
 			float fade = Math.min(1f, time / 20f);
 			if (t.fadeOut >= 0) fade *= Math.max(0f, 1f - (t.fadeOut + partial) / 12f);
-			if (fade <= 0) continue;
+			if (fade <= 0) return;
 			// Outer haze, main shell of spiral streaks, inner bright core
 			shell(vc, m, c, time, fade, 1.18, -0.35f, 2, 0.16f, 70, 220, 120);
 			shell(vc, m, c, time, fade, 1.0, -0.55f, 3, 0.55f, 90, 255, 150);
@@ -133,7 +156,6 @@ public final class ClientTornado {
 			bolts(vc, m, c, time, fade);
 			skirt(vc, m, c, time, fade);
 		}
-		ms.pop();
 	}
 
 	/**
@@ -162,14 +184,14 @@ public final class ClientTornado {
 				float cx = (float) (x1 + Math.cos(a1) * r1), cz = (float) (z1 + Math.sin(a1) * r1);
 				float dx = (float) (x1 + Math.cos(a0) * r1), dz = (float) (z1 + Math.sin(a0) * r1);
 				float yb = (float) (c.y + y0), yt = (float) (c.y + y1);
-				vc.vertex(m, ax, yb, az).color(r, g, b, al00);
-				vc.vertex(m, bx, yb, bz).color(r, g, b, al10);
-				vc.vertex(m, cx, yt, cz).color(r, g, b, al11);
-				vc.vertex(m, dx, yt, dz).color(r, g, b, al01);
-				vc.vertex(m, dx, yt, dz).color(r, g, b, al01);
-				vc.vertex(m, cx, yt, cz).color(r, g, b, al11);
-				vc.vertex(m, bx, yb, bz).color(r, g, b, al10);
-				vc.vertex(m, ax, yb, az).color(r, g, b, al00);
+				vc.vertex(m, ax, yb, az).color(tr(r, g), tg(r, g), tb(b), al00);
+				vc.vertex(m, bx, yb, bz).color(tr(r, g), tg(r, g), tb(b), al10);
+				vc.vertex(m, cx, yt, cz).color(tr(r, g), tg(r, g), tb(b), al11);
+				vc.vertex(m, dx, yt, dz).color(tr(r, g), tg(r, g), tb(b), al01);
+				vc.vertex(m, dx, yt, dz).color(tr(r, g), tg(r, g), tb(b), al01);
+				vc.vertex(m, cx, yt, cz).color(tr(r, g), tg(r, g), tb(b), al11);
+				vc.vertex(m, bx, yb, bz).color(tr(r, g), tg(r, g), tb(b), al10);
+				vc.vertex(m, ax, yb, az).color(tr(r, g), tg(r, g), tb(b), al00);
 			}
 		}
 	}
@@ -226,16 +248,29 @@ public final class ClientTornado {
 				float x2 = (float) (c.x + Math.cos(a1) * rout), z2 = (float) (c.z + Math.sin(a1) * rout);
 				float x3 = (float) (c.x + Math.cos(a0) * rout), z3 = (float) (c.z + Math.sin(a0) * rout);
 				float yy = (float) y;
-				vc.vertex(m, x0, yy, z0).color(150, 255, 190, al);
-				vc.vertex(m, x1, yy, z1).color(150, 255, 190, al);
-				vc.vertex(m, x2, yy + 0.25f, z2).color(80, 200, 120, 0);
-				vc.vertex(m, x3, yy + 0.25f, z3).color(80, 200, 120, 0);
-				vc.vertex(m, x3, yy + 0.25f, z3).color(80, 200, 120, 0);
-				vc.vertex(m, x2, yy + 0.25f, z2).color(80, 200, 120, 0);
-				vc.vertex(m, x1, yy, z1).color(150, 255, 190, al);
-				vc.vertex(m, x0, yy, z0).color(150, 255, 190, al);
+				vc.vertex(m, x0, yy, z0).color(tr(150, 255), tg(150, 255), tb(190), al);
+				vc.vertex(m, x1, yy, z1).color(tr(150, 255), tg(150, 255), tb(190), al);
+				vc.vertex(m, x2, yy + 0.25f, z2).color(tr(80, 200), tg(80, 200), tb(120), 0);
+				vc.vertex(m, x3, yy + 0.25f, z3).color(tr(80, 200), tg(80, 200), tb(120), 0);
+				vc.vertex(m, x3, yy + 0.25f, z3).color(tr(80, 200), tg(80, 200), tb(120), 0);
+				vc.vertex(m, x2, yy + 0.25f, z2).color(tr(80, 200), tg(80, 200), tb(120), 0);
+				vc.vertex(m, x1, yy, z1).color(tr(150, 255), tg(150, 255), tb(190), al);
+				vc.vertex(m, x0, yy, z0).color(tr(150, 255), tg(150, 255), tb(190), al);
 			}
 		}
+	}
+
+	// Dark Tornado: the same funnel in crimson
+	private static int tr(int r, int g) {
+		return darkNow ? g : r;
+	}
+
+	private static int tg(int r, int g) {
+		return darkNow ? (int) (r * 0.35f) : g;
+	}
+
+	private static int tb(int b) {
+		return darkNow ? (int) (b * 0.6f) : b;
 	}
 
 	/** A thin glowing strip between two points, drawn as a cross so it shows from any side. */
@@ -244,14 +279,14 @@ public final class ClientTornado {
 		for (int k = 0; k < 2; k++) {
 			float ox = k == 0 ? w : 0, oz = k == 0 ? 0 : w;
 			float ax = (float) x0, ay = (float) y0, az = (float) z0, bx = (float) x1, by = (float) y1, bz = (float) z1;
-			vc.vertex(m, ax - ox, ay, az - oz).color(r, g, b, a);
-			vc.vertex(m, ax + ox, ay, az + oz).color(r, g, b, a);
-			vc.vertex(m, bx + ox, by, bz + oz).color(r, g, b, a);
-			vc.vertex(m, bx - ox, by, bz - oz).color(r, g, b, a);
-			vc.vertex(m, bx - ox, by, bz - oz).color(r, g, b, a);
-			vc.vertex(m, bx + ox, by, bz + oz).color(r, g, b, a);
-			vc.vertex(m, ax + ox, ay, az + oz).color(r, g, b, a);
-			vc.vertex(m, ax - ox, ay, az - oz).color(r, g, b, a);
+			vc.vertex(m, ax - ox, ay, az - oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, ax + ox, ay, az + oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, bx + ox, by, bz + oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, bx - ox, by, bz - oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, bx - ox, by, bz - oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, bx + ox, by, bz + oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, ax + ox, ay, az + oz).color(tr(r, g), tg(r, g), tb(b), a);
+			vc.vertex(m, ax - ox, ay, az - oz).color(tr(r, g), tg(r, g), tb(b), a);
 		}
 	}
 }

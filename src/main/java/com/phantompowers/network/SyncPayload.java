@@ -9,7 +9,8 @@ import net.minecraft.network.packet.CustomPayload;
 public record SyncPayload(boolean powers, boolean transformed, boolean intangible, boolean possessing, boolean invisible,
 						  float energy, int points, int progress, int unlocked, int wailCooldown, int tornadoCooldown, int exhaust,
 						  int cutscene, boolean cutsceneToGhost, int level, int cutsceneKind,
-						  boolean holding, int frostCooldown, int hostAbility, int hostId, int suitVariant)
+						  boolean holding, int frostCooldown, int hostAbility, int hostId, int suitVariant,
+						  int loadout, boolean dark, boolean darkMode, int acne)
 		implements CustomPayload {
 
 	public static final CustomPayload.Id<SyncPayload> ID = new CustomPayload.Id<>(PhantomMod.id("sync"));
@@ -38,13 +39,18 @@ public record SyncPayload(boolean powers, boolean transformed, boolean intangibl
 		buf.writeVarInt(hostAbility + 1);
 		buf.writeVarInt(hostId + 1);
 		buf.writeVarInt(suitVariant);
+		buf.writeVarInt(loadout);
+		buf.writeBoolean(dark);
+		buf.writeBoolean(darkMode);
+		buf.writeVarInt(acne);
 	}
 
 	private static SyncPayload read(PacketByteBuf buf) {
 		return new SyncPayload(buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
 				buf.readFloat(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
 				buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt(),
-				buf.readBoolean(), buf.readVarInt(), buf.readVarInt() - 1, buf.readVarInt() - 1, buf.readVarInt());
+				buf.readBoolean(), buf.readVarInt(), buf.readVarInt() - 1, buf.readVarInt() - 1, buf.readVarInt(),
+				buf.readVarInt(), buf.readBoolean(), buf.readBoolean(), buf.readVarInt());
 	}
 
 	@Override

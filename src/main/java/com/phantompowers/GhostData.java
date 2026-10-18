@@ -29,6 +29,24 @@ public class GhostData {
 	public boolean shieldHeld, shieldUp;
 	/** Chosen ghost suit look (saved). */
 	public int suitVariant;
+	/** Suit colors per part: body, stripes, gloves, boots, trail glow, flags (bit 0 = glowing stripes). Saved. */
+	public int[] suitColors = SuitColors.CLASSIC.clone();
+	/** Powers equipped in the loadout (bitmask, at most LOADOUT_MAX). Saved. */
+	public int loadout;
+	public boolean loadoutInit;
+	/** The dark half-ghost: unlocked after the prototype portal's ecto acne wears off. Saved. */
+	public boolean dark;
+	/** Use the dark form when going ghost (can be switched in Ghost Skills). Saved. */
+	public boolean darkMode;
+	/** Ticks of ecto acne left. Saved. */
+	public int acneTicks;
+	// dark powers (not saved)
+	public boolean spinning;
+	public Entity stingTarget;
+	public int stingTicks, absorbTicks, constructCooldown, stingCooldown, absorbCooldown, constructKind;
+	/** Hunter backpack cannons out (not saved). */
+	public boolean cannons;
+	public int missileCooldown, cannonCooldown;
 	/** Which Thermos cell this player is locked in (saved). */
 	public BlockPos thermosCell;
 	public BlockPos thermosPos;
@@ -60,6 +78,10 @@ public class GhostData {
 	public int exhaust;
 	public int syncTimer;
 
+	public boolean equipped(int skill) {
+		return (loadout & (1 << skill)) != 0;
+	}
+
 	public boolean has(int skill) {
 		return (unlocked & (1 << skill)) != 0;
 	}
@@ -75,6 +97,12 @@ public class GhostData {
 		n.putInt("unlocked", unlocked);
 		n.putFloat("energy", energy);
 		n.putInt("suitVariant", suitVariant);
+		n.putIntArray("suitColors", suitColors);
+		n.putInt("loadout", loadout);
+		n.putBoolean("loadoutInit", loadoutInit);
+		n.putBoolean("dark", dark);
+		n.putBoolean("darkMode", darkMode);
+		n.putInt("acne", acneTicks);
 		if (respawnDim != null && respawnPos != null) {
 			n.putString("respawnDim", respawnDim);
 			n.putLong("respawnPos", respawnPos.asLong());
@@ -101,6 +129,13 @@ public class GhostData {
 		d.formTicks = n.getInt("formTicks");
 		d.unlocked = n.getInt("unlocked");
 		d.suitVariant = n.getInt("suitVariant");
+		int[] sc = n.getIntArray("suitColors");
+		if (sc.length == SuitColors.PARTS) d.suitColors = sc;
+		d.loadout = n.getInt("loadout");
+		d.loadoutInit = n.getBoolean("loadoutInit");
+		d.dark = n.getBoolean("dark");
+		d.darkMode = n.getBoolean("darkMode");
+		d.acneTicks = n.getInt("acne");
 		d.energy = n.contains("energy") ? n.getFloat("energy") : GhostPowers.MAX_ENERGY;
 		if (n.contains("respawnDim")) {
 			d.respawnDim = n.getString("respawnDim");

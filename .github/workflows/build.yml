@@ -74,6 +74,7 @@ jobs:
             echo "phantom testpalace" >&3
             echo "phantom testthermos" >&3
             echo "phantom testnet" >&3
+            echo "phantom testdark" >&3
             echo "phantom testbikers" >&3
             echo "phantom testfrost" >&3
             echo "phantom testhost" >&3
@@ -102,6 +103,7 @@ jobs:
           grep -q "Boss test: OK" server.log || { echo "Boss moves test failed" >> problems.txt; grep -n -A5 "testbosses\|Boss test" server.log >> problems.txt; ok=0; }
           grep -q "Boss cleanup: OK" server.log || { echo "Boss cage cleanup failed" >> problems.txt; grep -n "Boss cleanup" server.log >> problems.txt; ok=0; }
           grep -q "Biker test: OK" server.log || { echo "Biker test failed" >> problems.txt; grep -n -A5 "testbikers\|Biker test" server.log >> problems.txt; ok=0; }
+          grep -q "Dark test: OK" server.log || { echo "Dark test failed" >> problems.txt; grep -n -A3 "testdark\|Dark test" server.log >> problems.txt; ok=0; }
           grep -q "Net test: OK" server.log || { echo "Net test failed" >> problems.txt; grep -n -A3 "testnet\|Net test" server.log >> problems.txt; ok=0; }
           grep -q "Thermos test: OK" server.log || { echo "Thermos test failed" >> problems.txt; grep -n -A3 "testthermos\|Thermos test" server.log >> problems.txt; ok=0; }
           grep -q "Palace test: OK" server.log || { echo "Palace test failed" >> problems.txt; grep -n -A3 "testpalace\|Palace test" server.log >> problems.txt; ok=0; }

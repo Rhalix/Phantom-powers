@@ -14,7 +14,8 @@ public abstract class LivingEntityMixin {
 	/** A raised Ecto Shield stops the hit completely. */
 	@org.spongepowered.asm.mixin.injection.Inject(method = "damage", at = @At("HEAD"), cancellable = true)
 	private void phantom$ectoShield(DamageSource source, float amount, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
-		if ((Object) this instanceof ServerPlayerEntity p && com.phantompowers.GhostPowers.shieldBlocks(p, source, amount)) cir.setReturnValue(false);
+		if ((Object) this instanceof ServerPlayerEntity p && (com.phantompowers.GhostPowers.shieldBlocks(p, source, amount)
+				|| com.phantompowers.DarkPowers.absorbs(p, source, amount))) cir.setReturnValue(false);
 	}
 
 	@ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true, ordinal = 0)

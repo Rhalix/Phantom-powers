@@ -55,6 +55,17 @@ public final class ModItems {
 	public static final Item SHADE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("shade_spawn_egg"),
 			new net.minecraft.item.SpawnEggItem(ModEntities.SHADE, 0x221A30, 0xFF8C28, new Item.Settings()));
 
+	public static final Item PROTOTYPE_PORTAL = Registry.register(Registries.ITEM, PhantomMod.id("prototype_portal"),
+			new PrototypePortalItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
+	public static final Item SUIT_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("suit_upgrade_module"),
+			new UpgradeItem("tier", new Item.Settings().rarity(Rarity.RARE)));
+	public static final Item GLIDER_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("glider_upgrade_kit"),
+			new UpgradeItem("glider", new Item.Settings().rarity(Rarity.RARE)));
+	public static final Item WRIST_MISSILES = Registry.register(Registries.ITEM, PhantomMod.id("wrist_missile_module"),
+			new UpgradeItem("missiles", new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
+	public static final Item BACKPACK_CANNONS = Registry.register(Registries.ITEM, PhantomMod.id("backpack_cannon_module"),
+			new UpgradeItem("cannons", new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
+
 	public static final Item HOVER_GLIDER = Registry.register(Registries.ITEM, PhantomMod.id("hover_glider"),
 			new HoverGliderItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 

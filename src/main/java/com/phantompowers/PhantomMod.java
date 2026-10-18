@@ -68,6 +68,9 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.TornadoPayload.ID, com.phantompowers.network.TornadoPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShieldHitPayload.ID, com.phantompowers.network.ShieldHitPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
+		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,
+				(payload, context) -> context.server().execute(() -> GhostPowers.setSuitColors(context.player(), payload.colors())));
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));
 

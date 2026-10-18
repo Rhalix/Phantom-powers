@@ -37,21 +37,15 @@ public class GhostCloneRenderer extends LivingEntityRenderer<GhostCloneEntity, P
 				suit.setVisible(true);
 				suit.head.visible = suit.hat.visible = suit.jacket.visible = false;
 				suit.leftSleeve.visible = suit.rightSleeve.visible = suit.leftPants.visible = suit.rightPants.visible = false;
-				int v = variantOf(e);
-				suit.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(GhostSuitFeature.texture(v))), light,
+				SuitTextures.Set tex = SuitTextures.get(SuitTextures.colorsOf(e.owner().orElse(null)));
+				suit.render(matrices, consumers.getBuffer(RenderLayer.getEntityTranslucent(tex.suit())), light,
 						OverlayTexture.DEFAULT_UV, 0xC8FFFFFF);
-				Identifier glow = GhostSuitFeature.glow(v);
+				Identifier glow = tex.glow();
 				if (glow != null) suit.render(matrices, consumers.getBuffer(RenderLayer.getEyes(glow)), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
 				Identifier eyes = GhostSkins.eyes(ownerSkin(e));
 				if (eyes != null) getContextModel().head.render(matrices, consumers.getBuffer(RenderLayer.getEyes(eyes)), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
 			}
 		});
-	}
-
-	private static int variantOf(GhostCloneEntity e) {
-		UUID id = e.owner().orElse(null);
-		Integer v = id == null ? null : GhostFlags.CLIENT_SUIT_VARIANT.get(id);
-		return v == null ? 0 : v;
 	}
 
 	private static Identifier ownerSkin(GhostCloneEntity e) {

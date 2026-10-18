@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "phantom:item/suit_upgrade_module"
+ }
+}

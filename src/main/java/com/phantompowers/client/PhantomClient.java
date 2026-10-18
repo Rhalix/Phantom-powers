@@ -52,10 +52,14 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding FISTS;
 	public static KeyBinding SHIELD;
 	public static KeyBinding DUPLICATE;
+	public static KeyBinding CONSTRUCT;
+	public static KeyBinding SPIN;
+	public static KeyBinding STINGER;
+	public static KeyBinding ABSORB;
 
 	/** Key bound to each skill, in skill order (used by the HUD and skills screen). */
 	public static KeyBinding[] skillKeys() {
-		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST, FISTS, SHIELD, DUPLICATE};
+		return new KeyBinding[]{BLAST, INTANGIBLE, POSSESS, WAIL, TORNADO, INVISIBLE, FROST, FISTS, SHIELD, DUPLICATE, CONSTRUCT, SPIN, STINGER, ABSORB};
 	}
 
 	private static boolean intangibleHeld;
@@ -83,6 +87,10 @@ public class PhantomClient implements ClientModInitializer {
 		FISTS = key("fists", GLFW.GLFW_KEY_X);
 		SHIELD = key("shield", GLFW.GLFW_KEY_Y);
 		DUPLICATE = key("duplicate", GLFW.GLFW_KEY_C);
+		CONSTRUCT = key("construct", GLFW.GLFW_KEY_I);
+		SPIN = key("spin", GLFW.GLFW_KEY_O);
+		STINGER = key("stinger", GLFW.GLFW_KEY_P);
+		ABSORB = key("absorb", GLFW.GLFW_KEY_SEMICOLON);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
@@ -157,6 +165,10 @@ public class PhantomClient implements ClientModInitializer {
 			// Y: hold to keep the Ecto Shield up
 			while (SHIELD.wasPressed()) send(GhostPowers.A_SHIELD);
 			while (DUPLICATE.wasPressed()) send(GhostPowers.A_DUPLICATE);
+			while (CONSTRUCT.wasPressed()) send(GhostPowers.A_CONSTRUCT);
+			while (SPIN.wasPressed()) send(GhostPowers.A_SPIN);
+			while (STINGER.wasPressed()) send(GhostPowers.A_STINGER);
+			while (ABSORB.wasPressed()) send(GhostPowers.A_ABSORB);
 			boolean shieldNow = SHIELD.isPressed();
 			if (shieldHeld && !shieldNow) send(GhostPowers.A_SHIELD_RELEASE);
 			shieldHeld = shieldNow;
@@ -183,8 +195,14 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_FISTS.addAll(payload.fists());
 			GhostFlags.CLIENT_SHIELDED.clear();
 			GhostFlags.CLIENT_SHIELDED.addAll(payload.shielded());
-			GhostFlags.CLIENT_SUIT_VARIANT.clear();
-			for (int i = 0; i < payload.variantIds().size(); i++) GhostFlags.CLIENT_SUIT_VARIANT.put(payload.variantIds().get(i), payload.variants().get(i));
+			GhostFlags.CLIENT_SUIT_COLORS.clear();
+			for (int i = 0; i < payload.colorIds().size(); i++) GhostFlags.CLIENT_SUIT_COLORS.put(payload.colorIds().get(i), payload.colors().get(i));
+			GhostFlags.CLIENT_DARK.clear();
+			GhostFlags.CLIENT_DARK.addAll(payload.dark());
+			GhostFlags.CLIENT_ACNE.clear();
+			GhostFlags.CLIENT_ACNE.addAll(payload.acne());
+			GhostFlags.CLIENT_CANNONS.clear();
+			GhostFlags.CLIENT_CANNONS.addAll(payload.cannons());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShieldHitPayload.ID, (payload, context) -> ClientShield.hit(payload));
@@ -218,6 +236,10 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.GHOST_CLONE, GhostCloneRenderer::new);
 		EntityRendererRegistry.register(ModEntities.PINK_ORB, EnergyProjectileRenderer.Orb::new);
 		EntityRendererRegistry.register(ModEntities.GHOST_NET_TRAP, GhostNetRenderer.Trap::new);
+		EntityRendererRegistry.register(ModEntities.MISSILE, MissileRenderer::new);
+		EntityRendererRegistry.register(ModEntities.ECTO_CONSTRUCT, ConstructRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(DarkCapeFeature.LAYER, DarkCapeFeature::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(CannonFeature.LAYER, CannonFeature::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostTail.LAYER, GhostTail::getTexturedModelData);
@@ -230,6 +252,9 @@ public class PhantomClient implements ClientModInitializer {
 				helper.register(new BackpackFeature(playerRenderer, ctx.getPart(BackpackFeature.LAYER)));
 				helper.register(new GuitarFeature(playerRenderer));
 				helper.register(new GhostTail(playerRenderer, ctx.getPart(GhostTail.LAYER)));
+				helper.register(new DarkCapeFeature(playerRenderer, ctx.getPart(DarkCapeFeature.LAYER)));
+				helper.register(new CannonFeature(playerRenderer, ctx.getPart(CannonFeature.LAYER)));
+				helper.register(new AcneFeature(playerRenderer));
 				helper.register(new TransitionFeature(playerRenderer));
 				helper.register(new FistGlowFeature(playerRenderer, ctx.getPart(FistGlowFeature.WIDE), ctx.getPart(FistGlowFeature.SLIM)));
 				helper.register(new GhostSuitFeature(playerRenderer,
@@ -253,12 +278,16 @@ public class PhantomClient implements ClientModInitializer {
 			ClientTornado.clear();
 			GhostFlags.CLIENT_FISTS.clear();
 			GhostFlags.CLIENT_SHIELDED.clear();
-			GhostFlags.CLIENT_SUIT_VARIANT.clear();
+			GhostFlags.CLIENT_SUIT_COLORS.clear();
+			GhostFlags.CLIENT_DARK.clear();
+			GhostFlags.CLIENT_ACNE.clear();
+			GhostFlags.CLIENT_CANNONS.clear();
 			GhostTrail.clear();
 			ClientShockwaves.clear();
 			ClientEntityFx.clear();
 			ClientGhostSense.clear();
 			ClientCutscene.reset(client);
+			SuitTextures.clear();
 		});
 
 		// "Ghost Skills" tab on the inventory screen

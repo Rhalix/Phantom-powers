@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NEN",
+    "DPD",
+    "NEN"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "P": {
+      "item": "phantom:hazard_plating"
+    }
+  },
+  "result": {
+    "id": "phantom:suit_upgrade_module",
+    "count": 1
+  }
+}

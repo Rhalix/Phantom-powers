@@ -77,9 +77,14 @@ public final class ControlsHud {
 					"Frost Breath (hold)",
 					"Ecto Fists (punch harder)",
 					"Ecto Shield (hold)",
-					"Duplication (clones)"};
+					"Duplication (clones)",
+					"Ecto Construct (giant weapon)",
+					"Dark Tornado (spin, then move fast)",
+					"Ghost Stinger (grab + shock)",
+					"Energy Absorption"};
 			for (int i = 0; i < keys.length; i++) {
-				if (!ClientGhost.has(i)) continue;
+				if (!ClientGhost.has(i) || !ClientGhost.equipped(i)) continue;
+				if (GhostPowers.darkOnly(i) && !ClientGhost.darkMode) continue;
 				if (i == GhostPowers.BLAST && ClientGhost.possessing && ClientGhost.hostAbility >= 0) {
 					String passive = com.phantompowers.HostPowers.PASSIVES[ClientGhost.hostAbility];
 					lines.add(new Line(name(keys[i]), "host power: " + com.phantompowers.HostPowers.NAMES[ClientGhost.hostAbility]
@@ -92,6 +97,11 @@ public final class ControlsHud {
 		}
 		if (!itemHelp && mc.player.getInventory().getArmorStack(2).getItem() == com.phantompowers.ModItems.HUNTER_SUIT) {
 			lines.add(new Line(name(PhantomClient.SUIT), "suit on/off (hold: cutscene)"));
+			var pack = mc.player.getInventory().getArmorStack(2);
+			if (com.phantompowers.GhostFlags.CLIENT_SUITED.contains(mc.player.getUuid()) && !ClientGhost.transformed) {
+				if (com.phantompowers.HunterGear.hasMissiles(pack)) lines.add(new Line(name(PhantomClient.BLAST), "wrist missiles (homing)"));
+				if (com.phantompowers.HunterGear.hasCannons(pack)) lines.add(new Line(name(PhantomClient.WAIL), "backpack cannons on/off"));
+			}
 		}
 		if (lines.isEmpty()) return;
 

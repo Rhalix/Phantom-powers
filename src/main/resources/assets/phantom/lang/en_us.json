@@ -87,5 +87,16 @@
   "item.phantom.shade_tendril": "Shade's Tendril",
   "item.phantom.shade_spawn_egg": "Shade Spawn Egg",
   "key.phantom.duplicate": "Duplication",
-  "entity.phantom.ghost_clone": "Ghost Clone"
+  "entity.phantom.ghost_clone": "Ghost Clone",
+  "item.phantom.prototype_portal": "Prototype Ghost Portal",
+  "item.phantom.suit_upgrade_module": "Suit Upgrade Module",
+  "item.phantom.glider_upgrade_kit": "Glider Upgrade Kit",
+  "item.phantom.wrist_missile_module": "Wrist Missile Module",
+  "item.phantom.backpack_cannon_module": "Backpack Cannon Module",
+  "entity.phantom.wrist_missile": "Wrist Missile",
+  "entity.phantom.ecto_construct": "Ecto Construct",
+  "key.phantom.construct": "Ecto Construct (dark)",
+  "key.phantom.spin": "Dark Tornado (dark)",
+  "key.phantom.stinger": "Ghost Stinger (dark)",
+  "key.phantom.absorb": "Energy Absorption (dark)"
 }

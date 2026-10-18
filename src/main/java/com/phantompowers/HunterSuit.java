@@ -70,17 +70,27 @@ public final class HunterSuit {
 		d.syncTimer = 0;
 	}
 
+	/** Suit upgrade tier (0-3) and installed modules live on the suit pack itself. */
+	public static int tier(ServerPlayerEntity p) {
+		return HunterGear.tier(p.getEquippedStack(EquipmentSlot.CHEST));
+	}
+
+	public static void reapply(ServerPlayerEntity p, GhostData d) {
+		if (d.suitOn) apply(p, true);
+	}
+
 	private static void apply(ServerPlayerEntity p, boolean on) {
+		int t = on ? tier(p) : 0;
 		// The pack counts as a netherite chestplate; deployed, the whole suit adds up to
 		// a full set of netherite armor (20 armor, 12 toughness, 0.4 knockback resistance).
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR, ARMOR, on ? 12.0 : 0);
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR_TOUGHNESS, TOUGH, on ? 9.0 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR, ARMOR, on ? 12.0 + t * 3 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_ARMOR_TOUGHNESS, TOUGH, on ? 9.0 + t * 2 : 0);
 		GhostPowers.setMod(p, EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, KNOCK, on ? 0.6 : 0);
 		// Reinforced plating: 5 extra hearts
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_MAX_HEALTH, HEALTH, on ? 10.0 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_MAX_HEALTH, HEALTH, on ? 10.0 + t * 4 : 0);
 		if (!on && p.getHealth() > p.getMaxHealth()) p.setHealth(p.getMaxHealth());
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_ATTACK_DAMAGE, DAMAGE, on ? 2.0 : 0);
-		GhostPowers.setMod(p, EntityAttributes.GENERIC_MOVEMENT_SPEED, SPEED, on ? 0.015 : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_ATTACK_DAMAGE, DAMAGE, on ? 2.0 + t : 0);
+		GhostPowers.setMod(p, EntityAttributes.GENERIC_MOVEMENT_SPEED, SPEED, on ? 0.015 + t * 0.005 : 0);
 		if (!on) {
 			p.removeStatusEffect(StatusEffects.NIGHT_VISION);
 			StatusEffectInstance res = p.getStatusEffect(StatusEffects.RESISTANCE);
@@ -99,7 +109,8 @@ public final class HunterSuit {
 		net.minecraft.entity.Entity attacker = source.getAttacker();
 		boolean ghost = attacker instanceof com.phantompowers.entity.AbstractGhostEntity
 				|| (attacker instanceof ServerPlayerEntity ap && GhostState.of(p.getServer()).data(ap.getUuid()).transformed);
-		float out = amount * (ghost ? 0.45f : 0.65f);
+		int t = tier(p);
+		float out = amount * ((ghost ? 0.45f : 0.65f) - t * 0.07f);
 		return Math.min(out, p.getMaxHealth() * 0.34f);
 	}
 
