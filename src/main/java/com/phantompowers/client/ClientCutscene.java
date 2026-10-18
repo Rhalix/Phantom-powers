@@ -57,7 +57,7 @@ public final class ClientCutscene {
 			var back = net.minecraft.util.math.Vec3d.fromPolar(0, baseYaw).multiply(-1);
 			var want = anchor.add(back.multiply(com.phantompowers.DarkPowers.portalKnock(el))).add(0, com.phantompowers.DarkPowers.portalLift(el), 0);
 			var p = mc.player;
-			var next = p.getPos().lerp(want, 0.45);
+			var next = p.getPos().lerp(want, 0.7);
 			p.setVelocity(0, 0, 0);
 			p.setPosition(next.x, next.y, next.z);
 			p.setYaw(baseYaw);
@@ -129,25 +129,21 @@ public final class ClientCutscene {
 		var head = pos.add(0, e.getStandingEyeHeight(), 0);
 		var portal = anchor.add(look.multiply(2.3)).add(0, 0.6, 0);
 		float blast = com.phantompowers.DarkPowers.PORTAL_BLAST;
-		net.minecraft.util.math.Vec3d from, target;
-		if (t < blast - 8) {
-			var mid = head.add(0, -0.4, 0).lerp(portal, 0.5);
-			double dist = 4.8 - 1.2 * Math.min(1f, t / (blast - 8));
-			from = mid.add(side.multiply(dist)).add(look.multiply(-0.8)).add(0, 0.7, 0);
-			target = mid;
-		} else if (t < blast + 2) {
-			// close on your face from the portal's side: uh oh
-			from = head.add(look.multiply(1.5)).add(side.multiply(0.9)).add(0, 0.1, 0);
-			target = head;
-		} else {
-			float k = Math.min(1f, (t - blast - 2) / 10f);
-			var mid = head.add(0, -0.5, 0).lerp(portal, 0.35);
-			from = mid.add(side.multiply(3.2 + 1.6 * k)).add(look.multiply(-1.2 * k)).add(0, 0.6 + 0.4 * k, 0);
-			target = mid;
-			// camera shake from the blast
-			float shake = Math.max(0f, 1f - (t - blast) / 16f) * 0.18f;
-			from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.3) * shake, Math.sin(t * 5.1) * shake);
-		}
+		// three shots, blended smoothly into each other
+		var midA = head.add(0, -0.4, 0).lerp(portal, 0.5);
+		double dolly = 4.8 - 1.2 * smooth(Math.min(1f, t / (blast - 10)));
+		var fromA = midA.add(side.multiply(dolly)).add(look.multiply(-0.8)).add(0, 0.7, 0);
+		var fromB = head.add(look.multiply(1.5)).add(side.multiply(0.9)).add(0, 0.1, 0);
+		float kc = smooth(Math.min(1f, Math.max(0f, (t - blast) / 12f)));
+		var midC = head.add(0, -0.5, 0).lerp(portal, 0.35);
+		var fromC = midC.add(side.multiply(3.2 + 1.6 * kc)).add(look.multiply(-1.2 * kc)).add(0, 0.6 + 0.4 * kc, 0);
+		float ab = smooth(clamp01((t - (blast - 14)) / 7f));   // A -> B
+		float bc = smooth(clamp01((t - (blast + 1)) / 6f));    // B -> C
+		net.minecraft.util.math.Vec3d from = fromA.lerp(fromB, ab).lerp(fromC, bc);
+		net.minecraft.util.math.Vec3d target = midA.lerp(head, ab).lerp(midC, bc);
+		// camera shake from the blast, easing off
+		float shake = Math.max(0f, 1f - (t - blast) / 18f) * (t >= blast ? 0.16f : 0f);
+		from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.3) * shake, Math.sin(t * 5.1) * shake);
 		var hit = mc.world.raycast(new net.minecraft.world.RaycastContext(target, from,
 				net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, e));
 		if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
@@ -158,6 +154,19 @@ public final class ClientCutscene {
 		float yaw = (float) (Math.toDegrees(Math.atan2(d.z, d.x)) - 90.0);
 		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
 		return new float[]{(float) from.x, (float) from.y, (float) from.z, yaw, pitch};
+	}
+
+	private static float clamp01(float v) {
+		return Math.max(0f, Math.min(1f, v));
+	}
+
+	private static float smooth(float v) {
+		return v * v * (3 - 2 * v);
+	}
+
+	/** True while any cutscene is playing (the normal HUD is hidden so the captions are clear). */
+	public static boolean active() {
+		return active;
 	}
 
 	public static void renderHud(DrawContext ctx, RenderTickCounter tickCounter) {

@@ -89,7 +89,8 @@ public final class DarkPowers {
 		back = back.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : back.normalize();
 		Vec3d side = new Vec3d(-back.z, 0, back.x);
 		Vec3d want = a.add(back.multiply(portalKnock(e))).add(0, portalLift(e), 0);
-		if (p.getPos().squaredDistanceTo(want) > 2.25) p.requestTeleport(want.x, want.y, want.z);
+		// the client moves you smoothly along the path; only step in if you really drift off it
+		if (p.getPos().squaredDistanceTo(want) > 16) p.requestTeleport(want.x, want.y, want.z);
 		p.fallDistance = 0;
 		Vec3d face = p.getEyePos();
 		if (e < PORTAL_BLAST) {

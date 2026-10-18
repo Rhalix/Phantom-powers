@@ -88,7 +88,9 @@ public abstract class BipedEntityModelMixin {
 			leftArm.roll = MathHelper.lerp(scratch, leftArm.roll, -0.5f);
 		} else {
 			float k = t - blast;
-			float hit = MathHelper.clamp(1f - (k - 14f) / 14f, 0f, 1f);
+			float in = MathHelper.clamp(k / 3f, 0f, 1f);
+			in = in * in * (3 - 2 * in);
+			float hit = MathHelper.clamp(1f - (k - 14f) / 14f, 0f, 1f) * in;
 			float shake = MathHelper.sin(age * 2.9f) * 0.08f * hit;
 			body.pitch = -0.35f * hit;
 			head.pitch = -0.6f * hit + shake;

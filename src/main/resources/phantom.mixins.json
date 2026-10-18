@@ -23,6 +23,7 @@
     "client.MinecraftClientMixin",
     "client.PlayerEntityModelMixin",
     "client.PlayerEntityRendererMixin",
-    "client.PlayerSupermanMixin"
+    "client.PlayerSupermanMixin",
+    "client.InGameHudMixin"
   ]
 }
