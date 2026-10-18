@@ -55,15 +55,22 @@ public final class EnergyProjectileRenderer {
 			float s = 0.06f * (big ? 1.35f : 1f);
 			ms.scale(s * pucker, s / pucker, s);
 			Matrix4f m = ms.peek().getPositionMatrix();
-			VertexConsumer glow = consumers.getBuffer(RenderLayer.getLightning());
-			VertexConsumer solid = consumers.getBuffer(RenderLayer.getDebugQuads());
 			int w = LIPS[0].length();
+			// two passes, one buffer at a time: the pink glow first, then the solid lipstick on top
+			VertexConsumer glow = consumers.getBuffer(RenderLayer.getLightning());
+			for (int y = 0; y < LIPS.length; y++) {
+				for (int x = 0; x < w; x++) {
+					if (LIPS[y].charAt(x) == '.') continue;
+					float px = x - w / 2f, py = LIPS.length / 2f - y - 1;
+					quad(glow, m, px - 0.8f, py - 0.8f, px + 1.8f, py + 1.8f, 255, 70, 170, 45);
+				}
+			}
+			VertexConsumer solid = consumers.getBuffer(RenderLayer.getDebugQuads());
 			for (int y = 0; y < LIPS.length; y++) {
 				for (int x = 0; x < w; x++) {
 					char c = LIPS[y].charAt(x);
 					if (c == '.') continue;
 					float px = x - w / 2f, py = LIPS.length / 2f - y - 1;
-					quad(glow, m, px - 0.8f, py - 0.8f, px + 1.8f, py + 1.8f, 255, 70, 170, 45);
 					int r = 225, g = 22, b = 70;
 					if (c == 'd') { r = 120; g = 0; b = 28; }
 					else if (c == 's') { r = 255; g = 205; b = 220; }
@@ -71,6 +78,7 @@ public final class EnergyProjectileRenderer {
 					quad(solid, m, px, py, px + 1, py + 1, r, g, b, 255);
 				}
 			}
+			glow = consumers.getBuffer(RenderLayer.getLightning());
 			// two tiny hearts orbiting the kiss
 			for (int k = 0; k < 2; k++) {
 				float ang = t * 0.25f + k * MathHelper.PI;

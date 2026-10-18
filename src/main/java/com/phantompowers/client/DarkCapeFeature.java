@@ -152,15 +152,14 @@ public class DarkCapeFeature extends FeatureRenderer<AbstractClientPlayerEntity,
 		if (p.isInvisible() || !wearing(p)) return;
 		animate(p, limbAngle, limbDistance, tickDelta, age);
 
-		var vc = consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
-		var glow = consumers.getBuffer(RenderLayer.getEyes(GLOW));
+		// (always fetch a buffer right before drawing with it: asking for another layer can close the previous one)
 		PlayerEntityModel<AbstractClientPlayerEntity> body = getContextModel();
 		// collar, clasp and cape ride on the torso
 		pauldronLeft.visible = pauldronRight.visible = false;
 		matrices.push();
 		body.body.rotate(matrices);
-		root.render(matrices, vc, light, OverlayTexture.DEFAULT_UV, -1);
-		root.render(matrices, glow, 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
+		root.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
+		root.render(matrices, consumers.getBuffer(RenderLayer.getEyes(GLOW)), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
 		matrices.pop();
 		// pauldrons ride on the shoulders, so they lift with your arms
 		pauldronLeft.visible = pauldronRight.visible = true;
@@ -171,8 +170,8 @@ public class DarkCapeFeature extends FeatureRenderer<AbstractClientPlayerEntity,
 			ModelPart pd = side == 0 ? pauldronLeft : pauldronRight;
 			matrices.push();
 			arm.rotate(matrices);
-			pd.render(matrices, vc, light, OverlayTexture.DEFAULT_UV, -1);
-			pd.render(matrices, glow, 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
+			pd.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
+			pd.render(matrices, consumers.getBuffer(RenderLayer.getEyes(GLOW)), 0xF000F0, OverlayTexture.DEFAULT_UV, -1);
 			matrices.pop();
 		}
 	}
