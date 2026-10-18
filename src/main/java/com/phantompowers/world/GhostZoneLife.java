@@ -41,7 +41,7 @@ public final class GhostZoneLife {
 
 	private GhostZoneLife() {}
 
-	private enum Lair { PRISON, CRATE_KEEP, STAGE, PALACE, ROAD }
+	private enum Lair { PRISON, CRATE_KEEP, STAGE, PALACE, ROAD, MANOR }
 
 	public static void tick(MinecraftServer server) {
 		int t = server.getTicks();
@@ -169,7 +169,21 @@ public final class GhostZoneLife {
 			case STAGE -> nearestStage(zone, near);
 			case PALACE -> nearestPalace(zone, near);
 			case ROAD -> nearestRoad(zone, near);
+			case MANOR -> nearestManor(zone, near);
 		};
+	}
+
+	/** Dolora's Gloom Manor floats out past the prison, away from the region's centre. */
+	public static BlockPos nearestManor(ServerWorld zone, BlockPos pos) {
+		BlockPos prison = nearestPrison(zone, pos);
+		int cx = Math.floorDiv(prison.getX(), REGION) * REGION + REGION / 2;
+		int cz = Math.floorDiv(prison.getZ(), REGION) * REGION + REGION / 2;
+		return new BlockPos(prison.getX() < cx ? prison.getX() - 120 : prison.getX() + 120, prison.getY() + 2,
+				prison.getZ() < cz ? prison.getZ() + 120 : prison.getZ() - 120);
+	}
+
+	public static boolean ensureManor(ServerWorld zone, BlockPos c) {
+		return ensureLair(zone, c, Lair.MANOR);
 	}
 
 	/** The Crate King's warehouse sits across the region from its prison (east-west). */
@@ -215,6 +229,7 @@ public final class GhostZoneLife {
 			case STAGE -> c.asLong() ^ 0x5717A9E5L;
 			case PALACE -> c.asLong() ^ 0x31511E5L;
 			case ROAD -> c.asLong() ^ 0xB1CE5L;
+			case MANOR -> c.asLong() ^ 0x6100A1L;
 		};
 	}
 
@@ -230,6 +245,7 @@ public final class GhostZoneLife {
 			case STAGE -> ConcertStage.build(zone, c, Random.create(key));
 			case PALACE -> WishPalace.build(zone, c, Random.create(key));
 			case ROAD -> GhostHighway.build(zone, c, Random.create(key));
+			case MANOR -> GloomManor.build(zone, c, Random.create(key));
 		}
 		return true;
 	}
@@ -262,6 +278,7 @@ public final class GhostZoneLife {
 			case STAGE -> VoltageEntity.class;
 			case PALACE -> com.phantompowers.entity.WishkeeperEntity.class;
 			case ROAD -> com.phantompowers.entity.RevEntity.class;
+			case MANOR -> com.phantompowers.entity.DoloraEntity.class;
 		};
 		if (!zone.getEntitiesByClass(boss, area, e -> e.isAlive()).isEmpty()) {
 			rs.markBoss(key, zone.getTime()); // still alive: check again later
@@ -286,6 +303,10 @@ public final class GhostZoneLife {
 			case ROAD -> {
 				GhostHighway.spawnBosses(zone, c);
 				name = "Engines roar on the ghost highway... the Biker Couple is back!";
+			}
+			case MANOR -> {
+				GloomManor.spawnBoss(zone, c);
+				name = "The lights flicker in the Gloom Manor... Counselor Dolora is \"in session\" again.";
 			}
 			case PALACE -> {
 				WishPalace.spawnBoss(zone, c);

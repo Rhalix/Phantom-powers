@@ -246,6 +246,10 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.PINK_ORB, EnergyProjectileRenderer.Orb::new);
 		EntityRendererRegistry.register(ModEntities.GHOST_NET_TRAP, GhostNetRenderer.Trap::new);
 		EntityRendererRegistry.register(ModEntities.MISSILE, MissileRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.PONYTAIL, PlayerCloneRenderer::ponytailModel);
+		EntityRendererRegistry.register(ModEntities.PLAYER_CLONE, PlayerCloneRenderer::new);
+		com.phantompowers.CloningPodBlock.openChoice = pos -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new CloneChoiceScreen(pos));
+		BlockRenderLayerMap.INSTANCE.putBlock(com.phantompowers.ModBlocks.CLONING_POD, RenderLayer.getTranslucent());
 		EntityModelLayerRegistry.registerModelLayer(WalkerModel.GHOUL, WalkerModel::ghoul);
 		EntityModelLayerRegistry.registerModelLayer(WalkerModel.KNIGHT, WalkerModel::specterKnight);
 		EntityModelLayerRegistry.registerModelLayer(WalkerModel.SOUL, WalkerModel::lostSoul);

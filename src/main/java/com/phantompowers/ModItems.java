@@ -72,6 +72,10 @@ public final class ModItems {
 					tooltip.add(net.minecraft.text.Text.literal("Unstable! Blasts whoever's in front of it...").formatted(net.minecraft.util.Formatting.DARK_GRAY));
 				}
 			});
+	public static final Item DNA_SAMPLER = Registry.register(Registries.ITEM, PhantomMod.id("dna_sampler"),
+			new DnaSamplerItem(false, new Item.Settings().maxCount(16)));
+	public static final Item DNA_SAMPLE = Registry.register(Registries.ITEM, PhantomMod.id("dna_sample"),
+			new DnaSamplerItem(true, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
 	public static final Item SUIT_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("suit_upgrade_module"),
 			new UpgradeItem("tier", new Item.Settings().rarity(Rarity.RARE)));
 	public static final Item GLIDER_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("glider_upgrade_kit"),

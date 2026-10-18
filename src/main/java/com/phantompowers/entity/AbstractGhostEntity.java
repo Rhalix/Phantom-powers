@@ -43,6 +43,14 @@ public abstract class AbstractGhostEntity extends PathAwareEntity {
 		this.moveControl = new MoveControl(this);
 	}
 
+	/** Switch a walking ghost back to floating flight (e.g. a boss dropping its human disguise). */
+	protected void setFlying() {
+		this.walker = false;
+		this.setNoGravity(true);
+		this.moveControl = new GhostMoveControl(this);
+		this.getNavigation().stop();
+	}
+
 	public boolean isWalker() {
 		return walker;
 	}
