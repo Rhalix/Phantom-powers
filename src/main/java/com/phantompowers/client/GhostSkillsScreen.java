@@ -223,7 +223,7 @@ public class GhostSkillsScreen extends Screen {
 			ctx.fill(left + panelW - 5, y0, left + panelW - 3, y1, 0x40FFFFFF);
 			ctx.fill(left + panelW - 5, ty, left + panelW - 3, ty + thumb, accent);
 		}
-		if (hover != null) ctx.drawTooltip(tr, tr.wrapLines(Text.literal(hover), 220), mouseX, mouseY);
+		if (hover != null) ctx.drawOrderedTooltip(tr, tr.wrapLines(Text.literal(hover), 220), mouseX, mouseY);
 		if (ClientGhost.acne > 0) {
 			int s = ClientGhost.acne / 20;
 			small(ctx, "Ecto acne: your dark side wakes up in " + s / 60 + ":" + String.format("%02d", s % 60), left + panelW / 2f,
