@@ -38,6 +38,11 @@ public class HostileGhostEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	@Override
+	protected boolean alwaysPhases() {
+		return false;
+	}
+
+	@Override
 	protected void initGoals() {
 		this.goalSelector.add(1, new ChargeGoal(this));
 		this.goalSelector.add(6, new DriftGoal(this));

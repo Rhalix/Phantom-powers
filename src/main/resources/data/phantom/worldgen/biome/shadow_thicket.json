@@ -1,0 +1,45 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.5,
+  "downfall": 0.0,
+  "effects": {
+    "sky_color": 1707818,
+    "fog_color": 2363962,
+    "water_color": 4194208,
+    "water_fog_color": 671010,
+    "grass_color": 3811408,
+    "foliage_color": 3811408,
+    "ambient_sound": "minecraft:ambient.crimson_forest.loop",
+    "mood_sound": {
+      "sound": "minecraft:ambient.crimson_forest.mood",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "particle": {
+      "options": {
+        "type": "minecraft:ash"
+      },
+      "probability": 0.02
+    }
+  },
+  "spawners": {},
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [
+      "phantom:floating_door"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [
+      "phantom:shadow_tree"
+    ]
+  ]
+}

@@ -210,6 +210,36 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Net test: OK"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testzone").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					var biomes = zone.getRegistryManager().get(net.minecraft.registry.RegistryKeys.BIOME);
+					boolean ok = true;
+					for (String b : new String[]{"ghost_zone", "frostbite_tundra", "shadow_thicket", "crystal_spires", "wailing_wastes"})
+						ok &= biomes.containsId(PhantomMod.id(b));
+					var ghoul = ModEntities.GHOUL.create(zone);
+					var knight = ModEntities.SPECTER_KNIGHT.create(zone);
+					var soul = ModEntities.LOST_SOUL.create(zone);
+					var yeti = ModEntities.GHOST_YETI.create(zone);
+					ok &= ghoul != null && ghoul.isWalker() && knight != null && soul != null && yeti != null && !yeti.isTamed();
+					// sample the biome map over a wide area: more than one biome should show up
+					java.util.Set<String> seen = new java.util.HashSet<>();
+					for (int x = -3000; x <= 3000; x += 250) for (int z = -3000; z <= 3000; z += 250) {
+						zone.getChunkManager().getChunkGenerator().getBiomeSource();
+						var key = zone.getChunkManager().getNoiseConfig() == null ? null
+								: zone.getChunkManager().getChunkGenerator().getBiomeSource().getBiome(x >> 2, 100 >> 2, z >> 2,
+										zone.getChunkManager().getNoiseConfig().getMultiNoiseSampler()).getKey();
+						if (key != null && key.isPresent()) seen.add(key.get().getValue().getPath());
+					}
+					ok &= seen.size() >= 3;
+					final String found = String.join(",", seen);
+					if (!ok) {
+						ctx.getSource().sendError(Text.literal("Zone test: FAILED (" + found + ")"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Zone test: OK (" + found + ")"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("testdark").executes(ctx -> {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;

@@ -30,6 +30,14 @@ public final class ModItems {
 			new SpawnEggItem(ModEntities.HOSTILE_GHOST, 0x1C2B22, 0x46FF8C, new Item.Settings()));
 	public static final Item FRIENDLY_GHOST_EGG = Registry.register(Registries.ITEM, PhantomMod.id("friendly_ghost_spawn_egg"),
 			new SpawnEggItem(ModEntities.FRIENDLY_GHOST, 0xD8F4FF, 0x6FB8FF, new Item.Settings()));
+	public static final Item GHOUL_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("ghoul_spawn_egg"),
+			new SpawnEggItem(ModEntities.GHOUL, 0x9AB4A6, 0x1E2024, new Item.Settings()));
+	public static final Item SPECTER_KNIGHT_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("specter_knight_spawn_egg"),
+			new SpawnEggItem(ModEntities.SPECTER_KNIGHT, 0x96AFCD, 0x78E6FF, new Item.Settings()));
+	public static final Item LOST_SOUL_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("lost_soul_spawn_egg"),
+			new SpawnEggItem(ModEntities.LOST_SOUL, 0xB0D6EC, 0x465A82, new Item.Settings()));
+	public static final Item GHOST_YETI_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("ghost_yeti_spawn_egg"),
+			new SpawnEggItem(ModEntities.GHOST_YETI, 0xECF2FA, 0x788CAA, new Item.Settings()));
 	public static final Item GHOST_JAILER_EGG = Registry.register(Registries.ITEM, PhantomMod.id("ghost_jailer_spawn_egg"),
 			new SpawnEggItem(ModEntities.GHOST_JAILER, 0x2A1838, 0x8A9097, new Item.Settings()));
 

@@ -65,9 +65,39 @@ public final class GhostZoneLife {
 		}
 	}
 
+	/** Who lives where: {entity, weight} per biome. Plain floating ghosts are now the rarer sight. */
+	private static net.minecraft.entity.EntityType<?>[] TYPES;
+	private static int[][] WEIGHTS;
+
+	private static void initTables() {
+		if (TYPES != null) return;
+		TYPES = new net.minecraft.entity.EntityType<?>[]{ModEntities.HOSTILE_GHOST, ModEntities.FRIENDLY_GHOST, ModEntities.GHOUL,
+				ModEntities.SPECTER_KNIGHT, ModEntities.LOST_SOUL, ModEntities.GHOST_YETI};
+		WEIGHTS = new int[][]{
+				// hostile ghost, friendly ghost, ghoul, knight, lost soul, yeti
+				{12, 12, 25, 6, 30, 0},   // ecto wilds
+				{4, 4, 8, 0, 10, 70},     // frostbite tundra
+				{12, 4, 50, 15, 10, 0},   // shadow thicket
+				{4, 12, 14, 40, 25, 0},   // crystal spires
+				{12, 2, 36, 30, 14, 0}};  // wailing wastes
+	}
+
+	private static int biomeIndex(ServerWorld zone, BlockPos pos) {
+		var key = zone.getBiome(pos).getKey();
+		if (key.isEmpty()) return 0;
+		return switch (key.get().getValue().getPath()) {
+			case "frostbite_tundra" -> 1;
+			case "shadow_thicket" -> 2;
+			case "crystal_spires" -> 3;
+			case "wailing_wastes" -> 4;
+			default -> 0;
+		};
+	}
+
 	private static void spawnAround(ServerWorld zone, ServerPlayerEntity p) {
 		Random r = zone.getRandom();
 		if (r.nextInt(2) != 0) return;
+		initTables();
 		int count = zone.getEntitiesByClass(AbstractGhostEntity.class, p.getBoundingBox().expand(48), g -> !g.hasHome()).size();
 		if (count >= MAX_GHOSTS_NEAR) return;
 		double angle = r.nextDouble() * Math.PI * 2;
@@ -76,10 +106,33 @@ public final class GhostZoneLife {
 		BlockPos bp = BlockPos.ofFloored(at);
 		if (!zone.isChunkLoaded(ChunkPos.toLong(bp.getX() >> 4, bp.getZ() >> 4))) return;
 		if (bp.getY() < 5 || bp.getY() > 250) return;
-		MobEntity ghost = r.nextInt(100) < 55 ? ModEntities.HOSTILE_GHOST.create(zone) : ModEntities.FRIENDLY_GHOST.create(zone);
-		if (ghost == null) return;
-		ghost.refreshPositionAndAngles(at.x, at.y, at.z, r.nextFloat() * 360f, 0f);
-		zone.spawnEntity(ghost);
+		int[] w = WEIGHTS[biomeIndex(zone, bp)];
+		int total = 0;
+		for (int x : w) total += x;
+		int pick = r.nextInt(total), i = 0;
+		while (pick >= w[i]) pick -= w[i++];
+		var type = TYPES[i];
+		boolean floats = type == ModEntities.HOSTILE_GHOST || type == ModEntities.FRIENDLY_GHOST;
+		if (type == ModEntities.GHOST_YETI && zone.getEntitiesByClass(com.phantompowers.entity.GhostYetiEntity.class, p.getBoundingBox().expand(48), y -> true).size() >= 4) return;
+		if (!floats) {
+			// walkers need real ground: look down (then up) for a floor with two blocks of air above it
+			BlockPos found = null;
+			for (int dy = 0; dy < 24 && found == null; dy++) {
+				for (int s = -1; s <= 1; s += 2) {
+					BlockPos c = bp.up(dy * s);
+					if (zone.getBlockState(c.down()).isSolidBlock(zone, c.down()) && zone.isAir(c) && zone.isAir(c.up())) {
+						found = c;
+						break;
+					}
+				}
+			}
+			if (found == null) return;
+			at = Vec3d.ofBottomCenter(found);
+		}
+		var e = type.create(zone);
+		if (!(e instanceof MobEntity mob)) return;
+		mob.refreshPositionAndAngles(at.x, at.y, at.z, r.nextFloat() * 360f, 0f);
+		zone.spawnEntity(mob);
 	}
 
 	// ----------------------------------------------------------------- lairs

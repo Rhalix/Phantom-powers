@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "phantom:block/shadow_grass_top",
+    "side": "phantom:block/shadow_grass_side",
+    "bottom": "phantom:block/ecto_stone"
+  }
+}

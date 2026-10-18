@@ -56,6 +56,7 @@ public class PhantomMod implements ModInitializer {
 		ModEntities.init();
 		ModItems.init();
 		Registry.register(Registries.FEATURE, id("floating_door"), FLOATING_DOOR);
+		com.phantompowers.world.GhostZoneFeatures.init();
 
 		// Networking
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);

@@ -49,6 +49,11 @@ public class FriendlyGhostEntity extends AbstractGhostEntity {
 	}
 
 	@Override
+	protected boolean alwaysPhases() {
+		return false;
+	}
+
+	@Override
 	protected void initGoals() {
 		this.goalSelector.add(3, new FollowPlayerGoal(this));
 		this.goalSelector.add(6, new DriftGoal(this));

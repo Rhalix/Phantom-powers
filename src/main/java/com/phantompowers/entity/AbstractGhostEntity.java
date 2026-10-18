@@ -16,10 +16,16 @@ import net.minecraft.world.World;
 import java.util.EnumSet;
 import java.util.Optional;
 
-/** A floating ghost that drifts through walls. Can be tied to a "home" (a prison cell or a room). */
+/**
+ * A ghost. Floating ghosts fly; walking ghosts (see {@link #makeWalker()}) have legs and use normal pathfinding.
+ * Bosses always drift through walls, but ordinary ghosts only phase through when they're stuck chasing you.
+ * Can be tied to a "home" (a prison cell or a room).
+ */
 public abstract class AbstractGhostEntity extends PathAwareEntity {
 	private BlockPos home;
 	private float homeRadius;
+	private boolean walker;
+	private int phaseTicks, stuckTicks;
 
 	protected AbstractGhostEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -29,22 +35,72 @@ public abstract class AbstractGhostEntity extends PathAwareEntity {
 		this.experiencePoints = 5;
 	}
 
+	/** Walking ghosts: legs, gravity and pathfinding instead of flight. Call from the constructor. */
+	protected void makeWalker() {
+		this.walker = true;
+		this.noClip = false;
+		this.setNoGravity(false);
+		this.moveControl = new MoveControl(this);
+	}
+
+	public boolean isWalker() {
+		return walker;
+	}
+
+	/** Bosses and special ghosts drift through anything; ordinary ghosts mostly don't. */
+	protected boolean alwaysPhases() {
+		return true;
+	}
+
+	/** Phase through walls for a moment (a ghostly dash). */
+	public void startPhase(int ticks) {
+		this.phaseTicks = Math.max(phaseTicks, ticks);
+	}
+
+	/** Is this ghost passing through walls right now? */
+	public boolean isPhasing() {
+		return noClip;
+	}
+
 	@Override
 	public void tick() {
-		this.noClip = true;
+		if (walker) {
+			// a walking ghost can still slip through a wall now and then to reach you
+			this.noClip = phaseTicks > 0;
+			this.setNoGravity(phaseTicks > 0);
+			super.tick();
+			if (phaseTicks > 0 && --phaseTicks == 0) this.noClip = false;
+			if (!getWorld().isClient && getTarget() != null && horizontalCollision && getNavigation().isIdle()) {
+				if (++stuckTicks > 40 && random.nextInt(3) == 0) {
+					phaseTicks = 25;
+					stuckTicks = 0;
+				}
+			} else stuckTicks = 0;
+			return;
+		}
+		boolean phase = alwaysPhases() || phaseTicks > 0;
+		this.noClip = phase;
 		super.tick();
-		this.noClip = true;
+		this.noClip = phase;
 		this.setNoGravity(true);
+		if (phaseTicks > 0) phaseTicks--;
+		// stuck against a wall while chasing something: phase through for a moment
+		if (!phase && !getWorld().isClient && getTarget() != null && horizontalCollision) {
+			if (++stuckTicks > 30) {
+				phaseTicks = 30;
+				stuckTicks = 0;
+			}
+		} else if (!horizontalCollision) stuckTicks = 0;
 	}
 
 	@Override
 	public boolean handleFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
-		return false;
+		return walker && super.handleFallDamage(fallDistance, damageMultiplier, damageSource);
 	}
 
 	@Override
 	public boolean isPushable() {
-		return false;
+		return walker;
 	}
 
 	// ------------------------------------------------------------- home / cage

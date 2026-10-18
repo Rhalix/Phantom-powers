@@ -1,0 +1,45 @@
+{
+  "has_precipitation": false,
+  "temperature": -0.5,
+  "downfall": 0.0,
+  "effects": {
+    "sky_color": 11065584,
+    "fog_color": 10275048,
+    "water_color": 4194208,
+    "water_fog_color": 671010,
+    "grass_color": 13627391,
+    "foliage_color": 13627391,
+    "ambient_sound": "minecraft:ambient.basalt_deltas.loop",
+    "mood_sound": {
+      "sound": "minecraft:ambient.basalt_deltas.mood",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "particle": {
+      "options": {
+        "type": "minecraft:white_ash"
+      },
+      "probability": 0.03
+    }
+  },
+  "spawners": {},
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [
+      "phantom:floating_door"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [
+      "phantom:ice_spire"
+    ]
+  ]
+}

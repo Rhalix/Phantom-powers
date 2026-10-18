@@ -4,6 +4,8 @@
     "phantom:ecto_stone",
     "phantom:ecto_grass",
     "phantom:ghost_portal_frame",
-    "phantom:hazard_plating"
+    "phantom:hazard_plating",
+    "phantom:shadow_grass",
+    "phantom:spectral_crystal"
   ]
 }

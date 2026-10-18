@@ -1,0 +1,45 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.5,
+  "downfall": 0.0,
+  "effects": {
+    "sky_color": 2767466,
+    "fog_color": 3820170,
+    "water_color": 4194208,
+    "water_fog_color": 671010,
+    "grass_color": 6978256,
+    "foliage_color": 6978256,
+    "ambient_sound": "minecraft:ambient.warped_forest.loop",
+    "mood_sound": {
+      "sound": "minecraft:ambient.warped_forest.mood",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "particle": {
+      "options": {
+        "type": "minecraft:end_rod"
+      },
+      "probability": 0.004
+    }
+  },
+  "spawners": {},
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [
+      "phantom:floating_door"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [
+      "phantom:crystal_cluster"
+    ]
+  ]
+}

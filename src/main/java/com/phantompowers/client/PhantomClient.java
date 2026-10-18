@@ -246,6 +246,14 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.PINK_ORB, EnergyProjectileRenderer.Orb::new);
 		EntityRendererRegistry.register(ModEntities.GHOST_NET_TRAP, GhostNetRenderer.Trap::new);
 		EntityRendererRegistry.register(ModEntities.MISSILE, MissileRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(WalkerModel.GHOUL, WalkerModel::ghoul);
+		EntityModelLayerRegistry.registerModelLayer(WalkerModel.KNIGHT, WalkerModel::specterKnight);
+		EntityModelLayerRegistry.registerModelLayer(WalkerModel.SOUL, WalkerModel::lostSoul);
+		EntityModelLayerRegistry.registerModelLayer(WalkerModel.YETI, WalkerModel::ghostYeti);
+		EntityRendererRegistry.register(ModEntities.GHOUL, ctx -> new WalkerRenderer<>(ctx, WalkerModel.Kind.GHOUL, "ghoul", 1.0f, 0.4f));
+		EntityRendererRegistry.register(ModEntities.SPECTER_KNIGHT, ctx -> new WalkerRenderer<>(ctx, WalkerModel.Kind.KNIGHT, "specter_knight", 1.0f, 0.45f));
+		EntityRendererRegistry.register(ModEntities.LOST_SOUL, ctx -> new WalkerRenderer<>(ctx, WalkerModel.Kind.SOUL, "lost_soul", 0.95f, 0.3f));
+		EntityRendererRegistry.register(ModEntities.GHOST_YETI, ctx -> new WalkerRenderer<>(ctx, WalkerModel.Kind.YETI, "ghost_yeti", 1.0f, 0.9f));
 		EntityRendererRegistry.register(ModEntities.ECTO_CONSTRUCT, ConstructRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(DarkCapeFeature.LAYER, DarkCapeFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(CannonFeature.LAYER, CannonFeature::getTexturedModelData);

@@ -47,6 +47,20 @@ public final class ModBlocks {
 	public static final Item GHOST_CRATE_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ghost_crate"),
 			new BlockItem(GHOST_CRATE, new Item.Settings()));
 
+	/** Ghost Zone biome blocks. */
+	public static final Block SHADOW_GRASS = Registry.register(Registries.BLOCK, PhantomMod.id("shadow_grass"),
+			new Block(AbstractBlock.Settings.create().mapColor(MapColor.PURPLE).strength(1.5f, 6.0f).requiresTool()
+					.luminance(state -> 3).sounds(BlockSoundGroup.NYLIUM)));
+	public static final Block FROST_ECTO = Registry.register(Registries.BLOCK, PhantomMod.id("frost_ecto"),
+			new Block(AbstractBlock.Settings.create().mapColor(MapColor.LIGHT_BLUE).strength(0.8f).slipperiness(0.98f)
+					.luminance(state -> 7).sounds(BlockSoundGroup.SNOW)));
+	public static final Block SPECTRAL_CRYSTAL = Registry.register(Registries.BLOCK, PhantomMod.id("spectral_crystal"),
+			new Block(AbstractBlock.Settings.create().mapColor(MapColor.CYAN).strength(1.5f).requiresTool()
+					.luminance(state -> 12).sounds(BlockSoundGroup.AMETHYST_BLOCK)));
+	public static final Item SHADOW_GRASS_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("shadow_grass"), new BlockItem(SHADOW_GRASS, new Item.Settings()));
+	public static final Item FROST_ECTO_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("frost_ecto"), new BlockItem(FROST_ECTO, new Item.Settings()));
+	public static final Item SPECTRAL_CRYSTAL_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("spectral_crystal"), new BlockItem(SPECTRAL_CRYSTAL, new Item.Settings()));
+
 	public static final Item ECTO_STONE_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_stone"),
 			new BlockItem(ECTO_STONE, new Item.Settings()));
 	public static final Item ECTO_GRASS_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_grass"),
