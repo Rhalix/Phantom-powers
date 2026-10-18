@@ -164,6 +164,11 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Phantom Powers (build ${{ github.run_number }})
-          body: Download phantom-powers-1.0.0.jar below and put it in your .minecraft/mods folder (Minecraft 1.21.1 + Fabric Loader + Fabric API).
+          body: |
+            ## What's new
+            ${{ github.event.head_commit.message }}
+
+            ---
+            Download phantom-powers-1.0.0.jar below and put it in your .minecraft/mods folder (Minecraft 1.21.1 + Fabric Loader + Fabric API).
           files: |
             build/libs/phantom-powers-1.0.0.jar
