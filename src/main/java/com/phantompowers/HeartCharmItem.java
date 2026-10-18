@@ -56,7 +56,7 @@ public class HeartCharmItem extends Item {
 				e -> e instanceof LivingEntity && e != p && !e.isSpectator(), 32 * 32);
 		if (aimed != null && aimed.getEntity() instanceof LivingEntity le) kiss.setHoming(le);
 		w.spawnEntity(kiss);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ALLAY_ITEM_THROWN, SoundCategory.PLAYERS, 1.2f, 1.6f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.KISS_SMOOCH, SoundCategory.PLAYERS, 1.2f, 1.05f);
 		p.getItemCooldownManager().set(this, 14);
 		stack.damage(1, p, LivingEntity.getSlotForHand(hand));
 		return TypedActionResult.success(stack);

@@ -31,23 +31,54 @@ public final class EnergyProjectileRenderer {
 			super(ctx);
 		}
 
+		/** A blown kiss: a glossy lipstick kiss print (red lips with a shine) wrapped in a pink glow, with little hearts circling it. */
+		private static final String[] LIPS = {
+				"..###...###..",
+				".#####.#####.",
+				"#############",
+				"#ddddddddddd#",
+				".##ss#######.",
+				"..#ss######..",
+				"....#####...."};
+		private static final String[] MINI = {"#.#", "###", ".#."};
+
 		@Override
 		public void render(KissEntity e, float yaw, float tickDelta, MatrixStack ms, VertexConsumerProvider consumers, int light) {
-			ms.push();
-			ms.translate(0, 0.2, 0);
-			ms.multiply(dispatcher.getRotation());
 			float t = e.age + tickDelta;
-			float s = 0.075f * (1f + 0.15f * MathHelper.sin(t * 0.8f)) * (e.explosive() ? 1.25f : 1f);
-			ms.scale(s, s, s);
+			boolean big = e.explosive();
+			ms.push();
+			ms.translate(0, 0.25, 0);
+			ms.multiply(dispatcher.getRotation());
+			// a playful wobble, and a little "pucker" squash as it flies
+			ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.sin(t * 0.5f) * 12f));
+			float pucker = 1f + 0.12f * MathHelper.sin(t * 0.9f);
+			float s = 0.06f * (big ? 1.35f : 1f);
+			ms.scale(s * pucker, s / pucker, s);
 			Matrix4f m = ms.peek().getPositionMatrix();
-			VertexConsumer vc = consumers.getBuffer(RenderLayer.getLightning());
-			for (int y = 0; y < HEART.length; y++) {
-				for (int x = 0; x < 7; x++) {
-					if (HEART[y].charAt(x) != '#') continue;
-					float px = x - 3.5f, py = 3f - y;
-					boolean shine = (x == 1 && y == 1) || (x == 2 && y == 1);
-					quad(vc, m, px - 0.6f, py - 0.6f, px + 1.6f, py + 1.6f, 255, 80, 190, 60);      // glow
-					quad(vc, m, px, py, px + 1, py + 1, shine ? 255 : 255, shine ? 230 : 70, shine ? 245 : 170, 240);
+			VertexConsumer glow = consumers.getBuffer(RenderLayer.getLightning());
+			VertexConsumer solid = consumers.getBuffer(RenderLayer.getDebugQuads());
+			int w = LIPS[0].length();
+			for (int y = 0; y < LIPS.length; y++) {
+				for (int x = 0; x < w; x++) {
+					char c = LIPS[y].charAt(x);
+					if (c == '.') continue;
+					float px = x - w / 2f, py = LIPS.length / 2f - y - 1;
+					quad(glow, m, px - 0.8f, py - 0.8f, px + 1.8f, py + 1.8f, 255, 70, 170, 45);
+					int r = 225, g = 22, b = 70;
+					if (c == 'd') { r = 120; g = 0; b = 28; }
+					else if (c == 's') { r = 255; g = 205; b = 220; }
+					else if (y <= 1) { r = 245; g = 50; b = 95; }
+					quad(solid, m, px, py, px + 1, py + 1, r, g, b, 255);
+				}
+			}
+			// two tiny hearts orbiting the kiss
+			for (int k = 0; k < 2; k++) {
+				float ang = t * 0.25f + k * MathHelper.PI;
+				float ox = MathHelper.cos(ang) * 9f, oy = MathHelper.sin(ang) * 5f;
+				for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) {
+					if (MINI[y].charAt(x) != '#') continue;
+					float px = ox + x * 0.8f - 1.2f, py = oy - y * 0.8f + 1.2f;
+					quad(glow, m, px, py, px + 0.8f, py + 0.8f, 255, 120, 200, 230);
 				}
 			}
 			ms.pop();

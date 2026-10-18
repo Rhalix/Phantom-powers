@@ -136,5 +136,22 @@
       }
     ],
     "subtitle": "subtitles.phantom.net_zap"
+  },
+  "kiss_smooch": {
+    "sounds": [
+      {
+        "name": "phantom:kiss_smooch0",
+        "attenuation_distance": 24
+      },
+      {
+        "name": "phantom:kiss_smooch1",
+        "attenuation_distance": 24
+      },
+      {
+        "name": "phantom:kiss_smooch2",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.phantom.kiss_smooch"
   }
 }

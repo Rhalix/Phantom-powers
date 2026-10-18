@@ -20,6 +20,7 @@ public final class ModSounds {
 	public static final SoundEvent GUITAR_HIT = register("guitar_hit");
 	public static final SoundEvent WAIL_TORNADO = register("wail_tornado");
 	public static final SoundEvent NET_ZAP = register("net_zap");
+	public static final SoundEvent KISS_SMOOCH = register("kiss_smooch");
 
 	private ModSounds() {}
 

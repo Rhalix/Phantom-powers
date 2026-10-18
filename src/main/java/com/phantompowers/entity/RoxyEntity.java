@@ -159,7 +159,7 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 			kiss.setHoming(target);
 			w.spawnEntity(kiss);
 		}
-		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ALLAY_ITEM_THROWN, SoundCategory.HOSTILE, 1.4f, 1.6f);
+		w.playSound(null, getX(), getY(), getZ(), com.phantompowers.ModSounds.KISS_SMOOCH, SoundCategory.HOSTILE, 1.6f, 1.0f);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.HOSTILE, 1.4f, 1.8f);
 	}
 
@@ -175,7 +175,7 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 			kiss.setVelocity(dir.x, dir.y, dir.z, 0.55f, 0f);
 			w.spawnEntity(kiss);
 		}
-		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ALLAY_AMBIENT_WITH_ITEM, SoundCategory.HOSTILE, 1.6f, 1.4f);
+		w.playSound(null, getX(), getY(), getZ(), com.phantompowers.ModSounds.KISS_SMOOCH, SoundCategory.HOSTILE, 1.8f, 0.9f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
 			p.sendMessage(Text.literal("Roxy: \"Kisses for everyone!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
 		}

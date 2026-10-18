@@ -95,7 +95,8 @@ public class KissEntity extends ThrownItemEntity {
 		super.onCollision(hit);
 		if (getWorld() instanceof ServerWorld w && !isRemoved()) {
 			w.spawnParticles(ParticleTypes.HEART, getX(), getY(), getZ(), explosive ? 14 : 6, 0.4, 0.4, 0.4, 0.1);
-			w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.HOSTILE, 1.0f, 1.6f);
+			w.playSound(null, getX(), getY(), getZ(), com.phantompowers.ModSounds.KISS_SMOOCH, SoundCategory.HOSTILE, 0.9f, 1.35f);
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.HOSTILE, 0.6f, 1.8f);
 			if (explosive) {
 				w.spawnParticles(ParticleTypes.FLASH, getX(), getY(), getZ(), 1, 0, 0, 0, 0);
 				for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(2.5), e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity))) {
