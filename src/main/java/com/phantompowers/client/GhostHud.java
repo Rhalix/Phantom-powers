@@ -20,6 +20,16 @@ public final class GhostHud {
 
 	public static void render(DrawContext ctx, RenderTickCounter tickCounter) {
 		MinecraftClient mc = MinecraftClient.getInstance();
+		if (!ClientGhost.powers && ClientGhost.acne > 0 && mc.player != null && !mc.options.hudHidden && mc.currentScreen == null && ClientGhost.cutscene <= 0) {
+			// a human with ecto acne: just the countdown chip
+			int secs = ClientGhost.acne / 20;
+			String txt = "ECTO ACNE " + secs / 60 + ":" + String.format("%02d", secs % 60) + "  - something is changing...";
+			int x0 = ctx.getScaledWindowWidth() / 2 + 101, y0 = ctx.getScaledWindowHeight() - 14;
+			float tm = mc.player.age + tickCounter.getTickDelta(true);
+			ctx.fill(x0, y0, x0 + mc.textRenderer.getWidth(txt) + 8, y0 + 10, 0xD0101814);
+			ctx.fill(x0, y0, x0 + 2, y0 + 10, 0xFF9CFF40);
+			ctx.drawText(mc.textRenderer, txt, x0 + 5, y0 + 1, (int) (tm / 6) % 2 == 0 ? 0xFFB8FF60 : 0xFF7FD040, false);
+		}
 		if (!ClientGhost.powers || mc.player == null || mc.options.hudHidden || mc.currentScreen != null || ClientGhost.cutscene > 0) return;
 		TextRenderer tr = mc.textRenderer;
 		float time = mc.player.age + tickCounter.getTickDelta(true);

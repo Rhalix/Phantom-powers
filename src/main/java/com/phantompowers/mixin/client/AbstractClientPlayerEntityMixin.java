@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class AbstractClientPlayerEntityMixin {
 	@Inject(method = "getFovMultiplier", at = @At("RETURN"), cancellable = true)
 	private void phantom$scopeZoom(CallbackInfoReturnable<Float> cir) {
-		float m = BlasterScope.fovMultiplier();
+		float m = BlasterScope.fovMultiplier() * com.phantompowers.client.MissileSight.fovMultiplier();
 		if (m < 1f) cir.setReturnValue(cir.getReturnValue() * m);
 	}
 }

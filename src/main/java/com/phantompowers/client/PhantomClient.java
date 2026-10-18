@@ -70,6 +70,7 @@ public class PhantomClient implements ClientModInitializer {
 	private static boolean frostHeld;
 	private static boolean jumpHeld;
 	private static boolean shieldHeld;
+	private static boolean blastHeld;
 	private static final int HOLD_TICKS = 10;
 
 	@Override
@@ -107,6 +108,8 @@ public class PhantomClient implements ClientModInitializer {
 			SupermanFlight.tick(client);
 			ClientGhostSense.tick(client);
 			ClientCutscene.tick(client);
+			WristGadgetFeature.tick(client);
+			MissileSight.tick(client);
 			if (client.player == null) return;
 
 			// V: tap = quick change, hold = transformation cutscene
@@ -119,6 +122,10 @@ public class PhantomClient implements ClientModInitializer {
 				transformHeld = 0;
 			}
 			while (BLAST.wasPressed()) send(GhostPowers.A_BLAST);
+			// R released: fire the wrist missiles you were aiming
+			boolean blastNow = BLAST.isPressed();
+			if (blastHeld && !blastNow) send(GhostPowers.A_BLAST_RELEASE);
+			blastHeld = blastNow;
 			while (INTANGIBLE.wasPressed()) send(GhostPowers.A_INTANGIBLE);
 			while (POSSESS.wasPressed()) send(GhostPowers.A_POSSESS);
 			while (WAIL.wasPressed()) send(GhostPowers.A_WAIL);
@@ -203,6 +210,8 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_ACNE.addAll(payload.acne());
 			GhostFlags.CLIENT_CANNONS.clear();
 			GhostFlags.CLIENT_CANNONS.addAll(payload.cannons());
+			GhostFlags.CLIENT_AIMING.clear();
+			GhostFlags.CLIENT_AIMING.addAll(payload.aiming());
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShieldHitPayload.ID, (payload, context) -> ClientShield.hit(payload));
@@ -240,6 +249,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.ECTO_CONSTRUCT, ConstructRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(DarkCapeFeature.LAYER, DarkCapeFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(CannonFeature.LAYER, CannonFeature::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(WristGadgetFeature.LAYER, WristGadgetFeature::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostTail.LAYER, GhostTail::getTexturedModelData);
@@ -254,6 +264,7 @@ public class PhantomClient implements ClientModInitializer {
 				helper.register(new GhostTail(playerRenderer, ctx.getPart(GhostTail.LAYER)));
 				helper.register(new DarkCapeFeature(playerRenderer, ctx.getPart(DarkCapeFeature.LAYER)));
 				helper.register(new CannonFeature(playerRenderer, ctx.getPart(CannonFeature.LAYER)));
+				helper.register(new WristGadgetFeature(playerRenderer, ctx.getPart(WristGadgetFeature.LAYER)));
 				helper.register(new AcneFeature(playerRenderer));
 				helper.register(new TransitionFeature(playerRenderer));
 				helper.register(new FistGlowFeature(playerRenderer, ctx.getPart(FistGlowFeature.WIDE), ctx.getPart(FistGlowFeature.SLIM)));
@@ -282,6 +293,8 @@ public class PhantomClient implements ClientModInitializer {
 			GhostFlags.CLIENT_DARK.clear();
 			GhostFlags.CLIENT_ACNE.clear();
 			GhostFlags.CLIENT_CANNONS.clear();
+			GhostFlags.CLIENT_AIMING.clear();
+			WristGadgetFeature.clear();
 			GhostTrail.clear();
 			ClientShockwaves.clear();
 			ClientEntityFx.clear();
@@ -318,6 +331,7 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(ControlsHud::render);
 		HudRenderCallback.EVENT.register(SuitTrackerHud::render);
 		HudRenderCallback.EVENT.register(BlasterScope::render);
+		HudRenderCallback.EVENT.register(MissileSight::render);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

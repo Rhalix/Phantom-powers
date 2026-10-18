@@ -220,7 +220,10 @@ public final class PhantomCommands {
 							&& GhostPowers.darkOnly(GhostPowers.STINGER) && !GhostPowers.darkOnly(GhostPowers.BLAST)
 							&& GhostPowers.NAMES.length == GhostPowers.SKILL_COUNT && GhostPowers.DESCRIPTIONS.length == GhostPowers.SKILL_COUNT
 							&& GhostPowers.COSTS.length == GhostPowers.SKILL_COUNT
-							&& HunterGear.tier(new net.minecraft.item.ItemStack(ModItems.HUNTER_SUIT)) == 0 && m.getStack() != null;
+							&& HunterGear.tier(new net.minecraft.item.ItemStack(ModItems.HUNTER_SUIT)) == 0 && m.getStack() != null
+							&& ModItems.PROTOTYPE_PORTAL instanceof net.minecraft.item.BlockItem
+							&& ModBlocks.PROTOTYPE_PORTAL.getDefaultState().contains(PrototypePortalBlock.FACING)
+							&& DarkPowers.portalKnock(DarkPowers.PORTAL_TICKS) > 2.0 && DarkPowers.portalKnock(10) < 0;
 					if (!ok) {
 						ctx.getSource().sendError(Text.literal("Dark test: FAILED"));
 						return 0;

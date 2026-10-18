@@ -63,6 +63,15 @@ public final class ModBlocks {
 	public static final Item PORTAL_FRAME_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ghost_portal_frame"),
 			new BlockItem(PORTAL_FRAME, new Item.Settings()));
 
+	/** A small, unstable, home-made ghost portal. Switch it on and it blasts you in the face. */
+	public static final Block PROTOTYPE_PORTAL = Registry.register(Registries.BLOCK, PhantomMod.id("prototype_portal"),
+			new PrototypePortalBlock(AbstractBlock.Settings.create()
+					.mapColor(MapColor.IRON_GRAY)
+					.strength(2.5f, 6.0f)
+					.nonOpaque()
+					.luminance(state -> 7)
+					.sounds(BlockSoundGroup.METAL)));
+
 	public static final Block HAZARD_PLATING = Registry.register(Registries.BLOCK, PhantomMod.id("hazard_plating"),
 			new Block(AbstractBlock.Settings.create()
 					.mapColor(MapColor.YELLOW)

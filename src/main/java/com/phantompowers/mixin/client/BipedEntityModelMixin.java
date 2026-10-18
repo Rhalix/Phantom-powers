@@ -49,6 +49,62 @@ public abstract class BipedEntityModelMixin {
 		if (wail >= 0f) phantom$wailPose(wail, age);
 		float lean = com.phantompowers.client.SupermanFlight.lean(entity, age - (int) age);
 		if (lean > 0f) phantom$supermanPose(lean, age);
+		float aim = com.phantompowers.client.WristGadgetFeature.aim(entity, age - (int) age);
+		if (aim > 0f) phantom$aimPose(aim);
+		float portal = com.phantompowers.client.ClientCutscene.portalTime(entity, age - (int) age);
+		if (portal >= 0f) phantom$portalPose(portal, age);
+	}
+
+	/** Aiming the wrist launcher: right arm held straight out where you look, left hand steadying the wrist. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$aimPose(float a) {
+		rightArm.pitch = MathHelper.lerp(a, rightArm.pitch, head.pitch - MathHelper.HALF_PI);
+		rightArm.yaw = MathHelper.lerp(a, rightArm.yaw, head.yaw - 0.08f);
+		rightArm.roll = MathHelper.lerp(a, rightArm.roll, 0f);
+		leftArm.pitch = MathHelper.lerp(a, leftArm.pitch, head.pitch - 1.3f);
+		leftArm.yaw = MathHelper.lerp(a, leftArm.yaw, head.yaw + 0.6f);
+		leftArm.roll = MathHelper.lerp(a, leftArm.roll, 0f);
+	}
+
+	/**
+	 * The prototype portal: lean in curiously and poke the switch... then get blasted, arms flung up over your face,
+	 * thrown back, and finally swaying dizzily.
+	 */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$portalPose(float t, float age) {
+		float blast = com.phantompowers.DarkPowers.PORTAL_BLAST;
+		if (t < blast) {
+			float lean = MathHelper.clamp(t / 12f, 0f, 1f);
+			float poke = MathHelper.clamp((t - 14f) / 6f, 0f, 1f) * (1f - MathHelper.clamp((t - 30f) / 6f, 0f, 1f));
+			body.pitch = 0.18f * lean;
+			head.pitch = 0.25f * lean;
+			head.yaw = MathHelper.sin(t * 0.15f) * 0.15f * (1 - poke);
+			rightArm.pitch = -0.4f * lean - 1.1f * poke;
+			rightArm.yaw = -0.15f * poke;
+			leftArm.pitch = -0.2f * lean;
+			// scratching your head while it hums
+			float scratch = MathHelper.clamp((t - 34f) / 4f, 0f, 1f);
+			leftArm.pitch = MathHelper.lerp(scratch, leftArm.pitch, -2.6f + MathHelper.sin(age * 1.6f) * 0.08f);
+			leftArm.roll = MathHelper.lerp(scratch, leftArm.roll, -0.5f);
+		} else {
+			float k = t - blast;
+			float hit = MathHelper.clamp(1f - (k - 14f) / 14f, 0f, 1f);
+			float shake = MathHelper.sin(age * 2.9f) * 0.08f * hit;
+			body.pitch = -0.35f * hit;
+			head.pitch = -0.6f * hit + shake;
+			head.yaw = shake;
+			rightArm.pitch = MathHelper.lerp(hit, rightArm.pitch, -2.4f + shake);
+			rightArm.roll = MathHelper.lerp(hit, rightArm.roll, -0.7f);
+			leftArm.pitch = MathHelper.lerp(hit, leftArm.pitch, -2.4f - shake);
+			leftArm.roll = MathHelper.lerp(hit, leftArm.roll, 0.7f);
+			rightLeg.pitch = 0.35f * hit;
+			leftLeg.pitch = -0.2f * hit;
+			// dizzy wobble afterwards
+			float dizzy = 1f - hit;
+			body.roll = MathHelper.sin(age * 0.2f) * 0.08f * dizzy;
+			head.roll = MathHelper.sin(age * 0.2f + 0.6f) * 0.15f * dizzy;
+		}
+		hat.copyTransform(head);
 	}
 
 	/** A ghost clone: floats with its legs hanging; when it wails, head thrust forward and arms flung back. */

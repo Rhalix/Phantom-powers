@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /** Server -> client: per-player looks and states everyone needs to draw (ghost form, suit colours, dark form...). */
 public record InvisiblePayload(List<UUID> players, List<UUID> ghosts, List<UUID> suited, List<UUID> flying, List<UUID> fists, List<UUID> shielded,
-		List<UUID> colorIds, List<int[]> colors, List<UUID> dark, List<UUID> acne, List<UUID> cannons) implements CustomPayload {
+		List<UUID> colorIds, List<int[]> colors, List<UUID> dark, List<UUID> acne, List<UUID> cannons, List<UUID> aiming) implements CustomPayload {
 	public static final CustomPayload.Id<InvisiblePayload> ID = new CustomPayload.Id<>(PhantomMod.id("invisible"));
 	public static final PacketCodec<PacketByteBuf, InvisiblePayload> CODEC =
 			PacketCodec.<PacketByteBuf, InvisiblePayload>of(InvisiblePayload::write, InvisiblePayload::read);
@@ -40,13 +40,14 @@ public record InvisiblePayload(List<UUID> players, List<UUID> ghosts, List<UUID>
 		ids(buf, dark);
 		ids(buf, acne);
 		ids(buf, cannons);
+		ids(buf, aiming);
 	}
 
 	private static InvisiblePayload read(PacketByteBuf buf) {
 		List<UUID> players = ids(buf), ghosts = ids(buf), suited = ids(buf), flying = ids(buf), fists = ids(buf), shielded = ids(buf), colorIds = ids(buf);
 		List<int[]> colors = new ArrayList<>(colorIds.size());
 		for (int i = 0; i < colorIds.size(); i++) colors.add(buf.readIntArray());
-		return new InvisiblePayload(players, ghosts, suited, flying, fists, shielded, colorIds, colors, ids(buf), ids(buf), ids(buf));
+		return new InvisiblePayload(players, ghosts, suited, flying, fists, shielded, colorIds, colors, ids(buf), ids(buf), ids(buf), ids(buf));
 	}
 
 	@Override

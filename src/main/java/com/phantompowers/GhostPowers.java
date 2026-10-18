@@ -105,7 +105,7 @@ public final class GhostPowers {
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_CONSTRUCT = 20, A_SPIN = 21, A_STINGER = 22, A_ABSORB = 23, A_DARK_TOGGLE = 24, A_EQUIP = 500, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_CONSTRUCT = 20, A_SPIN = 21, A_STINGER = 22, A_ABSORB = 23, A_DARK_TOGGLE = 24, A_BLAST_RELEASE = 25, A_EQUIP = 500, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -136,7 +136,7 @@ public final class GhostPowers {
 			case A_TRANSFORM_CUTSCENE -> startCutscene(p, d);
 			case A_BLAST -> {
 				if (d.possessing != null) HostPowers.active(p, d);
-				else if (d.suitOn && !d.transformed) HunterGear.fireMissiles(p, d);
+				else if (d.suitOn && !d.transformed) HunterGear.startAim(p, d);
 				else if (ready(p, d, st, BLAST)) blast(p, d);
 			}
 			case A_CONSTRUCT -> { if (ready(p, d, st, CONSTRUCT)) DarkPowers.construct(p, d); }
@@ -144,6 +144,7 @@ public final class GhostPowers {
 			case A_STINGER -> { if (ready(p, d, st, STINGER)) DarkPowers.stinger(p, d); }
 			case A_ABSORB -> { if (ready(p, d, st, ABSORB)) DarkPowers.absorb(p, d); }
 			case A_DARK_TOGGLE -> DarkPowers.toggleDarkMode(p, d);
+			case A_BLAST_RELEASE -> { if (d.missileAim) HunterGear.releaseAim(p, d); }
 			case A_FROST -> { if (ready(p, d, st, FROST)) FrostLogic.start(p, d); }
 			case A_FROST_RELEASE -> d.frostHeld = false;
 			case A_STRUGGLE -> {
@@ -744,6 +745,10 @@ public final class GhostPowers {
 
 	private static void tickCutscene(ServerPlayerEntity p, GhostData d) {
 		if (d.cutscene <= 0) return;
+		if (d.cutsceneKind == 3) {
+			DarkPowers.tickPortalCutscene(p, d);
+			return;
+		}
 		d.cutscene--;
 		// Hold still (and float a tiny bit) while the rings pass over you
 		if (d.cutsceneAnchor != null) {
@@ -997,7 +1002,8 @@ public final class GhostPowers {
 			GhostData gd = st.data(pl.getUuid());
 			if (gd.fists && gd.transformed) fists.add(pl.getUuid());
 		}
-		List<UUID> shielded = new ArrayList<>(), colorIds = new ArrayList<>(), dark = new ArrayList<>(), acne = new ArrayList<>(), cannons = new ArrayList<>();
+		List<UUID> shielded = new ArrayList<>(), colorIds = new ArrayList<>(), dark = new ArrayList<>(), acne = new ArrayList<>(), cannons = new ArrayList<>(),
+				aiming = new ArrayList<>();
 		List<int[]> colors = new ArrayList<>();
 		for (ServerPlayerEntity pl : server.getPlayerManager().getPlayerList()) {
 			GhostData gd = st.data(pl.getUuid());
@@ -1007,9 +1013,10 @@ public final class GhostPowers {
 			if (gd.dark && gd.darkMode) dark.add(pl.getUuid());
 			if (gd.acneTicks > 0) acne.add(pl.getUuid());
 			if (gd.cannons && gd.suitOn) cannons.add(pl.getUuid());
+			if (gd.missileAim && gd.suitOn) aiming.add(pl.getUuid());
 		}
 		InvisiblePayload payload = new InvisiblePayload(new ArrayList<>(GhostFlags.INVISIBLE), ghosts, suited, new ArrayList<>(FLYING), fists,
-				shielded, colorIds, colors, dark, acne, cannons);
+				shielded, colorIds, colors, dark, acne, cannons, aiming);
 		for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
 			if (ServerPlayNetworking.canSend(viewer, InvisiblePayload.ID)) ServerPlayNetworking.send(viewer, payload);
 		}

@@ -12,6 +12,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.Monster;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -89,28 +90,73 @@ public final class HunterGear {
 
 	// ----------------------------------------------------------- wrist missiles
 
+	/** Hold R: the wrist launcher flips out and you raise your arm to aim. */
+	public static void startAim(ServerPlayerEntity p, GhostData d) {
+		ItemStack suit = p.getEquippedStack(EquipmentSlot.CHEST);
+		if (!hasMissiles(suit)) {
+			GhostPowers.bar(p, "No wrist missiles installed on your suit.", Formatting.GRAY);
+			return;
+		}
+		if (d.missileAim) return;
+		d.missileAim = true;
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.PLAYERS, 0.7f, 1.8f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.PLAYERS, 0.6f, 1.6f);
+		GhostPowers.broadcastStates(p.getServer());
+	}
+
+	/** Let go of R: fire. */
+	public static void releaseAim(ServerPlayerEntity p, GhostData d) {
+		d.missileAim = false;
+		fireMissiles(p, d);
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.PLAYERS, 0.5f, 1.9f);
+		GhostPowers.broadcastStates(p.getServer());
+	}
+
+	/** Where the launcher sits: on the back of your right wrist, with your arm held out where you're looking. */
+	private static Vec3d wrist(ServerPlayerEntity p, Vec3d look) {
+		Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
+		right = right.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : right.normalize();
+		return p.getEyePos().add(look.multiply(0.75)).add(right.multiply(0.36)).add(0, -0.32, 0);
+	}
+
 	public static void fireMissiles(ServerPlayerEntity p, GhostData d) {
 		ItemStack suit = p.getEquippedStack(EquipmentSlot.CHEST);
 		if (!hasMissiles(suit)) {
 			GhostPowers.bar(p, "No wrist missiles installed on your suit.", Formatting.GRAY);
 			return;
 		}
-		if (d.missileCooldown > 0) return;
-		d.missileCooldown = 36 - tier(suit) * 6;
+		if (d.missileCooldown > 0) {
+			GhostPowers.bar(p, "Reloading... (" + (d.missileCooldown / 20 + 1) + "s)", Formatting.GRAY);
+			return;
+		}
+		int t = tier(suit);
+		d.missileCooldown = 36 - t * 6;
 		ServerWorld w = p.getServerWorld();
-		var target = GhostPowers.aimEntity(p, d, 40);
+		var target = GhostPowers.aimEntity(p, d, 48);
 		Vec3d look = p.getRotationVec(1f);
+		Vec3d aim = target != null ? target.getBoundingBox().getCenter() : GhostPowers.aimPoint(p, 48);
+		Vec3d from = wrist(p, look);
 		Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
 		right = right.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : right.normalize();
-		for (int s = -1; s <= 1; s += 2) {
+		Vec3d up = right.crossProduct(look).normalize();
+		int count = 2 + (t >= 2 ? 1 : 0) + (t >= 3 ? 1 : 0);
+		for (int i = 0; i < count; i++) {
+			// the pod's tubes are in a little 2x2 block
+			Vec3d off = right.multiply((i % 2 == 0 ? -0.07 : 0.07)).add(up.multiply(i < 2 ? 0.05 : -0.05));
+			Vec3d start = from.add(off);
+			Vec3d dir = aim.subtract(start).normalize();
 			MissileEntity m = new MissileEntity(w, p);
-			Vec3d from = p.getEyePos().add(look.multiply(0.6)).add(right.multiply(0.4 * s)).add(0, -0.45, 0);
-			m.setPosition(from.x, from.y, from.z);
-			m.setVelocity(look.x + right.x * 0.12 * s, look.y + 0.05, look.z + right.z * 0.12 * s, 1.3f, 0f);
+			m.setPosition(start.x, start.y, start.z);
+			// a little spread so the salvo fans out and then curls back in on the target
+			m.setVelocity(dir.x + off.x * 1.4, dir.y + off.y * 1.4, dir.z + off.z * 1.4, 1.35f, 0f);
 			if (target instanceof LivingEntity le) m.setTarget(le);
-			m.setPower(7f + tier(suit) * 2f);
+			m.setPower(7f + t * 2f);
 			w.spawnEntity(m);
 		}
+		w.spawnParticles(ParticleTypes.SMOKE, from.x, from.y, from.z, 8, 0.05, 0.05, 0.05, 0.03);
+		w.spawnParticles(ParticleTypes.FLAME, from.x, from.y, from.z, 4, 0.03, 0.03, 0.03, 0.02);
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.PLAYERS, 1.2f, 1.4f);
 	}
 
@@ -130,6 +176,10 @@ public final class HunterGear {
 
 	public static void tick(ServerPlayerEntity p, GhostData d) {
 		if (d.missileCooldown > 0) d.missileCooldown--;
+		if (d.missileAim && (!d.suitOn || d.transformed || !hasMissiles(p.getEquippedStack(EquipmentSlot.CHEST)))) {
+			d.missileAim = false;
+			GhostPowers.broadcastStates(p.getServer());
+		}
 		if (d.cannons && (!d.suitOn || !hasCannons(p.getEquippedStack(EquipmentSlot.CHEST)))) {
 			d.cannons = false;
 			GhostPowers.broadcastStates(p.getServer());

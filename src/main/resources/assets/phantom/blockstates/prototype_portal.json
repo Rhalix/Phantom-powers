@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "phantom:block/prototype_portal"
+  },
+  "facing=south": {
+   "model": "phantom:block/prototype_portal",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "phantom:block/prototype_portal",
+   "y": 270
+  },
+  "facing=east": {
+   "model": "phantom:block/prototype_portal",
+   "y": 90
+  }
+ }
+}

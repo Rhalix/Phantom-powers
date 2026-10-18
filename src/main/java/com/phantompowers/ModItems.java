@@ -56,7 +56,14 @@ public final class ModItems {
 			new net.minecraft.item.SpawnEggItem(ModEntities.SHADE, 0x221A30, 0xFF8C28, new Item.Settings()));
 
 	public static final Item PROTOTYPE_PORTAL = Registry.register(Registries.ITEM, PhantomMod.id("prototype_portal"),
-			new PrototypePortalItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
+			new net.minecraft.item.BlockItem(ModBlocks.PROTOTYPE_PORTAL, new Item.Settings().maxCount(1).rarity(Rarity.EPIC)) {
+				@Override
+				public void appendTooltip(net.minecraft.item.ItemStack stack, TooltipContext context, java.util.List<net.minecraft.text.Text> tooltip,
+						net.minecraft.item.tooltip.TooltipType type) {
+					tooltip.add(net.minecraft.text.Text.literal("Place it, then right-click to switch it on").formatted(net.minecraft.util.Formatting.RED));
+					tooltip.add(net.minecraft.text.Text.literal("Unstable! Blasts whoever's in front of it...").formatted(net.minecraft.util.Formatting.DARK_GRAY));
+				}
+			});
 	public static final Item SUIT_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("suit_upgrade_module"),
 			new UpgradeItem("tier", new Item.Settings().rarity(Rarity.RARE)));
 	public static final Item GLIDER_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("glider_upgrade_kit"),

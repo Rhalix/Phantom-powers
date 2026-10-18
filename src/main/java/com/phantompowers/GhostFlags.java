@@ -42,6 +42,7 @@ public final class GhostFlags {
 	public static final Set<UUID> CLIENT_DARK = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	public static final Set<UUID> CLIENT_ACNE = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	public static final Set<UUID> CLIENT_CANNONS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	public static final Set<UUID> CLIENT_AIMING = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Players with Ecto Fists switched on, as told to this client. */
 	public static final Set<UUID> CLIENT_FISTS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** Players in ghost form, as told to this client (for the ghost look). */

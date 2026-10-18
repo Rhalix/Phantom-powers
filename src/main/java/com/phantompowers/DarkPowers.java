@@ -40,26 +40,116 @@ public final class DarkPowers {
 
 	// ------------------------------------------------------- becoming dark
 
-	/** The prototype portal blasts you in the face. */
-	public static void portalBlast(ServerPlayerEntity p) {
+	/** Prototype portal cutscene length, and the tick the blast goes off. */
+	public static final int PORTAL_TICKS = 84, PORTAL_BLAST = 46;
+
+	/** How far you've been pushed back from your starting spot (negative = leaning in toward the portal). Shared with the client. */
+	public static double portalKnock(int elapsed) {
+		if (elapsed < PORTAL_BLAST) return -Math.min(0.35, elapsed * 0.012);
+		double t = elapsed - PORTAL_BLAST;
+		return -0.35 + 3.0 * (1 - Math.exp(-t * 0.28));
+	}
+
+	/** The little hop as the blast throws you back. */
+	public static double portalLift(int elapsed) {
+		double t = elapsed - PORTAL_BLAST;
+		return t > 0 && t < 11 ? Math.sin(Math.PI * t / 11.0) * 0.7 : 0;
+	}
+
+	/** Right-click a placed prototype portal: step up to it, it hums and charges... and blasts you right in the face. */
+	public static void startPortalCutscene(ServerPlayerEntity p, net.minecraft.util.math.BlockPos pos, net.minecraft.util.math.Direction facing) {
 		GhostState st = GhostState.of(p.getServer());
 		GhostData d = st.data(p.getUuid());
-		ServerWorld w = p.getServerWorld();
-		Vec3d look = p.getRotationVec(1f);
-		Vec3d at = p.getEyePos().add(look.multiply(0.8));
-		w.spawnParticles(ParticleTypes.FLASH, at.x, at.y, at.z, 1, 0, 0, 0, 0);
-		w.spawnParticles(GhostPowers.GREEN, at.x, at.y, at.z, 80, 0.4, 0.4, 0.4, 0.3);
-		w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, at.x, at.y, at.z, 40, 0.3, 0.3, 0.3, 0.4);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 1.0f, 1.6f);
-		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1.2f, 0.6f);
-		p.addVelocity(-look.x * 1.2, 0.4, -look.z * 1.2);
-		p.velocityModified = true;
-		p.damage(w.getDamageSources().magic(), Math.min(4f, Math.max(0f, p.getHealth() - 1f)));
-		p.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0));
-		if (!d.powers) {
-			p.sendMessage(Text.literal("ZAP! It hurt... but nothing else happened. It only reacts with someone who already has ghost powers.").formatted(Formatting.GRAY), false);
+		if (d.cutscene > 0) return;
+		if (d.transformed) GhostPowers.endForm(p, d);
+		Vec3d front = Vec3d.ofBottomCenter(pos).add(facing.getOffsetX() * 2.3, 0, facing.getOffsetZ() * 2.3);
+		float yaw = facing.getOpposite().asRotation();
+		p.stopRiding();
+		p.networkHandler.requestTeleport(front.x, front.y, front.z, yaw, 12f);
+		p.setVelocity(Vec3d.ZERO);
+		d.cutscene = PORTAL_TICKS;
+		d.cutsceneKind = 3;
+		d.cutsceneToGhost = false;
+		d.cutsceneAnchor = front;
+		d.portalCenter = Vec3d.ofCenter(pos);
+		GhostPowers.syncNow(p);
+	}
+
+	public static void tickPortalCutscene(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = PORTAL_TICKS - d.cutscene;
+		Vec3d c = d.portalCenter, a = d.cutsceneAnchor;
+		if (c == null || a == null) {
+			d.cutscene = 0;
+			GhostPowers.syncNow(p);
 			return;
 		}
+		ServerWorld w = p.getServerWorld();
+		Vec3d back = new Vec3d(a.x - c.x, 0, a.z - c.z);
+		back = back.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : back.normalize();
+		Vec3d side = new Vec3d(-back.z, 0, back.x);
+		Vec3d want = a.add(back.multiply(portalKnock(e))).add(0, portalLift(e), 0);
+		if (p.getPos().squaredDistanceTo(want) > 2.25) p.requestTeleport(want.x, want.y, want.z);
+		p.fallDistance = 0;
+		Vec3d face = p.getEyePos();
+		if (e < PORTAL_BLAST) {
+			// it powers up: a swirl of ecto in the frame, crackling sparks, a rising hum
+			float k = e / (float) PORTAL_BLAST;
+			int n = 2 + (int) (k * 8);
+			for (int i = 0; i < n; i++) {
+				double ang = e * 0.45 + i * Math.PI * 2 / n;
+				double r = 0.12 + 0.22 * ((e + i * 3) % 10) / 10.0;
+				Vec3d at = c.add(side.multiply(Math.cos(ang) * r)).add(0, Math.sin(ang) * r * 1.4, 0);
+				w.spawnParticles(GhostPowers.GREEN, at.x, at.y, at.z, 1, 0, 0, 0, 0);
+			}
+			if (e % 3 == 0) w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, c.x, c.y + 0.3, c.z, 1 + (int) (k * 5), 0.35, 0.45, 0.35, 0.15);
+			if (e == 1) w.playSound(null, c.x, c.y, c.z, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.BLOCKS, 1.2f, 0.5f);
+			if (e % 8 == 0) w.playSound(null, c.x, c.y, c.z, SoundEvents.BLOCK_BEACON_AMBIENT, SoundCategory.BLOCKS, 1.4f, 0.6f + k * 1.3f);
+			if (e == PORTAL_BLAST - 14) w.playSound(null, c.x, c.y, c.z, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.BLOCKS, 1.3f, 1.2f);
+			if (e == PORTAL_BLAST - 6) w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_CREEPER_PRIMED, SoundCategory.BLOCKS, 1.0f, 1.4f);
+		} else if (e < PORTAL_BLAST + 8) {
+			// KA-BLAM: a beam of raw ghost energy right in the face
+			Vec3d from = c.add(back.multiply(0.15));
+			beam(w, from, face, 0x55FF88);
+			beam(w, from.add(0, 0.12, 0), face.add(side.multiply(0.1)), 0xD0FFE0);
+			beam(w, from.add(0, -0.12, 0), face.add(side.multiply(-0.1)), 0x22DD66);
+			if (e == PORTAL_BLAST) {
+				w.spawnParticles(ParticleTypes.FLASH, face.x, face.y, face.z, 1, 0, 0, 0, 0);
+				w.spawnParticles(GhostPowers.GREEN, face.x, face.y, face.z, 120, 0.4, 0.4, 0.4, 0.35);
+				w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, face.x, face.y, face.z, 50, 0.3, 0.3, 0.3, 0.5);
+				w.playSound(null, face.x, face.y, face.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 1.2f, 1.5f);
+				w.playSound(null, face.x, face.y, face.z, SoundEvents.ENTITY_LIGHTNING_BOLT_IMPACT, SoundCategory.PLAYERS, 1.0f, 1.3f);
+				w.playSound(null, face.x, face.y, face.z, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.2f, 0.6f);
+			}
+		} else if (e < PORTAL_BLAST + 32 && e % 2 == 0) {
+			// smoking, singed and glowing
+			w.spawnParticles(ParticleTypes.LARGE_SMOKE, face.x, face.y + 0.1, face.z, 1, 0.15, 0.1, 0.15, 0.01);
+			w.spawnParticles(GhostPowers.GREEN, face.x, face.y, face.z, 2, 0.2, 0.2, 0.2, 0.01);
+			if (e % 6 == 0) w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, p.getX(), p.getY() + 1, p.getZ(), 3, 0.3, 0.6, 0.3, 0.1);
+		}
+		if (e == PORTAL_BLAST + 22) applyBlast(p, d);
+		if (d.cutscene <= 0) {
+			d.cutscene = 0;
+			d.cutsceneAnchor = null;
+			d.portalCenter = null;
+			GhostPowers.syncNow(p);
+		}
+	}
+
+	private static void beam(ServerWorld w, Vec3d from, Vec3d to, int color) {
+		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) to.x, (float) to.y, (float) to.z, color);
+		for (ServerPlayerEntity viewer : PlayerLookup.around(w, from, 96)) {
+			if (ServerPlayNetworking.canSend(viewer, BeamPayload.ID)) ServerPlayNetworking.send(viewer, beam);
+		}
+	}
+
+	/** What the blast does to you: humans and half-ghosts alike get ecto acne, and five minutes later turn into the dark half-ghost. */
+	public static void applyBlast(ServerPlayerEntity p, GhostData d) {
+		GhostState st = GhostState.of(p.getServer());
+		ServerWorld w = p.getServerWorld();
+		p.damage(w.getDamageSources().magic(), Math.min(4f, Math.max(0f, p.getHealth() - 1f)));
+		p.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 30, 0));
+		p.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 120, 0));
 		if (d.dark) {
 			p.sendMessage(Text.literal("The prototype crackles... your dark side is already awake.").formatted(Formatting.DARK_RED), false);
 			return;
@@ -71,11 +161,17 @@ public final class DarkPowers {
 		d.acneTicks = ACNE_TICKS;
 		st.markDirty();
 		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("ECTO ACNE!").formatted(Formatting.GREEN, Formatting.BOLD)));
-		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("The unstable blast is changing you... wait 5 minutes").formatted(Formatting.GRAY)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(d.powers
+				? "The unstable blast is changing you... wait 5 minutes"
+				: "Ghost energy is seeping into you... wait 5 minutes").formatted(Formatting.GRAY)));
+		if (!d.powers) p.sendMessage(Text.literal("Your face is covered in glowing green zits... and something inside you is changing.").formatted(Formatting.GREEN), false);
 		GhostPowers.broadcastStates(p.getServer());
+		GhostPowers.syncNow(p);
 	}
 
 	private static void finishAcne(ServerPlayerEntity p, GhostData d) {
+		boolean wasHuman = !d.powers;
+		if (wasHuman) GhostPowers.grantPowers(p);
 		d.dark = true;
 		d.darkMode = true;
 		d.suitColors = SuitColors.VILLAIN.clone();
@@ -85,6 +181,7 @@ public final class DarkPowers {
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.8f, 1.4f);
 		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Your dark side awakens").formatted(Formatting.DARK_RED, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("New dark powers can be unlocked in Ghost Skills").formatted(Formatting.GRAY)));
+		if (wasHuman) p.sendMessage(Text.literal("The blast turned you into a half-ghost... a DARK one. Press V to go ghost!").formatted(Formatting.DARK_RED, Formatting.BOLD), false);
 		p.sendMessage(Text.literal("The ecto acne is gone... and so is your old self. Go ghost to take your dark form. "
 				+ "(You can switch back in Ghost Skills.)").formatted(Formatting.DARK_RED), false);
 		GhostPowers.broadcastStates(p.getServer());

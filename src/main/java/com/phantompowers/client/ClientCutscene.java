@@ -25,7 +25,7 @@ public final class ClientCutscene {
 			previous = o.getPerspective();
 			o.setPerspective(Perspective.THIRD_PERSON_BACK);
 			anchor = mc.player.getPos();
-			baseYaw = mc.player.getBodyYaw();
+			baseYaw = ClientGhost.cutsceneKind == 3 ? mc.player.getYaw() : mc.player.getBodyYaw();
 		}
 		if (running) {
 			shown++;
@@ -51,6 +51,19 @@ public final class ClientCutscene {
 	/** Float smoothly in place on our side (no rubber-banding from the server). */
 	private static void holdStill(MinecraftClient mc) {
 		if (anchor == null) return;
+		if (ClientGhost.cutsceneKind == 3) {
+			// the prototype portal: lean in, then get blown backwards with a little hop
+			int el = Math.max(0, com.phantompowers.DarkPowers.PORTAL_TICKS - ClientGhost.cutscene);
+			var back = net.minecraft.util.math.Vec3d.fromPolar(0, baseYaw).multiply(-1);
+			var want = anchor.add(back.multiply(com.phantompowers.DarkPowers.portalKnock(el))).add(0, com.phantompowers.DarkPowers.portalLift(el), 0);
+			var p = mc.player;
+			var next = p.getPos().lerp(want, 0.45);
+			p.setVelocity(0, 0, 0);
+			p.setPosition(next.x, next.y, next.z);
+			p.setYaw(baseYaw);
+			p.fallDistance = 0;
+			return;
+		}
 		int total = ClientGhost.cutsceneKind == 2 ? com.phantompowers.GhostPowers.WAIL_FINALE_TICKS : com.phantompowers.GhostPowers.CUTSCENE_TICKS;
 		int elapsed = Math.max(0, total - ClientGhost.cutscene);
 		double lift;
@@ -77,6 +90,7 @@ public final class ClientCutscene {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (e != mc.player) return null;
 		float t = shown + partial;
+		if (ClientGhost.cutsceneKind == 3) return portalShot(mc, e, t, partial);
 		boolean wail = ClientGhost.cutsceneKind == 2;
 		// Start facing you, then drift around to a three-quarter angle
 		double orbit = Math.toRadians(baseYaw + (wail ? 25 : 35) * Math.sin(t * 0.035) - 20);
@@ -86,6 +100,54 @@ public final class ClientCutscene {
 		double camY = target.y + (wail ? 0.6 : 0.15);
 		var from = new net.minecraft.util.math.Vec3d(target.x - Math.sin(orbit) * dist, camY, target.z + Math.cos(orbit) * dist);
 		// Don't put the camera inside a wall
+		var hit = mc.world.raycast(new net.minecraft.world.RaycastContext(target, from,
+				net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, e));
+		if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
+			var back = from.subtract(target).normalize();
+			from = hit.getPos().subtract(back.multiply(0.3));
+		}
+		var d = target.subtract(from);
+		float yaw = (float) (Math.toDegrees(Math.atan2(d.z, d.x)) - 90.0);
+		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
+		return new float[]{(float) from.x, (float) from.y, (float) from.z, yaw, pitch};
+	}
+
+	/** How far into the prototype portal cutscene this player is (only known for yourself), or -1. */
+	public static float portalTime(net.minecraft.entity.Entity e, float partial) {
+		if (!active || ClientGhost.cutsceneKind != 3 || e != MinecraftClient.getInstance().player) return -1f;
+		return com.phantompowers.DarkPowers.PORTAL_TICKS - ClientGhost.cutscene + partial;
+	}
+
+	/**
+	 * Portal cutscene camera: a side-on shot of you and the humming portal, slowly pushing in; a tight shot of your face
+	 * just before it fires; then a shaking wide shot as it blasts you backwards.
+	 */
+	private static float[] portalShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial) {
+		var look = net.minecraft.util.math.Vec3d.fromPolar(0, baseYaw);
+		var side = new net.minecraft.util.math.Vec3d(-look.z, 0, look.x);
+		var pos = e.getLerpedPos(partial);
+		var head = pos.add(0, e.getStandingEyeHeight(), 0);
+		var portal = anchor.add(look.multiply(2.3)).add(0, 0.6, 0);
+		float blast = com.phantompowers.DarkPowers.PORTAL_BLAST;
+		net.minecraft.util.math.Vec3d from, target;
+		if (t < blast - 8) {
+			var mid = head.add(0, -0.4, 0).lerp(portal, 0.5);
+			double dist = 4.8 - 1.2 * Math.min(1f, t / (blast - 8));
+			from = mid.add(side.multiply(dist)).add(look.multiply(-0.8)).add(0, 0.7, 0);
+			target = mid;
+		} else if (t < blast + 2) {
+			// close on your face from the portal's side: uh oh
+			from = head.add(look.multiply(1.5)).add(side.multiply(0.9)).add(0, 0.1, 0);
+			target = head;
+		} else {
+			float k = Math.min(1f, (t - blast - 2) / 10f);
+			var mid = head.add(0, -0.5, 0).lerp(portal, 0.35);
+			from = mid.add(side.multiply(3.2 + 1.6 * k)).add(look.multiply(-1.2 * k)).add(0, 0.6 + 0.4 * k, 0);
+			target = mid;
+			// camera shake from the blast
+			float shake = Math.max(0f, 1f - (t - blast) / 16f) * 0.18f;
+			from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.3) * shake, Math.sin(t * 5.1) * shake);
+		}
 		var hit = mc.world.raycast(new net.minecraft.world.RaycastContext(target, from,
 				net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, e));
 		if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
@@ -108,6 +170,36 @@ public final class ClientCutscene {
 		ctx.fill(0, 0, w, bar, 0xFF000000);
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 
+		if (ClientGhost.cutsceneKind == 3) {
+			float el = com.phantompowers.DarkPowers.PORTAL_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float blast = com.phantompowers.DarkPowers.PORTAL_BLAST;
+			String line;
+			int color = 0xFFFFFFFF;
+			float size = 1.6f;
+			if (el < 14) line = "A homemade ghost portal...";
+			else if (el < 30) line = "What does this switch do?";
+			else if (el < blast) {
+				line = "Uh... is it supposed to hum like that?";
+				// the screen starts to glow green as it charges
+				int a = (int) (60 * (el - 30) / (blast - 30));
+				ctx.fill(0, bar, w, h - bar, (Math.max(0, a) << 24) | 0x33FF77);
+			} else {
+				float k = el - blast;
+				// blinding green-white flash that fades out
+				int a = (int) (255 * Math.max(0f, 1f - k / 14f));
+				if (a > 0) ctx.fill(0, 0, w, h, (a << 24) | (k < 3 ? 0xEFFFF4 : 0x66FF99));
+				line = k < 16 ? "WHOAAA!" : "...ugh... my face...";
+				color = k < 16 ? 0xFF66FF99 : 0xFFB8FF60;
+				size = k < 16 ? 2.6f : 1.6f;
+			}
+			float jitter = el >= blast && el < blast + 16 ? (float) Math.sin(shown * 3.3) * 3f : 0f;
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f + jitter, h - bar / 2f - 6, 0);
+			ctx.getMatrices().scale(size, size, 1f);
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+			ctx.getMatrices().pop();
+			return;
+		}
 		if (ClientGhost.cutsceneKind == 2) {
 			// Wail finale: the screen pulses green while you scream, then fades as you drain
 			boolean screaming = ClientGhost.cutscene > 30;

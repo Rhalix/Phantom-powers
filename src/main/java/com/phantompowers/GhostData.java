@@ -36,6 +36,8 @@ public class GhostData {
 	public boolean loadoutInit;
 	/** The dark half-ghost: unlocked after the prototype portal's ecto acne wears off. Saved. */
 	public boolean dark;
+	public net.minecraft.util.math.Vec3d portalCenter;
+	public boolean missileAim;
 	/** Use the dark form when going ghost (can be switched in Ghost Skills). Saved. */
 	public boolean darkMode;
 	/** Ticks of ecto acne left. Saved. */

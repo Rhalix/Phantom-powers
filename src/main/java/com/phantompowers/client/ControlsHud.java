@@ -99,7 +99,7 @@ public final class ControlsHud {
 			lines.add(new Line(name(PhantomClient.SUIT), "suit on/off (hold: cutscene)"));
 			var pack = mc.player.getInventory().getArmorStack(2);
 			if (com.phantompowers.GhostFlags.CLIENT_SUITED.contains(mc.player.getUuid()) && !ClientGhost.transformed) {
-				if (com.phantompowers.HunterGear.hasMissiles(pack)) lines.add(new Line(name(PhantomClient.BLAST), "wrist missiles (homing)"));
+				if (com.phantompowers.HunterGear.hasMissiles(pack)) lines.add(new Line(name(PhantomClient.BLAST), "hold: aim wrist missiles, release: fire"));
 				if (com.phantompowers.HunterGear.hasCannons(pack)) lines.add(new Line(name(PhantomClient.WAIL), "backpack cannons on/off"));
 			}
 		}
