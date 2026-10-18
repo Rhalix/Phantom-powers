@@ -301,6 +301,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientGhostSense.clear();
 			ClientCutscene.reset(client);
 			SuitTextures.clear();
+			com.phantompowers.PortalSwirls.ACTIVE.clear();
 		});
 
 		// "Ghost Skills" tab on the inventory screen
@@ -325,6 +326,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientGhostSense.render(ctx);
 			ClientShockwaves.render(ctx);
 			ClientEntityFx.render(ctx);
+			PortalSwirlRenderer.render(ctx);
 		});
 		HudRenderCallback.EVENT.register(ClientCutscene::renderHud);
 		HudRenderCallback.EVENT.register(ClientGhostSense::renderHud);

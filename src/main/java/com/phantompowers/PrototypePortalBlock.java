@@ -49,6 +49,16 @@ public class PrototypePortalBlock extends HorizontalFacingBlock {
 		return state.get(FACING).getAxis() == Direction.Axis.Z ? NS : EW;
 	}
 
+	/** Keeps the little vortex in its frame swirling, with the odd spark. */
+	@Override
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, net.minecraft.util.math.random.Random random) {
+		Direction f = state.get(FACING);
+		net.minecraft.util.math.Vec3d along = f.getAxis() == Direction.Axis.Z ? new net.minecraft.util.math.Vec3d(1, 0, 0) : new net.minecraft.util.math.Vec3d(0, 0, 1);
+		PortalSwirls.report(net.minecraft.util.math.Vec3d.ofCenter(pos), along, 0.25, 0.375, true, world.getTime());
+		if (random.nextInt(3) == 0) world.addParticle(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK,
+				pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.6, pos.getY() + 0.9, pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.6, 0, 0.02, 0);
+	}
+
 	@Override
 	protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
 		if (world.isClient) return ActionResult.SUCCESS;

@@ -75,6 +75,7 @@ public class GhostPortalBlock extends Block {
 		boolean xAxis = state.get(AXIS) == Direction.Axis.X;
 		double cx = pos.getX() + 0.5, cy = pos.getY() + 0.5, cz = pos.getZ() + 0.5;
 		long t = world.getTime();
+		PortalSwirls.reportGhostPortal(world, pos, state, xAxis);
 		// Swirl: motes circling in the portal plane
 		for (int i = 0; i < 3; i++) {
 			double a = random.nextDouble() * Math.PI * 2;
