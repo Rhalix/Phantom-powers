@@ -468,8 +468,8 @@ public final class GhostPowers {
 
 	// ------------------------------------------------------- devoured essences
 
-	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4, ESS_WISH = 5, ESS_REV = 6, ESS_ROXY = 7, ESS_SHADE = 8;
-	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage", "Wishkeeper", "Rev", "Roxy", "Shade"};
+	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4, ESS_WISH = 5, ESS_REV = 6, ESS_ROXY = 7, ESS_SHADE = 8, ESS_DOLORA = 9;
+	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage", "Wishkeeper", "Rev", "Roxy", "Shade", "Dolora"};
 	public static final String[] ESSENCE_POWERS = {
 			"Strength and night vision",
 			"Constant healing",
@@ -479,7 +479,8 @@ public final class GhostPowers {
 			"Luck, and a free wish (a random blessing) every minute",
 			"Speed and fire immunity, and your hits set enemies ablaze with ghost-fire",
 			"Higher jumps, and your hits leave enemies lovestruck (slow and weak) while healing you",
-			"See in the dark, and your hits blind enemies and drain their life into you"};
+			"See in the dark, and your hits blind enemies and drain their life into you",
+			"Emotion feast: your hits drain your enemies' strength and feed you (healing and absorption)"};
 
 	public static void eatEssence(ServerPlayerEntity p, int power) {
 		GhostState st = GhostState.of(p.getServer());
@@ -555,6 +556,13 @@ public final class GhostPowers {
 			target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 60, 0), p);
 			p.heal(1.0f);
 			w.spawnParticles(ParticleTypes.HEART, target.getX(), target.getY() + target.getHeight(), target.getZ(), 3, 0.3, 0.2, 0.3, 0.05);
+		}
+		if ((d.eaten & (1 << ESS_DOLORA)) != 0) {
+			target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 80, 0), p);
+			p.heal(1.0f);
+			if (p.getAbsorptionAmount() < 6f) p.setAbsorptionAmount(Math.min(6f, p.getAbsorptionAmount() + 1f));
+			w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.65f, 0.4f, 1f), 1.2f),
+					target.getX(), target.getY() + 1, target.getZ(), 8, 0.3, 0.4, 0.3, 0.02);
 		}
 		if ((d.eaten & (1 << ESS_VOLTAGE)) != 0 && ++d.hitCount % 4 == 0) {
 			net.minecraft.entity.LightningEntity bolt = net.minecraft.entity.EntityType.LIGHTNING_BOLT.create(w);

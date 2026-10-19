@@ -72,6 +72,10 @@ public final class ModItems {
 					tooltip.add(net.minecraft.text.Text.literal("Unstable! Blasts whoever's in front of it...").formatted(net.minecraft.util.Formatting.DARK_GRAY));
 				}
 			});
+	public static final Item SORROW_LOCKET = Registry.register(Registries.ITEM, PhantomMod.id("sorrow_locket"),
+			new SorrowLocketItem(new Item.Settings().maxCount(1).maxDamage(120).rarity(Rarity.EPIC)));
+	public static final Item DOLORA_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("dolora_spawn_egg"),
+			new SpawnEggItem(ModEntities.DOLORA, 0x2E8080, 0x8A50E0, new Item.Settings()));
 	public static final Item DNA_SAMPLER = Registry.register(Registries.ITEM, PhantomMod.id("dna_sampler"),
 			new DnaSamplerItem(false, new Item.Settings().maxCount(16)));
 	public static final Item DNA_SAMPLE = Registry.register(Registries.ITEM, PhantomMod.id("dna_sample"),
@@ -126,7 +130,8 @@ public final class ModItems {
 			essence("wishkeeper_essence", GhostPowers.ESS_WISH, Rarity.EPIC),
 			essence("rev_essence", GhostPowers.ESS_REV, Rarity.EPIC),
 			essence("roxy_essence", GhostPowers.ESS_ROXY, Rarity.EPIC),
-			essence("shade_essence", GhostPowers.ESS_SHADE, Rarity.EPIC)};
+			essence("shade_essence", GhostPowers.ESS_SHADE, Rarity.EPIC),
+			essence("dolora_essence", GhostPowers.ESS_DOLORA, Rarity.EPIC)};
 
 	public static final Item WISHKEEPER_EGG = Registry.register(Registries.ITEM, PhantomMod.id("wishkeeper_spawn_egg"),
 			new SpawnEggItem(ModEntities.WISHKEEPER, 0x2FC9B8, 0xF2C230, new Item.Settings()));

@@ -83,6 +83,9 @@ public final class ModEntities {
 	public static final EntityType<com.phantompowers.entity.PlayerCloneEntity> PLAYER_CLONE = Registry.register(Registries.ENTITY_TYPE, PhantomMod.id("player_clone"),
 			EntityType.Builder.create(com.phantompowers.entity.PlayerCloneEntity::new, SpawnGroup.MISC).dimensions(0.6f, 1.8f).maxTrackingRange(10).build("player_clone"));
 
+	public static final EntityType<com.phantompowers.entity.DoloraEntity> DOLORA = Registry.register(Registries.ENTITY_TYPE, PhantomMod.id("dolora"),
+			EntityType.Builder.create(com.phantompowers.entity.DoloraEntity::new, SpawnGroup.MONSTER).dimensions(0.7f, 2.0f).maxTrackingRange(12).makeFireImmune().build("dolora"));
+
 	public static final EntityType<HostileGhostEntity> HOSTILE_GHOST = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("hostile_ghost"),
 			EntityType.Builder.create(HostileGhostEntity::new, SpawnGroup.MONSTER)
@@ -133,6 +136,7 @@ public final class ModEntities {
 	public static void init() {
 		FabricDefaultAttributeRegistry.register(HOSTILE_GHOST, HostileGhostEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(PLAYER_CLONE, com.phantompowers.entity.PlayerCloneEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(DOLORA, com.phantompowers.entity.DoloraEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(GHOUL, com.phantompowers.entity.GhoulEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(SPECTER_KNIGHT, com.phantompowers.entity.SpecterKnightEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(LOST_SOUL, com.phantompowers.entity.LostSoulEntity.createAttributes());

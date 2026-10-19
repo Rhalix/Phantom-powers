@@ -250,7 +250,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 
 	/** Tears fall from the sky: warning circles under everyone nearby, then a splash of sorrow. */
 	private void tearRain(ServerWorld w) {
-		List<PlayerEntity> ps = w.getPlayers(p -> p.squaredDistanceTo(this) < 28 * 28 && !p.isSpectator() && !p.isCreative());
+		List<ServerPlayerEntity> ps = w.getPlayers(p -> p.squaredDistanceTo(this) < 28 * 28 && !p.isSpectator() && !p.isCreative());
 		for (PlayerEntity p : ps) {
 			for (int i = 0; i < 3; i++) {
 				Vec3d at = BossMoves.ground(w, p.getPos().add(random.nextGaussian() * 2.5, 0, random.nextGaussian() * 2.5));
