@@ -72,6 +72,9 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,
 				(payload, context) -> context.server().execute(() -> GhostPowers.setSuitColors(context.player(), payload.colors())));
+		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.ClonePayload.ID, com.phantompowers.network.ClonePayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ClonePayload.ID,
+				(payload, context) -> context.server().execute(() -> CloningPodBlock.start(context.player(), payload.pos(), payload.female())));
 		ServerPlayNetworking.registerGlobalReceiver(SkillPayload.ID,
 				(payload, context) -> GhostPowers.handleAction(context.player(), payload.action()));
 
@@ -120,6 +123,7 @@ public class PhantomMod implements ModInitializer {
 			GhostZoneLife.tick(server);
 			com.phantompowers.entity.BossMoves.tick(server);
 			ThermosPrison.tick(server);
+			CloningPodBlock.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor

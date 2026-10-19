@@ -240,6 +240,37 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Zone test: OK (" + found + ")"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testdolora").executes(ctx -> {
+					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					BlockPos c = new BlockPos(60000, 120, -60000);
+					zone.getChunk(c.getX() >> 4, c.getZ() >> 4);
+					var dolora = com.phantompowers.world.GloomManor.build(zone, c, net.minecraft.util.math.random.Random.create(3));
+					var dummy = ModEntities.FRIENDLY_GHOST.create(zone);
+					boolean ok = dolora != null && dummy != null;
+					if (ok) {
+						dummy.refreshPositionAndAngles(c.getX() + 2.5, c.getY() + 1, c.getZ() + 2.5, 0, 0);
+						zone.spawnEntity(dummy);
+						dolora.testMoves(zone, dummy);
+						ok = dolora.phase() == com.phantompowers.entity.DoloraEntity.QUEEN && FrostLogic.isBoss(dolora);
+						dolora.discard();
+						dummy.discard();
+					}
+					// cloning: a clone can be created and set up
+					var clone = ModEntities.PLAYER_CLONE.create(zone);
+					ok &= clone != null;
+					if (clone != null) {
+						clone.setup(java.util.UUID.randomUUID(), "Tester", true);
+						ok &= clone.isFemale() && clone.getCustomName() != null;
+					}
+					ok &= ModBlocks.CLONING_POD.getDefaultState().contains(CloningPodBlock.ACTIVE);
+					if (!ok) {
+						ctx.getSource().sendError(Text.literal("Dolora test: FAILED"));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Dolora test: OK"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("testdark").executes(ctx -> {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;

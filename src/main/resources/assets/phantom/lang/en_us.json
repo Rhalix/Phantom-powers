@@ -115,5 +115,13 @@
   "item.phantom.ghoul_spawn_egg": "Ghoul Spawn Egg",
   "item.phantom.specter_knight_spawn_egg": "Specter Knight Spawn Egg",
   "item.phantom.lost_soul_spawn_egg": "Lost Soul Spawn Egg",
-  "item.phantom.ghost_yeti_spawn_egg": "Ghost Yeti Spawn Egg"
+  "item.phantom.ghost_yeti_spawn_egg": "Ghost Yeti Spawn Egg",
+  "block.phantom.cloning_pod": "Cloning Pod",
+  "item.phantom.dna_sampler": "DNA Sampler",
+  "item.phantom.dna_sample": "DNA Sample",
+  "entity.phantom.player_clone": "Clone",
+  "entity.phantom.dolora": "Dolora",
+  "item.phantom.dolora_essence": "Dolora's Essence",
+  "item.phantom.sorrow_locket": "Sorrow Locket",
+  "item.phantom.dolora_spawn_egg": "Dolora Spawn Egg"
 }

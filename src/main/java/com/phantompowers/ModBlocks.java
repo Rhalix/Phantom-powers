@@ -61,6 +61,12 @@ public final class ModBlocks {
 	public static final Item FROST_ECTO_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("frost_ecto"), new BlockItem(FROST_ECTO, new Item.Settings()));
 	public static final Item SPECTRAL_CRYSTAL_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("spectral_crystal"), new BlockItem(SPECTRAL_CRYSTAL, new Item.Settings()));
 
+	public static final Block CLONING_POD = Registry.register(Registries.BLOCK, PhantomMod.id("cloning_pod"),
+			new CloningPodBlock(AbstractBlock.Settings.create().mapColor(MapColor.IRON_GRAY).strength(3.0f, 6.0f).nonOpaque()
+					.luminance(state -> state.get(CloningPodBlock.ACTIVE) ? 13 : 4).sounds(BlockSoundGroup.METAL)));
+	public static final Item CLONING_POD_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("cloning_pod"),
+			new BlockItem(CLONING_POD, new Item.Settings().maxCount(1)));
+
 	public static final Item ECTO_STONE_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_stone"),
 			new BlockItem(ECTO_STONE, new Item.Settings()));
 	public static final Item ECTO_GRASS_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_grass"),

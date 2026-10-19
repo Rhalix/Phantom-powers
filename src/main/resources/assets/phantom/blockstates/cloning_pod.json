@@ -1,0 +1,34 @@
+{
+ "variants": {
+  "active=false,facing=north": {
+   "model": "phantom:block/cloning_pod"
+  },
+  "active=true,facing=north": {
+   "model": "phantom:block/cloning_pod_active"
+  },
+  "active=false,facing=south": {
+   "model": "phantom:block/cloning_pod",
+   "y": 180
+  },
+  "active=true,facing=south": {
+   "model": "phantom:block/cloning_pod_active",
+   "y": 180
+  },
+  "active=false,facing=west": {
+   "model": "phantom:block/cloning_pod",
+   "y": 270
+  },
+  "active=true,facing=west": {
+   "model": "phantom:block/cloning_pod_active",
+   "y": 270
+  },
+  "active=false,facing=east": {
+   "model": "phantom:block/cloning_pod",
+   "y": 90
+  },
+  "active=true,facing=east": {
+   "model": "phantom:block/cloning_pod_active",
+   "y": 90
+  }
+ }
+}
