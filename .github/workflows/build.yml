@@ -91,7 +91,7 @@ jobs:
             echo "execute in phantom:ghost_zone run summon phantom:wishkeeper 14 120 14" >&3
             echo "execute in phantom:ghost_zone run summon phantom:crate_king 20 120 20 {Health:120f}" >&3
             sleep 5
-            sleep 30
+            sleep 60
             echo "stop" >&3
             sleep 20
           fi
