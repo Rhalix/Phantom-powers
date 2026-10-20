@@ -43,6 +43,8 @@ jobs:
       - name: Test the mod in a real server
         shell: bash
         run: |
+          set +e
+          trap '' PIPE
           mkdir -p run
           echo "eula=true" > run/eula.txt
           printf "online-mode=false\nspawn-protection=0\n" > run/server.properties
@@ -123,6 +125,7 @@ jobs:
           grep -q "Room test: OK" server.log || { echo "Room test did not pass" >> problems.txt; grep -n -A3 "Room test\|testrooms" server.log >> problems.txt; ok=0; }
           if [ $ok != 1 ] || grep -qE "ERROR|Exception" problems.txt; then
             [ -s problems.txt ] || tail -80 server.log > problems.txt
+            { echo "--- crash / watchdog / end of log ---"; grep -nE "Watchdog|single server tick|Crash|crash-reports|Stopping server|OutOfMemory" server.log | head -10; tail -15 server.log; } >> problems.txt
             split -l 25 problems.txt sp_
             for f in sp_*; do
               msg=$(sed -e 's/%/%25/g' "$f" | awk '{printf "%s%%0A", $0}')
