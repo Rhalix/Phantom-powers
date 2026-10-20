@@ -53,6 +53,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	public ChefGhoulashEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
 		this.experiencePoints = 100;
+		makeWalker();   // she walks on two legs (and slips through walls now and then like any ghost)
 	}
 
 	public static DefaultAttributeContainer.Builder createAttributes() {
@@ -98,7 +99,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 		super.onTrackedDataSet(data);
 		if (MEAT.equals(data)) {
 			calculateDimensions();
-			if (meat() && !isWalker()) makeWalker();   // the Meat Monster stomps around on its ham-hock legs
+			if (!isWalker()) makeWalker();
 		}
 	}
 
@@ -165,7 +166,8 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 		dataTracker.set(POSE, smackAnim > 0 ? 100 + smackAnim : throwAnim);
 		if (dazed()) {
 			setTarget(null);
-			setVelocity(getVelocity().multiply(0.5).add(0, Math.sin(age * 0.15) * 0.01, 0));
+			setVelocity(getVelocity().multiply(0.5, 1, 0.5));
+			getNavigation().stop();
 			return;
 		}
 		if (!meat() && getHealth() <= getMaxHealth() * 0.5f) meatMonster(w);
@@ -181,7 +183,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 			Vec3d away = getPos().subtract(target.getPos()).multiply(1, 0, 1);
 			away = away.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : away.normalize();
 			away = away.rotateY((float) ((random.nextDouble() - 0.5) * 1.4));
-			Vec3d spot = clampToHome(target.getPos().add(away.multiply(close ? 2.0 : 7.0)).add(0, meat() ? 0 : close ? 0.2 : 1.5, 0));
+			Vec3d spot = clampToHome(target.getPos().add(away.multiply(close ? 2.0 : 7.0)).add(0, 0, 0));
 			getMoveControl().moveTo(spot.x, spot.y, spot.z, close ? 1.1 : 0.9);
 		}
 		if (--smackCooldown <= 0 && dist2 < (meat() ? 4.5 * 4.5 : 3.3 * 3.3)) {
