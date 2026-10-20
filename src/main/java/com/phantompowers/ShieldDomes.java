@@ -79,6 +79,12 @@ public final class ShieldDomes {
 		return DOMES.containsKey(id);
 	}
 
+	/** The dome (if any) this emitter is part of. */
+	public static Dome containing(ServerWorld w, BlockPos pos) {
+		for (Dome d : DOMES.values()) if (d.world.equals(w.getRegistryKey()) && d.emitters.contains(pos)) return d;
+		return null;
+	}
+
 	public static int count() {
 		return DOMES.size();
 	}

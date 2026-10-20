@@ -35,6 +35,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -89,6 +90,8 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		dataTracker.set(OWNER, Optional.of(owner));
 		dataTracker.set(FEMALE, female);
 		dataTracker.set(DARK, dark);
+		dataTracker.set(GHOST, true);
+		formHold = 100;
 		setCustomName(Text.literal(name + "'s " + (dark ? "Evil " : "") + "Clone"));
 	}
 
@@ -122,9 +125,24 @@ public class PlayerCloneEntity extends PathAwareEntity {
 	protected void initGoals() {
 		goalSelector.add(0, new SwimGoal(this));
 		goalSelector.add(1, new StayGoal());
-		goalSelector.add(2, new MeleeAttackGoal(this, 1.25, true));
+		goalSelector.add(2, new MeleeAttackGoal(this, 1.25, true) {
+			@Override
+			public boolean canStart() {
+				return !isGhostForm() && super.canStart();
+			}
+
+			@Override
+			public boolean shouldContinue() {
+				return !isGhostForm() && super.shouldContinue();
+			}
+		});
 		goalSelector.add(4, new FollowOwnerGoal());
-		goalSelector.add(6, new WanderAroundFarGoal(this, 0.8));
+		goalSelector.add(6, new WanderAroundFarGoal(this, 0.8) {
+			@Override
+			public boolean canStart() {
+				return !isGhostForm() && super.canStart();
+			}
+		});
 		goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 8f));
 		goalSelector.add(8, new LookAroundGoal(this));
 		targetSelector.add(1, new RevengeGoal(this));
@@ -147,40 +165,229 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		super.setTarget(target);
 	}
 
+	private int formHold, skills, meleeCooldown, frostCd = 60, wailCd = 120, stingCd = 80, spinCd = 160, tornadoCd = 200, invisCd;
+	private boolean ownerDark;
+
+	private boolean can(int skill) {
+		return (skills & (1 << skill)) != 0;
+	}
+
+	/** Evil powers if it was grown from evil DNA, or if its original is the evil half-ghost right now. */
+	private boolean evil() {
+		return isDark() || ownerDark;
+	}
+
+	private int color() {
+		return isDark() ? 0xFF4FC8 : 0x33FF77;
+	}
+
 	@Override
 	protected void mobTick() {
 		super.mobTick();
 		ServerWorld w = (ServerWorld) getWorld();
-		LivingEntity t = getTarget();
-		boolean ghost = t != null && t.isAlive();
-		if (ghost != isGhostForm()) {
-			dataTracker.set(GHOST, ghost);
-			w.spawnParticles(GhostPowers.GREEN, getX(), getY() + 1, getZ(), 20, 0.3, 0.6, 0.3, 0.02);
-			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, SoundCategory.NEUTRAL, 0.7f, 1.4f);
-		}
-		if (blastCooldown > 0) blastCooldown--;
-		if (t != null && blastCooldown == 0 && canSee(t)) {
-			double d = squaredDistanceTo(t);
-			if (d > 12 && d < 18 * 18) {
-				blastCooldown = 35;
-				Vec3d from = getEyePos().add(getRotationVector().multiply(0.5));
-				Vec3d to = t.getBoundingBox().getCenter();
-				BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) to.x, (float) to.y, (float) to.z, isDark() ? 0xFF4FC8 : 0x33FF77);
-				for (ServerPlayerEntity v : PlayerLookup.around(w, from, 64)) {
-					if (ServerPlayNetworking.canSend(v, BeamPayload.ID)) ServerPlayNetworking.send(v, beam);
-				}
-				t.damage(getDamageSources().indirectMagic(this, getOwner()), 5f);
-				w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.NEUTRAL, 0.6f, 1.6f);
-				getLookControl().lookAt(t);
-			}
-		}
 		LivingEntity o = getOwner();
+		// Copy the original: its powers, and whether it's in ghost form right now
+		if (o instanceof ServerPlayerEntity sp && age % 20 == 0) {
+			com.phantompowers.GhostData d = com.phantompowers.GhostState.of(sp.getServer()).data(sp.getUuid());
+			skills = d.unlocked | 1;
+			ownerDark = d.dark && d.darkMode;
+			if (formHold > 0) formHold = Math.max(0, formHold - 20);
+			else if (d.transformed != isGhostForm()) switchForm(w, d.transformed);
+		}
+		LivingEntity t = getTarget();
+		if (t != null && !t.isAlive()) setTarget(t = null);
+		if (meleeCooldown > 0) meleeCooldown--;
+		if (blastCooldown > 0) blastCooldown--;
+		if (frostCd > 0) frostCd--;
+		if (wailCd > 0) wailCd--;
+		if (stingCd > 0) stingCd--;
+		if (spinCd > 0) spinCd--;
+		if (tornadoCd > 0) tornadoCd--;
+		if (invisCd > 0) invisCd--;
+		setNoGravity(isGhostForm());
+		if (isGhostForm()) {
+			fallDistance = 0;
+			fly(o, t);
+			if (t != null) usePowers(w, t);
+		}
 		if (o != null && !isStaying() && squaredDistanceTo(o) > 32 * 32 && o.getWorld() == getWorld()) {
 			Vec3d at = o.getPos().add(o.getRotationVector().multiply(-2));
 			refreshPositionAndAngles(at.x, o.getY(), at.z, getYaw(), getPitch());
 			getNavigation().stop();
 		}
 		if (age % 80 == 0 && getHealth() < getMaxHealth()) heal(1f);
+	}
+
+	/** Going ghost (or back to human) along with the original: the same rings sweep over the clone. */
+	private void switchForm(ServerWorld w, boolean ghost) {
+		dataTracker.set(GHOST, ghost);
+		var ring = new com.phantompowers.network.RingPayload(getId(), 20, ghost ? 0 : 4);
+		for (ServerPlayerEntity v : PlayerLookup.around(w, getPos(), 96)) {
+			if (ServerPlayNetworking.canSend(v, com.phantompowers.network.RingPayload.ID)) ServerPlayNetworking.send(v, ring);
+		}
+		w.playSound(null, getX(), getY(), getZ(), ghost ? SoundEvents.BLOCK_BEACON_ACTIVATE : SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.NEUTRAL, 0.7f, 1.7f);
+		if (!ghost) {
+			setNoGravity(false);
+			setInvisible(false);
+		}
+	}
+
+	/** Ghost form flies: hovers beside you, follows you into the air, and swoops at whatever it's fighting. */
+	private void fly(LivingEntity o, LivingEntity t) {
+		getNavigation().stop();
+		Vec3d dest = null;
+		if (t != null) {
+			Vec3d away = getPos().subtract(t.getPos());
+			away = new Vec3d(away.x, 0, away.z);
+			away = away.lengthSquared() < 1e-3 ? new Vec3d(1, 0, 0) : away.normalize();
+			dest = t.getPos().add(away.multiply(1.6)).add(0, t.getHeight() * 0.25, 0);
+			getLookControl().lookAt(t, 30f, 30f);
+			if (squaredDistanceTo(t) < 4.5 && meleeCooldown == 0) {
+				meleeCooldown = 12;
+				swingHand(Hand.MAIN_HAND);
+				tryAttack(t);
+				if (can(com.phantompowers.GhostPowers.FISTS)) {
+					t.damage(getDamageSources().mobAttack(this), 3f);
+					((ServerWorld) getWorld()).spawnParticles(isDark() ? PINK : GhostPowers.GREEN, t.getX(), t.getY() + 1, t.getZ(), 10, 0.3, 0.3, 0.3, 0);
+				}
+			}
+		} else if (o != null && !isStaying() && o.getWorld() == getWorld()) {
+			float side = (getId() % 2 == 0 ? 120f : -120f);
+			Vec3d off = Vec3d.fromPolar(0, o.getYaw() + side).multiply(2.0);
+			dest = o.getPos().add(off).add(0, o.isOnGround() ? 0.3 : 0.2, 0);
+			if (squaredDistanceTo(o) < 64) getLookControl().lookAt(o, 10f, 10f);
+		}
+		Vec3d v = getVelocity();
+		if (dest != null) {
+			Vec3d d = dest.subtract(getPos());
+			double len = d.length();
+			Vec3d want = len > 0.25 ? d.multiply(Math.min(0.75, len * 0.2) / len) : Vec3d.ZERO;
+			v = v.lerp(want, 0.35);
+			if (len > 0.5) {
+				float yaw = (float) (MathHelper.atan2(d.z, d.x) * MathHelper.DEGREES_PER_RADIAN) - 90f;
+				if (t == null) setYaw(MathHelper.stepUnwrappedAngleTowards(getYaw(), yaw, 15f));
+			}
+		} else {
+			v = v.multiply(0.6);
+		}
+		v = v.add(0, MathHelper.sin(age * 0.15f) * 0.006, 0);
+		setVelocity(v);
+		bodyYaw = getYaw();
+		if (age % 3 == 0) ((ServerWorld) getWorld()).spawnParticles(isDark() ? PINK : GhostPowers.GREEN, getX(), getY() + 0.2, getZ(), 1, 0.15, 0.05, 0.15, 0);
+	}
+
+	private static final net.minecraft.particle.DustParticleEffect PINK = new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(1f, 0.31f, 0.78f), 1.3f);
+
+	private void beam(ServerWorld w, Vec3d from, Vec3d to, int color) {
+		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) to.x, (float) to.y, (float) to.z, color);
+		for (ServerPlayerEntity v : PlayerLookup.around(w, from, 64)) {
+			if (ServerPlayNetworking.canSend(v, BeamPayload.ID)) ServerPlayNetworking.send(v, beam);
+		}
+	}
+
+	/** The same powers as the original (whatever it has unlocked), hero or evil. */
+	private void usePowers(ServerWorld w, LivingEntity t) {
+		if (!canSee(t)) return;
+		double d = squaredDistanceTo(t);
+		Vec3d from = getEyePos().add(getRotationVector().multiply(0.5));
+		Vec3d to = t.getBoundingBox().getCenter();
+		float bonus = com.phantompowers.HunterSuit.ghostBonus(t);
+		// Dark: stinger dash and shock
+		if (evil() && can(com.phantompowers.GhostPowers.STINGER) && stingCd == 0 && d < 16 * 16) {
+			stingCd = 140;
+			Vec3d at = to.add(getPos().subtract(t.getPos()).normalize().multiply(1.2));
+			refreshPositionAndAngles(at.x, t.getY(), at.z, getYaw(), getPitch());
+			beam(w, getEyePos(), to, 0xFF4FC8);
+			t.damage(getDamageSources().indirectMagic(this, getOwner()), 7f * bonus);
+			t.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.SLOWNESS, 40, 2));
+			w.spawnParticles(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK, to.x, to.y, to.z, 25, 0.4, 0.6, 0.4, 0.3);
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_LIGHTNING_BOLT_IMPACT, SoundCategory.NEUTRAL, 0.6f, 1.6f);
+			return;
+		}
+		// Dark: spin, flinging everything nearby away
+		if (evil() && can(com.phantompowers.GhostPowers.SPIN) && spinCd == 0 && d < 9) {
+			spinCd = 260;
+			for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, getBoundingBox().expand(4.5), this::enemy)) {
+				e.damage(getDamageSources().mobAttack(this), 5f * com.phantompowers.HunterSuit.ghostBonus(e));
+				Vec3d push = e.getPos().subtract(getPos()).normalize();
+				e.takeKnockback(1.4, -push.x, -push.z);
+			}
+			w.spawnParticles(PINK, getX(), getY() + 1, getZ(), 60, 2, 0.6, 2, 0.1);
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_BREEZE_WIND_BURST.value(), SoundCategory.NEUTRAL, 0.8f, 0.8f);
+			return;
+		}
+		// Ghostly wail: a cone of sound that blasts enemies back
+		if (can(com.phantompowers.GhostPowers.WAIL) && wailCd == 0 && d < 8 * 8) {
+			wailCd = 280;
+			Vec3d dir = to.subtract(from).normalize();
+			BossMoves.send(w, new com.phantompowers.network.ShockwavePayload((float) from.x, (float) from.y, (float) from.z,
+					(float) dir.x, (float) dir.y, (float) dir.z, 9f, color(), 0));
+			for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, getBoundingBox().expand(9), this::enemy)) {
+				Vec3d to2 = e.getPos().subtract(getPos());
+				if (to2.normalize().dotProduct(dir) < 0.6) continue;
+				e.damage(getDamageSources().indirectMagic(this, getOwner()), 6f * com.phantompowers.HunterSuit.ghostBonus(e));
+				e.takeKnockback(1.6, -dir.x, -dir.z);
+			}
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.NEUTRAL, 0.6f, 1.6f);
+			return;
+		}
+		// Tornado: a whirlwind that drags enemies round and hurts them
+		if (can(com.phantompowers.GhostPowers.TORNADO) && tornadoCd == 0 && d < 12 * 12) {
+			tornadoCd = 360;
+			for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, t.getBoundingBox().expand(5), this::enemy)) {
+				Vec3d pull = t.getPos().subtract(e.getPos());
+				e.setVelocity(e.getVelocity().add(pull.multiply(0.15)).add(0, 0.6, 0));
+				e.velocityModified = true;
+				e.damage(getDamageSources().mobAttack(this), 4f);
+			}
+			w.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD, t.getX(), t.getY() + 1, t.getZ(), 50, 1.5, 1.5, 1.5, 0.15);
+			w.playSound(null, t.getX(), t.getY(), t.getZ(), SoundEvents.ENTITY_BREEZE_WHIRL, SoundCategory.NEUTRAL, 1f, 0.8f);
+			return;
+		}
+		// Ice beam
+		if (can(com.phantompowers.GhostPowers.FROST) && frostCd == 0 && d < 16 * 16) {
+			frostCd = 140;
+			beam(w, from, to, 0xAEEBFF);
+			t.damage(getDamageSources().freeze(), 4f * bonus);
+			t.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.SLOWNESS, 80, 3));
+			t.setFrozenTicks(Math.max(t.getFrozenTicks(), 200));
+			w.spawnParticles(net.minecraft.particle.ParticleTypes.SNOWFLAKE, to.x, to.y, to.z, 30, 0.4, 0.6, 0.4, 0.05);
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.NEUTRAL, 0.6f, 1.6f);
+			return;
+		}
+		// Ecto blast (everyone has this)
+		if (blastCooldown == 0 && d > 9 && d < 18 * 18) {
+			blastCooldown = 30;
+			beam(w, from, to, color());
+			t.damage(getDamageSources().indirectMagic(this, getOwner()), 5f * bonus);
+			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.NEUTRAL, 0.6f, 1.6f);
+		}
+	}
+
+	private boolean enemy(LivingEntity e) {
+		if (e == this || !e.isAlive() || e.getUuid().equals(ownerId())) return false;
+		if (e instanceof PlayerCloneEntity c && ownerId() != null && ownerId().equals(c.ownerId())) return false;
+		if (e instanceof PlayerEntity) return e == getTarget();
+		return e instanceof Monster || e == getTarget() || e instanceof AbstractGhostEntity;
+	}
+
+	@Override
+	public boolean damage(net.minecraft.entity.damage.DamageSource source, float amount) {
+		if (isGhostForm() && !getWorld().isClient) {
+			if (can(com.phantompowers.GhostPowers.INTANGIBLE) && random.nextFloat() < 0.2f) return false;  // phased right through it
+			if (can(com.phantompowers.GhostPowers.SHIELD)) amount *= 0.6f;
+			if (evil() && can(com.phantompowers.GhostPowers.ABSORB)) heal(amount * 0.25f);
+			if (can(com.phantompowers.GhostPowers.INVISIBLE) && invisCd == 0 && getHealth() - amount < getMaxHealth() * 0.4f) {
+				invisCd = 600;
+				addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.INVISIBILITY, 100, 0, false, false));
+			}
+		}
+		return super.damage(source, amount);
+	}
+
+	@Override
+	public boolean handleFallDamage(float fallDistance, float damageMultiplier, net.minecraft.entity.damage.DamageSource damageSource) {
+		return !isGhostForm() && super.handleFallDamage(fallDistance, damageMultiplier, damageSource);
 	}
 
 	@Override
@@ -215,6 +422,8 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		nbt.putBoolean("Female", isFemale());
 		nbt.putBoolean("Staying", isStaying());
 		nbt.putBoolean("DarkClone", isDark());
+		nbt.putBoolean("GhostForm", isGhostForm());
+		nbt.putInt("Skills", skills);
 	}
 
 	@Override
@@ -224,6 +433,8 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		dataTracker.set(FEMALE, nbt.getBoolean("Female"));
 		dataTracker.set(STAYING, nbt.getBoolean("Staying"));
 		dataTracker.set(DARK, nbt.getBoolean("DarkClone"));
+		dataTracker.set(GHOST, !nbt.contains("GhostForm") || nbt.getBoolean("GhostForm"));
+		skills = nbt.getInt("Skills");
 	}
 
 	// ---------------------------------------------------------------- goals
@@ -254,13 +465,13 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		@Override
 		public boolean canStart() {
 			LivingEntity o = getOwner();
-			return o != null && !isStaying() && getTarget() == null && squaredDistanceTo(o) > 25;
+			return o != null && !isGhostForm() && !isStaying() && getTarget() == null && squaredDistanceTo(o) > 25;
 		}
 
 		@Override
 		public boolean shouldContinue() {
 			LivingEntity o = getOwner();
-			return o != null && !isStaying() && getTarget() == null && squaredDistanceTo(o) > 6;
+			return o != null && !isGhostForm() && !isStaying() && getTarget() == null && squaredDistanceTo(o) > 6;
 		}
 
 		@Override

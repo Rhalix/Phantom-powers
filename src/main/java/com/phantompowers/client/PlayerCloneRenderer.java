@@ -26,17 +26,20 @@ import net.minecraft.util.math.MathHelper;
  * Your clone, grown from ghost DNA, so it always shows up in ghost form: shorter than you, with spiky 3D white
  * hair and glowing eyes. A girl clone has slim arms, a crop-top suit, silver sleeves and a swishing ponytail; a boy
  * clone has broad shoulders and a full jumpsuit with white gloves, belt and boots. Evil half-ghost DNA makes an
- * evil clone: black and hot pink with red eyes.
+ * evil clone: black and hot pink with red eyes. When you change back to human, so does the clone: a girl in a red
+ * beanie, blue hoodie, red shorts and sneakers with long dark wavy hair, or a boy in a red cap.
  */
 public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity, PlayerEntityModel<PlayerCloneEntity>> {
 	public static final EntityModelLayer HAIR_F = new EntityModelLayer(PhantomMod.id("clone_hair_female"), "main");
 	public static final EntityModelLayer HAIR_M = new EntityModelLayer(PhantomMod.id("clone_hair_male"), "main");
 	public static final EntityModelLayer GEAR_F = new EntityModelLayer(PhantomMod.id("clone_gear_female"), "main");
 	public static final EntityModelLayer GEAR_M = new EntityModelLayer(PhantomMod.id("clone_gear_male"), "main");
+	public static final EntityModelLayer HUMAN_F = new EntityModelLayer(PhantomMod.id("clone_human_female"), "main");
+	public static final EntityModelLayer HUMAN_M = new EntityModelLayer(PhantomMod.id("clone_human_male"), "main");
 	private static final Identifier HAIR_TEX_F = PhantomMod.id("textures/entity/clone_hair_female.png");
 	private static final Identifier HAIR_TEX_M = PhantomMod.id("textures/entity/clone_hair_male.png");
 	private final PlayerEntityModel<PlayerCloneEntity> wide, slim;
-	private final ModelPart hairF, hairM, gearF, gearM;
+	private final ModelPart hairF, hairM, gearF, gearM, humanF, humanM;
 
 	public PlayerCloneRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx, new PlayerEntityModel<>(ctx.getPart(EntityModelLayers.PLAYER), false), 0.4f);
@@ -46,11 +49,32 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 		this.hairM = ctx.getPart(HAIR_M);
 		this.gearF = ctx.getPart(GEAR_F);
 		this.gearM = ctx.getPart(GEAR_M);
+		this.humanF = ctx.getPart(HUMAN_F);
+		this.humanM = ctx.getPart(HUMAN_M);
+		// Human form: beanie (or cap), long wavy hair, hoodie with hood and pocket, sneakers
+		addFeature(new FeatureRenderer<>(this) {
+			@Override
+			public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, PlayerCloneEntity e,
+					float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
+				if (e.isGhostForm()) return;
+				ModelPart gear = e.isFemale() ? humanF : humanM;
+				PlayerEntityModel<PlayerCloneEntity> m = getContextModel();
+				gear.getChild("head").copyTransform(m.head);
+				gear.getChild("body").copyTransform(m.body);
+				gear.getChild("right_arm").copyTransform(m.rightArm);
+				gear.getChild("left_arm").copyTransform(m.leftArm);
+				gear.getChild("right_leg").copyTransform(m.rightLeg);
+				gear.getChild("left_leg").copyTransform(m.leftLeg);
+				Identifier tex = PhantomMod.id("textures/entity/clone_human_gear_" + (e.isFemale() ? "female" : "male") + ".png");
+				gear.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(tex)), light, OverlayTexture.DEFAULT_UV, -1);
+			}
+		});
 		// 3D gear: collar, raised glowing emblem, belt and buckle, shoulder pads, bracers, chunky boots
 		addFeature(new FeatureRenderer<>(this) {
 			@Override
 			public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, PlayerCloneEntity e,
 					float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
+				if (!e.isGhostForm()) return;
 				ModelPart gear = e.isFemale() ? gearF : gearM;
 				PlayerEntityModel<PlayerCloneEntity> m = getContextModel();
 				gear.getChild("body").copyTransform(m.body);
@@ -68,6 +92,7 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 			@Override
 			public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, PlayerCloneEntity e,
 					float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
+				if (!e.isGhostForm()) return;
 				float pulse = 0.8f + 0.2f * MathHelper.sin(age * 0.15f);
 				int c = (int) (255 * pulse);
 				getContextModel().render(matrices, consumers.getBuffer(RenderLayer.getEyes(glow(e))), 0xF000F0, OverlayTexture.DEFAULT_UV,
@@ -79,6 +104,7 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 			@Override
 			public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, PlayerCloneEntity e,
 					float limbAngle, float limbDistance, float tickDelta, float age, float headYaw, float headPitch) {
+				if (!e.isGhostForm()) return;
 				ModelPart hair = e.isFemale() ? hairF : hairM;
 				if (e.isFemale()) {
 					ModelPart tail = hair.getChild("pony");
@@ -309,6 +335,95 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 		return TexturedModelData.of(data, 64, 64);
 	}
 
+	public static TexturedModelData humanFemale() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData p_head = r.addChild("head", ModelPartBuilder.create()
+				.uv(36, 0).cuboid(-5f, -9.6f, -5f, 10f, 3f, 10f, new Dilation(-0.4f, -0.2f, -0.4f))
+				.uv(76, 0).cuboid(-5f, -7.5f, -5f, 10f, 2f, 10f, new Dilation(-0.2f, -0.3f, -0.2f))
+				.uv(0, 16).cuboid(-5f, -7f, 3.1f, 10f, 10f, 2f, new Dilation(-0.4f, 0f, -0.2f))
+				.uv(0, 0).cuboid(-5.3f, -6.5f, -3.25f, 2f, 9f, 7f, new Dilation(-0.4f, 0f, -0.25f))
+				.uv(18, 0).cuboid(3.3f, -6.5f, -3.25f, 2f, 9f, 7f, new Dilation(-0.4f, 0f, -0.25f))
+				.uv(58, 36).cuboid(-4.5f, 2.5f, 2.5f, 9f, 3f, 2f)
+				.uv(64, 16).cuboid(-5.6f, 1f, -1f, 2f, 4f, 4f, new Dilation(-0.4f, 0f, 0f))
+				.uv(76, 16).cuboid(3.6f, 1f, -1f, 2f, 4f, 4f, new Dilation(-0.4f, 0f, 0f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
+				.uv(40, 36).cuboid(-3.5f, -0.6f, 1.7f, 7f, 4f, 2f, new Dilation(-0.3f, -0.2f, -0.2f))
+				.uv(80, 36).cuboid(-2.5f, 6.4f, -2.75f, 5f, 4f, 1f, new Dilation(0f, -0.4f, -0.2f))
+				.uv(92, 36).cuboid(-1.05f, 0.6f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.2f, -0.25f))
+				.uv(96, 36).cuboid(0.05f, 0.4f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.4f, -0.25f))
+				.uv(88, 28).cuboid(-4.5f, 10.45f, -2.5f, 9f, 2f, 5f, new Dilation(-0.25f, -0.45f, -0.25f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
+				.uv(88, 16).cuboid(-2.5f, 7.5f, -2.5f, 4f, 3f, 5f, new Dilation(-0.2f, -0.4f, -0.2f)),
+				ModelTransform.of(-5f, 2f, 0f, 0f, 0f, 0f));
+		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
+				.uv(106, 16).cuboid(-1.5f, 7.5f, -2.5f, 4f, 3f, 5f, new Dilation(-0.2f, -0.4f, -0.2f)),
+				ModelTransform.of(5f, 2f, 0f, 0f, 0f, 0f));
+		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
+				.uv(0, 36).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
+				.uv(0, 28).cuboid(-2.5f, 9.15f, -2.5f, 5f, 3f, 5f, new Dilation(-0.1f, -0.45f, -0.1f))
+				.uv(100, 36).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
+				.uv(0, 43).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
+				.uv(20, 28).cuboid(-2.5f, 11.3f, -4.1f, 5f, 1f, 7f, new Dilation(0f, -0.2f, -0.4f))
+				.uv(24, 16).cuboid(-2.5f, -0.25f, -2.5f, 5f, 4f, 5f, new Dilation(-0.25f)),
+				ModelTransform.of(-1.9f, 12f, 0f, 0f, 0f, 0f));
+		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
+				.uv(20, 36).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
+				.uv(44, 28).cuboid(-2.5f, 9.15f, -2.5f, 5f, 3f, 5f, new Dilation(-0.1f, -0.45f, -0.1f))
+				.uv(114, 36).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
+				.uv(8, 43).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
+				.uv(64, 28).cuboid(-2.5f, 11.3f, -4.1f, 5f, 1f, 7f, new Dilation(0f, -0.2f, -0.4f))
+				.uv(44, 16).cuboid(-2.5f, -0.25f, -2.5f, 5f, 4f, 5f, new Dilation(-0.25f)),
+				ModelTransform.of(1.9f, 12f, 0f, 0f, 0f, 0f));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	public static TexturedModelData humanMale() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData p_head = r.addChild("head", ModelPartBuilder.create()
+				.uv(0, 0).cuboid(-5f, -9.6f, -5f, 10f, 3f, 10f, new Dilation(-0.4f, -0.2f, -0.4f))
+				.uv(40, 0).cuboid(-5f, -7.5f, -5f, 10f, 2f, 10f, new Dilation(-0.2f, -0.3f, -0.2f))
+				.uv(108, 30).cuboid(-4.5f, -7.4f, -4.7f, 9f, 2f, 1f, new Dilation(0f, -0.4f, 0f))
+				.uv(80, 0).cuboid(-4.7f, -7f, -4f, 1f, 3f, 8f)
+				.uv(98, 0).cuboid(3.7f, -7f, -4f, 1f, 3f, 8f)
+				.uv(18, 30).cuboid(-4.5f, -7f, 3.7f, 9f, 4f, 1f)
+				.uv(38, 30).cuboid(-3.5f, -7.4f, -8f, 7f, 1f, 4f, new Dilation(0f, -0.1f, -0.4f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
+				.uv(0, 30).cuboid(-3.5f, -0.6f, 1.7f, 7f, 4f, 2f, new Dilation(-0.3f, -0.2f, -0.2f))
+				.uv(60, 30).cuboid(-2.5f, 6.4f, -2.75f, 5f, 4f, 1f, new Dilation(0f, -0.4f, -0.2f))
+				.uv(72, 30).cuboid(-1.05f, 0.6f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.2f, -0.25f))
+				.uv(76, 30).cuboid(0.05f, 0.4f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.4f, -0.25f))
+				.uv(44, 22).cuboid(-4.5f, 10.45f, -2.5f, 9f, 2f, 5f, new Dilation(-0.25f, -0.45f, -0.25f)),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
+				.uv(40, 13).cuboid(-3.5f, 7.5f, -2.5f, 5f, 3f, 5f, new Dilation(-0.2f, -0.4f, -0.2f)),
+				ModelTransform.of(-5f, 2f, 0f, 0f, 0f, 0f));
+		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
+				.uv(60, 13).cuboid(-1.5f, 7.5f, -2.5f, 5f, 3f, 5f, new Dilation(-0.2f, -0.4f, -0.2f)),
+				ModelTransform.of(5f, 2f, 0f, 0f, 0f, 0f));
+		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
+				.uv(72, 22).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
+				.uv(80, 13).cuboid(-2.5f, 9.15f, -2.5f, 5f, 3f, 5f, new Dilation(-0.1f, -0.45f, -0.1f))
+				.uv(80, 30).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
+				.uv(0, 36).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
+				.uv(100, 13).cuboid(-2.5f, 11.3f, -4.1f, 5f, 1f, 7f, new Dilation(0f, -0.2f, -0.4f))
+				.uv(0, 13).cuboid(-2.5f, -0.25f, -2.5f, 5f, 4f, 5f, new Dilation(-0.25f)),
+				ModelTransform.of(-1.9f, 12f, 0f, 0f, 0f, 0f));
+		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
+				.uv(92, 22).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
+				.uv(0, 22).cuboid(-2.5f, 9.15f, -2.5f, 5f, 3f, 5f, new Dilation(-0.1f, -0.45f, -0.1f))
+				.uv(94, 30).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
+				.uv(8, 36).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
+				.uv(20, 22).cuboid(-2.5f, 11.3f, -4.1f, 5f, 1f, 7f, new Dilation(0f, -0.2f, -0.4f))
+				.uv(20, 13).cuboid(-2.5f, -0.25f, -2.5f, 5f, 4f, 5f, new Dilation(-0.25f)),
+				ModelTransform.of(1.9f, 12f, 0f, 0f, 0f, 0f));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
 	@Override
 	public void render(PlayerCloneEntity e, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider consumers, int light) {
 		this.model = e.isFemale() ? slim : wide;
@@ -334,6 +449,7 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 
 	@Override
 	public Identifier getTexture(PlayerCloneEntity e) {
+		if (!e.isGhostForm()) return PhantomMod.id("textures/entity/clone_human_" + (e.isFemale() ? "female" : "male") + ".png");
 		return PhantomMod.id("textures/entity/" + name(e) + ".png");
 	}
 

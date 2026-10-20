@@ -60,6 +60,33 @@ public class ShieldEmitterBlock extends Block {
 		super.onStateReplaced(state, world, pos, newState, moved);
 	}
 
+	/** No remote handy? Right-click an emitter with an empty hand to raise / drop a dome over every emitter nearby. */
+	@Override
+	protected net.minecraft.util.ActionResult onUse(BlockState state, World world, BlockPos pos, net.minecraft.entity.player.PlayerEntity player,
+			net.minecraft.util.hit.BlockHitResult hit) {
+		if (!player.getMainHandStack().isEmpty()) return net.minecraft.util.ActionResult.PASS;
+		if (!(world instanceof ServerWorld sw)) return net.minecraft.util.ActionResult.SUCCESS;
+		ShieldDomes.Dome up = ShieldDomes.containing(sw, pos);
+		if (up != null) {
+			ShieldDomes.lower(sw.getServer(), up.id, true);
+			player.sendMessage(Text.literal("Ecto-Shield down.").formatted(Formatting.YELLOW), true);
+			return net.minecraft.util.ActionResult.CONSUME;
+		}
+		List<BlockPos> found = new java.util.ArrayList<>();
+		BlockPos.Mutable m = new BlockPos.Mutable();
+		int r = 20;
+		for (int dx = -r; dx <= r && found.size() < ShieldDomes.MAX_EMITTERS; dx++)
+			for (int dy = -6; dy <= 6; dy++)
+				for (int dz = -r; dz <= r; dz++) {
+					m.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz);
+					if (sw.getBlockState(m).isOf(this) && found.size() < ShieldDomes.MAX_EMITTERS) found.add(m.toImmutable());
+				}
+		ShieldDomes.Dome d = ShieldDomes.raise(sw, pos.hashCode() | 1, found);
+		if (d != null) player.sendMessage(Text.literal("Ecto-Shield up! (" + d.emitters.size() + " emitters nearby, " + Math.round(d.radius)
+				+ " block radius). Right-click an emitter again, or use a Shield Remote, to drop it.").formatted(Formatting.GREEN), true);
+		return net.minecraft.util.ActionResult.CONSUME;
+	}
+
 	@Override
 	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
 		if (!state.get(ACTIVE)) {
@@ -74,6 +101,7 @@ public class ShieldEmitterBlock extends Block {
 	@Override
 	public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Text> tooltip, TooltipType options) {
 		tooltip.add(Text.literal("Place a few around your base (or just around you)").formatted(Formatting.GRAY));
-		tooltip.add(Text.literal("Right-click them with a Shield Remote to link").formatted(Formatting.DARK_GRAY));
+		tooltip.add(Text.literal("Right-click one (empty hand) to raise a dome over all emitters nearby").formatted(Formatting.DARK_GRAY));
+		tooltip.add(Text.literal("Or link them to a Shield Remote to switch it from anywhere").formatted(Formatting.DARK_GRAY));
 	}
 }

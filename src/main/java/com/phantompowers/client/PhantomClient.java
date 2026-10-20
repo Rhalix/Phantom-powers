@@ -273,6 +273,8 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.HAIR_M, PlayerCloneRenderer::hairMale);
 		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.GEAR_F, PlayerCloneRenderer::gearFemale);
 		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.GEAR_M, PlayerCloneRenderer::gearMale);
+		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.HUMAN_F, PlayerCloneRenderer::humanFemale);
+		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.HUMAN_M, PlayerCloneRenderer::humanMale);
 		EntityRendererRegistry.register(ModEntities.PLAYER_CLONE, PlayerCloneRenderer::new);
 		com.phantompowers.HunterWorkbenchBlock.openScreen = pos -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new WorkbenchScreen(pos));
 		PaintTextures.init();

@@ -187,6 +187,10 @@ public final class ModItems {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(e -> {
 			e.add(THERMOS);
 			e.add(HOVER_GLIDER);
+			e.add(SHIELD_REMOTE);
+			e.add(ModBlocks.SHIELD_EMITTER_ITEM);
+			e.add(ECTO_SKIMMER);
+			e.add(GHOST_PORTAL_KIT);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
 			e.add(HUNTER_SUIT);
