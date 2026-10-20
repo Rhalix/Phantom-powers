@@ -109,7 +109,7 @@ public final class ModEntities {
 	public static final EntityType<com.phantompowers.entity.SkimmerEntity> SKIMMER = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("ecto_skimmer"),
 			EntityType.Builder.<com.phantompowers.entity.SkimmerEntity>create(com.phantompowers.entity.SkimmerEntity::new, SpawnGroup.MISC)
-					.dimensions(2.6f, 2.0f).maxTrackingRange(12).build("ecto_skimmer"));
+					.dimensions(2.6f, 2.2f).maxTrackingRange(12).build("ecto_skimmer"));
 
 	public static final EntityType<CrateKingEntity> CRATE_KING = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("crate_king"),

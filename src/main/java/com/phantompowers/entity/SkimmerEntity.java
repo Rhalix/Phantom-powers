@@ -226,7 +226,7 @@ public class SkimmerEntity extends Entity {
 	}
 
 	/** Seat position in the ship's own frame: x = left, y = up, z = forward. */
-	private static final Vec3d SEAT = new Vec3d(0, 0.72, 0.18), SIDE = new Vec3d(2.3, 0.0, 0.3);
+	private static final Vec3d SEAT = new Vec3d(0, 0.78, 0.22), SIDE = new Vec3d(2.3, 0.0, 0.3);
 
 	@Override
 	protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
@@ -587,7 +587,7 @@ public class SkimmerEntity extends Entity {
 		float rad = -getYaw() * MathHelper.RADIANS_PER_DEGREE;
 		if (power > 0.05f) {
 			Vec3d back = new Vec3d(0, 0, -1).rotateY(rad);
-			Vec3d[] nozzles = {new Vec3d(0.31, 1.0, -1.95), new Vec3d(-0.31, 1.0, -1.95), new Vec3d(1.06, 0.88, -1.45), new Vec3d(-1.06, 0.88, -1.45)};
+			Vec3d[] nozzles = {new Vec3d(0.31, 1.12, -2.12), new Vec3d(-0.31, 1.12, -2.12), new Vec3d(0, 0.69, -2.0), new Vec3d(1.06, 0.88, -1.4), new Vec3d(-1.06, 0.88, -1.4)};
 			for (Vec3d n : nozzles) {
 				Vec3d at = getPos().add(n.rotateY(rad));
 				double sp = 0.05 + 0.25 * thrust;
