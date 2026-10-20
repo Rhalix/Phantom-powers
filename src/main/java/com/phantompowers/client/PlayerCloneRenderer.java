@@ -27,7 +27,7 @@ import net.minecraft.util.math.MathHelper;
  * hair and glowing eyes. A girl clone has slim arms, a crop-top suit, silver sleeves and a swishing ponytail; a boy
  * clone has broad shoulders and a full jumpsuit with white gloves, belt and boots. Evil half-ghost DNA makes an
  * evil clone: black and hot pink with red eyes. When you change back to human, so does the clone: a girl in a red
- * beanie, blue hoodie, red shorts and sneakers with long dark wavy hair, or a boy in a red cap.
+ * beanie, blue hoodie, red shorts and sneakers with long dark wavy hair, or a boy in the same outfit with messy dark hair.
  */
 public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity, PlayerEntityModel<PlayerCloneEntity>> {
 	public static final EntityModelLayer HAIR_F = new EntityModelLayer(PhantomMod.id("clone_hair_female"), "main");
@@ -386,18 +386,39 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 		ModelPartData p_head = r.addChild("head", ModelPartBuilder.create()
 				.uv(0, 0).cuboid(-5f, -9.6f, -5f, 10f, 3f, 10f, new Dilation(-0.4f, -0.2f, -0.4f))
 				.uv(40, 0).cuboid(-5f, -7.5f, -5f, 10f, 2f, 10f, new Dilation(-0.2f, -0.3f, -0.2f))
-				.uv(108, 30).cuboid(-4.5f, -7.4f, -4.7f, 9f, 2f, 1f, new Dilation(0f, -0.4f, 0f))
-				.uv(80, 0).cuboid(-4.7f, -7f, -4f, 1f, 3f, 8f)
-				.uv(98, 0).cuboid(3.7f, -7f, -4f, 1f, 3f, 8f)
-				.uv(18, 30).cuboid(-4.5f, -7f, 3.7f, 9f, 4f, 1f)
-				.uv(38, 30).cuboid(-3.5f, -7.4f, -8f, 7f, 1f, 4f, new Dilation(0f, -0.1f, -0.4f)),
+				.uv(32, 37).cuboid(-4.5f, -6.2f, -4.75f, 9f, 1f, 1f)
+				.uv(80, 0).cuboid(-5.3f, -6.5f, -4f, 2f, 4f, 8f, new Dilation(-0.4f, 0f, 0f))
+				.uv(100, 0).cuboid(3.3f, -6.5f, -4f, 2f, 4f, 8f, new Dilation(-0.4f, 0f, 0f))
+				.uv(44, 22).cuboid(-5f, -6.5f, 3.15f, 10f, 5f, 2f, new Dilation(-0.4f, 0f, -0.35f))
+				.uv(38, 30).cuboid(-5f, -2f, 1.8f, 10f, 2f, 3f, new Dilation(-0.3f, -0.2f, -0.4f)),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_tuft0 = p_head.addChild("tuft0", ModelPartBuilder.create()
+				.uv(14, 37).cuboid(-1f, -0.25f, -0.5f, 2f, 2f, 1f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(-3f, -5.6f, -4.9f, -0.45f, 0f, -0.6f));
+		ModelPartData p_tuft1 = p_head.addChild("tuft1", ModelPartBuilder.create()
+				.uv(20, 37).cuboid(-1f, -0.2f, -0.5f, 2f, 2f, 1f, new Dilation(0f, -0.2f, 0f)),
+				ModelTransform.of(-0.5f, -5.6f, -4.9f, -0.45f, 0f, 0.2f));
+		ModelPartData p_tuft2 = p_head.addChild("tuft2", ModelPartBuilder.create()
+				.uv(26, 37).cuboid(-1f, -0.3f, -0.5f, 2f, 2f, 1f, new Dilation(0f, -0.3f, 0f)),
+				ModelTransform.of(2.2f, -5.6f, -4.9f, -0.45f, 0f, 0.6f));
+		ModelPartData p_tuft3 = p_head.addChild("tuft3", ModelPartBuilder.create()
+				.uv(76, 30).cuboid(-0.5f, -0.25f, -0.5f, 1f, 3f, 1f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(-4.9f, -3f, -1f, 0f, 0f, 0.5f));
+		ModelPartData p_tuft4 = p_head.addChild("tuft4", ModelPartBuilder.create()
+				.uv(80, 30).cuboid(-0.5f, -0.25f, -0.5f, 1f, 3f, 1f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(4.9f, -3f, 0f, 0f, 0f, -0.5f));
+		ModelPartData p_tuft5 = p_head.addChild("tuft5", ModelPartBuilder.create()
+				.uv(84, 30).cuboid(-1f, -0.25f, -0.5f, 2f, 3f, 1f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(-2f, -2.5f, 4.4f, 0.5f, 0f, -0.3f));
+		ModelPartData p_tuft6 = p_head.addChild("tuft6", ModelPartBuilder.create()
+				.uv(90, 30).cuboid(-1f, -0.25f, -0.5f, 2f, 3f, 1f, new Dilation(0f, -0.25f, 0f)),
+				ModelTransform.of(2f, -2.5f, 4.4f, 0.5f, 0f, 0.3f));
 		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
-				.uv(0, 30).cuboid(-3.5f, -0.6f, 1.7f, 7f, 4f, 2f, new Dilation(-0.3f, -0.2f, -0.2f))
-				.uv(60, 30).cuboid(-2.5f, 6.4f, -2.75f, 5f, 4f, 1f, new Dilation(0f, -0.4f, -0.2f))
-				.uv(72, 30).cuboid(-1.05f, 0.6f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.2f, -0.25f))
-				.uv(76, 30).cuboid(0.05f, 0.4f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.4f, -0.25f))
-				.uv(44, 22).cuboid(-4.5f, 10.45f, -2.5f, 9f, 2f, 5f, new Dilation(-0.25f, -0.45f, -0.25f)),
+				.uv(20, 30).cuboid(-3.5f, -0.6f, 1.7f, 7f, 4f, 2f, new Dilation(-0.3f, -0.2f, -0.2f))
+				.uv(64, 30).cuboid(-2.5f, 6.4f, -2.75f, 5f, 4f, 1f, new Dilation(0f, -0.4f, -0.2f))
+				.uv(96, 30).cuboid(-1.05f, 0.6f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.2f, -0.25f))
+				.uv(100, 30).cuboid(0.05f, 0.4f, -2.85f, 1f, 3f, 1f, new Dilation(-0.25f, -0.4f, -0.25f))
+				.uv(68, 22).cuboid(-4.5f, 10.45f, -2.5f, 9f, 2f, 5f, new Dilation(-0.25f, -0.45f, -0.25f)),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
 				.uv(40, 13).cuboid(-3.5f, 7.5f, -2.5f, 5f, 3f, 5f, new Dilation(-0.2f, -0.4f, -0.2f)),
@@ -406,18 +427,18 @@ public class PlayerCloneRenderer extends LivingEntityRenderer<PlayerCloneEntity,
 				.uv(60, 13).cuboid(-1.5f, 7.5f, -2.5f, 5f, 3f, 5f, new Dilation(-0.2f, -0.4f, -0.2f)),
 				ModelTransform.of(5f, 2f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
-				.uv(72, 22).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
+				.uv(96, 22).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
 				.uv(80, 13).cuboid(-2.5f, 9.15f, -2.5f, 5f, 3f, 5f, new Dilation(-0.1f, -0.45f, -0.1f))
-				.uv(80, 30).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
-				.uv(0, 36).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
+				.uv(104, 30).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
+				.uv(52, 37).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
 				.uv(100, 13).cuboid(-2.5f, 11.3f, -4.1f, 5f, 1f, 7f, new Dilation(0f, -0.2f, -0.4f))
 				.uv(0, 13).cuboid(-2.5f, -0.25f, -2.5f, 5f, 4f, 5f, new Dilation(-0.25f)),
 				ModelTransform.of(-1.9f, 12f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
-				.uv(92, 22).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
+				.uv(0, 30).cuboid(-2.5f, 7.2f, -2.5f, 5f, 2f, 5f, new Dilation(-0.3f, -0.4f, -0.3f))
 				.uv(0, 22).cuboid(-2.5f, 9.15f, -2.5f, 5f, 3f, 5f, new Dilation(-0.1f, -0.45f, -0.1f))
-				.uv(94, 30).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
-				.uv(8, 36).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
+				.uv(0, 37).cuboid(-2.5f, 10f, -3.9f, 5f, 2f, 2f, new Dilation(-0.2f, -0.3f, -0.3f))
+				.uv(60, 37).cuboid(-1.5f, 9.4f, -2.6f, 3f, 1f, 1f, new Dilation(-0.1f, 0f, 0f))
 				.uv(20, 22).cuboid(-2.5f, 11.3f, -4.1f, 5f, 1f, 7f, new Dilation(0f, -0.2f, -0.4f))
 				.uv(20, 13).cuboid(-2.5f, -0.25f, -2.5f, 5f, 4f, 5f, new Dilation(-0.25f)),
 				ModelTransform.of(1.9f, 12f, 0f, 0f, 0f, 0f));
