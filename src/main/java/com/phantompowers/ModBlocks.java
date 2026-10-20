@@ -73,6 +73,12 @@ public final class ModBlocks {
 	public static final Item CLONING_POD_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("cloning_pod"),
 			new BlockItem(CLONING_POD, new Item.Settings().maxCount(1)));
 
+	public static final Block SHIELD_EMITTER = Registry.register(Registries.BLOCK, PhantomMod.id("shield_emitter"),
+			new ShieldEmitterBlock(AbstractBlock.Settings.create().mapColor(MapColor.IRON_GRAY).strength(2.0f, 6.0f).nonOpaque()
+					.luminance(state -> state.get(ShieldEmitterBlock.ACTIVE) ? 11 : 3).sounds(BlockSoundGroup.METAL)));
+	public static final Item SHIELD_EMITTER_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("shield_emitter"),
+			new BlockItem(SHIELD_EMITTER, new Item.Settings().maxCount(16)));
+
 	public static final Item ECTO_STONE_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_stone"),
 			new BlockItem(ECTO_STONE, new Item.Settings()));
 	public static final Item ECTO_GRASS_ITEM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_grass"),

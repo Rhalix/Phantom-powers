@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EAE",
+    "ANA",
+    "EAE"
+  ],
+  "key": {
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "phantom:skimmer_phase_drive",
+    "count": 1
+  }
+}

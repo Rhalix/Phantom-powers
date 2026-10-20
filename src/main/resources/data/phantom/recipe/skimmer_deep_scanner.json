@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "ECE",
+    "IRI"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:compass"
+    },
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "phantom:skimmer_deep_scanner",
+    "count": 1
+  }
+}

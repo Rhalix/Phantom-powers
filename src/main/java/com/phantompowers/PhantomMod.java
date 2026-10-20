@@ -68,6 +68,9 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShockwavePayload.ID, com.phantompowers.network.ShockwavePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.TornadoPayload.ID, com.phantompowers.network.TornadoPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.ShieldHitPayload.ID, com.phantompowers.network.ShieldHitPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.DomePayload.ID, com.phantompowers.network.DomePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.DomeHitPayload.ID, com.phantompowers.network.DomeHitPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.SkimmerRadarPayload.ID, com.phantompowers.network.SkimmerRadarPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,
@@ -128,11 +131,13 @@ public class PhantomMod implements ModInitializer {
 			com.phantompowers.entity.BossMoves.tick(server);
 			ThermosPrison.tick(server);
 			CloningPodBlock.tick(server);
+			ShieldDomes.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
 			if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) return true;
+			if (com.phantompowers.entity.SkimmerEntity.pilotProtected(entity, source)) return false;
 			return GhostPowers.allowDamage(entity, source);
 		});
 
@@ -162,6 +167,7 @@ public class PhantomMod implements ModInitializer {
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			GhostPowers.onServerStopping();
+			ShieldDomes.clearAll(server);
 			com.phantompowers.entity.BossMoves.restoreAll();
 			FrostLogic.clearAll();
 		});

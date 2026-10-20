@@ -35,8 +35,10 @@ public final class PortalSwirls {
 		s.center = center;
 		s.along = along;
 		s.normal = new Vec3d(-along.z, 0, along.x);
-		s.halfW = halfW;
-		s.halfH = halfH;
+		// clipped-corner openings measure differently from each block: keep the widest recent reading
+		boolean sameTick = s.halfW > 0 && time - s.seen < 60;
+		s.halfW = sameTick ? Math.max(s.halfW, halfW) : halfW;
+		s.halfH = sameTick ? Math.max(s.halfH, halfH) : halfH;
 		s.small = small;
 		s.seen = time;
 	}

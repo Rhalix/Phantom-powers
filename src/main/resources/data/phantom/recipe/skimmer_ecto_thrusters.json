@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IEI",
+    "IFI",
+    "B B"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "F": {
+      "item": "minecraft:firework_rocket"
+    },
+    "B": {
+      "item": "minecraft:blaze_powder"
+    }
+  },
+  "result": {
+    "id": "phantom:skimmer_ecto_thrusters",
+    "count": 1
+  }
+}

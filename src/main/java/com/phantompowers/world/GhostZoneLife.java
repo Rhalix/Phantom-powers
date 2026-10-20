@@ -137,6 +137,21 @@ public final class GhostZoneLife {
 
 	// ----------------------------------------------------------------- lairs
 
+	/** A ghost lair the Ecto-Skimmer's scanner can pick up. */
+	public record LairSignal(String name, BlockPos pos) {}
+
+	/** Every kind of lair nearest to this spot (doesn't build anything). */
+	public static java.util.List<LairSignal> lairSignals(ServerWorld zone, BlockPos near) {
+		java.util.List<LairSignal> out = new java.util.ArrayList<>();
+		out.add(new LairSignal("Ghost Prison", nearestPrison(zone, near)));
+		out.add(new LairSignal("Crate Keep", nearestCrateKeep(zone, near)));
+		out.add(new LairSignal("Concert Stage", nearestStage(zone, near)));
+		out.add(new LairSignal("Wish Palace", nearestPalace(zone, near)));
+		out.add(new LairSignal("Ghost Highway", nearestRoad(zone, near)));
+		out.add(new LairSignal("Gloom Manor", nearestManor(zone, near)));
+		return out;
+	}
+
 	/** The prison for the region this position is in (a random spot inside that region). */
 	public static BlockPos nearestPrison(ServerWorld zone, BlockPos pos) {
 		BlockPos best = null;

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FHF",
+    "F F",
+    "FHF"
+  ],
+  "key": {
+    "F": {
+      "item": "phantom:ghost_portal_frame"
+    },
+    "H": {
+      "item": "phantom:hazard_plating"
+    }
+  },
+  "result": {
+    "id": "phantom:ghost_portal_kit",
+    "count": 1
+  }
+}

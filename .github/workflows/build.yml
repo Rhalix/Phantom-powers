@@ -69,6 +69,7 @@ jobs:
             echo "execute in phantom:ghost_zone run summon phantom:friendly_ghost 2 120 0" >&3
             echo "execute in phantom:ghost_zone run summon phantom:ghost_jailer 4 120 0" >&3
             echo "execute in phantom:ghost_zone run summon phantom:hover_glider 6 120 0" >&3
+            echo "execute in phantom:ghost_zone run summon phantom:ecto_skimmer 9 120 0" >&3
             echo "phantom testcrate" >&3
             echo "phantom teststage" >&3
             echo "phantom breakout" >&3
@@ -78,6 +79,7 @@ jobs:
             echo "phantom testnet" >&3
             echo "phantom testdark" >&3
             echo "phantom testzone" >&3
+            echo "phantom testgear" >&3
             echo "phantom testdolora" >&3
             echo "phantom testbikers" >&3
             echo "phantom testfrost" >&3
@@ -110,6 +112,7 @@ jobs:
           grep -q "Dolora test: OK" server.log || { echo "Dolora test failed" >> problems.txt; grep -n -A5 "testdolora\|Dolora test" server.log >> problems.txt; ok=0; }
           grep -q "Zone test: OK" server.log || { echo "Zone test failed" >> problems.txt; grep -n -A3 "testzone\|Zone test" server.log >> problems.txt; ok=0; }
           grep -q "Dark test: OK" server.log || { echo "Dark test failed" >> problems.txt; grep -n -A3 "testdark\|Dark test" server.log >> problems.txt; ok=0; }
+          grep -q "Gear test: OK" server.log || { echo "Gear test failed" >> problems.txt; grep -n -A3 "testgear\|Gear test" server.log >> problems.txt; ok=0; }
           grep -q "Net test: OK" server.log || { echo "Net test failed" >> problems.txt; grep -n -A3 "testnet\|Net test" server.log >> problems.txt; ok=0; }
           grep -q "Thermos test: OK" server.log || { echo "Thermos test failed" >> problems.txt; grep -n -A3 "testthermos\|Thermos test" server.log >> problems.txt; ok=0; }
           grep -q "Palace test: OK" server.log || { echo "Palace test failed" >> problems.txt; grep -n -A3 "testpalace\|Palace test" server.log >> problems.txt; ok=0; }

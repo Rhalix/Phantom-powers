@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GEG",
+    "IHI",
+    "PDP"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "H": {
+      "item": "phantom:hover_glider"
+    },
+    "P": {
+      "item": "phantom:hazard_plating"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "phantom:ecto_skimmer",
+    "count": 1
+  }
+}

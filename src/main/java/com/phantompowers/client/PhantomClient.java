@@ -100,6 +100,8 @@ public class PhantomClient implements ClientModInitializer {
 			ClientRings.tick();
 			LookTransition.tick();
 			ClientTornado.tick(client);
+			ClientDomes.tick(client);
+			SkimmerHud.tick(client);
 			ClientShield.tick(client);
 			GhostTrail.tick(client);
 			FistGlowFeature.tick(client);
@@ -167,6 +169,12 @@ public class PhantomClient implements ClientModInitializer {
 					fireDelay = 6;
 				}
 			}
+			if (client.player.getVehicle() instanceof com.phantompowers.entity.SkimmerEntity && client.options.useKey.isPressed() && client.currentScreen == null) {
+				if (fireDelay <= 0) {
+					send(GhostPowers.A_SKIMMER_FIRE);
+					fireDelay = 5;
+				}
+			}
 			if (fireDelay > 0) fireDelay--;
 			while (TORNADO.wasPressed()) send(GhostPowers.A_TORNADO);
 			while (INVISIBLE.wasPressed()) send(GhostPowers.A_INVISIBLE);
@@ -218,6 +226,9 @@ public class PhantomClient implements ClientModInitializer {
 		});
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShieldHitPayload.ID, (payload, context) -> ClientShield.hit(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SkimmerRadarPayload.ID, (payload, context) -> SkimmerHud.update(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.DomePayload.ID, (payload, context) -> ClientDomes.update(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.DomeHitPayload.ID, (payload, context) -> ClientDomes.hit(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.TornadoPayload.ID, (payload, context) -> ClientTornado.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.EntityFxPayload.ID, (payload, context) -> ClientEntityFx.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShockwavePayload.ID, (payload, context) -> ClientShockwaves.add(payload));
@@ -230,6 +241,9 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.FRIENDLY_GHOST,
 				ctx -> new GhostRenderer<>(ctx, PhantomMod.id("textures/entity/friendly_ghost.png"), 0.9f));
 		EntityModelLayerRegistry.registerModelLayer(GliderModel.LAYER, GliderModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(SkimmerModel.LAYER, SkimmerModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.SKIMMER, SkimmerRenderer::new);
+		com.phantompowers.entity.SkimmerEntity.sendAction = PhantomClient::send;
 		EntityRendererRegistry.register(ModEntities.GLIDER, GliderRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(CrateKingModel.LAYER, CrateKingModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.CRATE_KING, CrateKingRenderer::new);
@@ -324,6 +338,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientRings.clear();
 			LookTransition.clear();
 			ClientTornado.clear();
+			ClientDomes.clear();
 			GhostFlags.CLIENT_FISTS.clear();
 			GhostFlags.CLIENT_SHIELDED.clear();
 			GhostFlags.CLIENT_SUIT_COLORS.clear();
@@ -359,6 +374,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientBeams.render(ctx);
 			ClientRings.render(ctx);
 			ClientTornado.render(ctx);
+			ClientDomes.render(ctx);
 			ClientShield.render(ctx);
 			GhostTrail.render(ctx);
 			ClientGhostSense.render(ctx);
@@ -372,6 +388,7 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(SuitTrackerHud::render);
 		HudRenderCallback.EVENT.register(BlasterScope::render);
 		HudRenderCallback.EVENT.register(MissileSight::render);
+		HudRenderCallback.EVENT.register(SkimmerHud::render);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

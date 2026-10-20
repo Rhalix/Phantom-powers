@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " E ",
+    "IRI",
+    "I I"
+  ],
+  "key": {
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "phantom:shield_emitter",
+    "count": 2
+  }
+}

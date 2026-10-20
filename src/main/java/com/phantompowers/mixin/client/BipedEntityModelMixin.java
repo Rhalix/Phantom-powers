@@ -39,6 +39,7 @@ public abstract class BipedEntityModelMixin {
 		if (!(entity instanceof PlayerEntity)) return;
 		if (entity.getVehicle() instanceof GliderEntity) phantom$gliderPose(age);
 		if (entity.getVehicle() instanceof com.phantompowers.entity.GhostBikeEntity) phantom$bikePose(age);
+		if (entity.getVehicle() instanceof com.phantompowers.entity.SkimmerEntity sk) phantom$skimmerPose(sk, age - (int) age, age);
 		if (com.phantompowers.client.GuitarFeature.guitarOf(entity) != null) phantom$guitarPose(entity, age);
 		float hero = com.phantompowers.client.ClientRings.transformProgress(entity.getId(), age - (int) age);
 		if (hero >= 0f) {
@@ -68,6 +69,27 @@ public abstract class BipedEntityModelMixin {
 		if (darkOff >= 0f) phantom$darkOffPose(darkOff, age);
 		float suitOff = com.phantompowers.client.ClientCutscene.offTime(entity, age - (int) age, 11);
 		if (suitOff >= 0f) phantom$suitOffPose(suitOff, age);
+	}
+
+	/** Ecto-Skimmer: vault over the side into the cockpit, then grab the twin control sticks. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$skimmerPose(com.phantompowers.entity.SkimmerEntity sk, float partial, float age) {
+		float seat = sk.seatProgress(partial);
+		float vault = seat < 1f ? MathHelper.sin(seat * MathHelper.PI) : 0f;
+		float fly = sk.enginePower(partial);
+		// hands on the sticks
+		rightArm.pitch = MathHelper.lerp(vault, -1.05f - 0.08f * MathHelper.sin(age * 0.2f) * fly, -2.7f);
+		leftArm.pitch = MathHelper.lerp(vault, -1.05f + 0.08f * MathHelper.sin(age * 0.2f) * fly, -2.7f);
+		rightArm.yaw = MathHelper.lerp(vault, 0.18f, -0.1f);
+		leftArm.yaw = MathHelper.lerp(vault, -0.18f, 0.1f);
+		rightArm.roll = 0f;
+		leftArm.roll = 0f;
+		if (vault > 0f) {
+			// knees tucked up as you hop the cockpit wall
+			rightLeg.pitch = MathHelper.lerp(vault, rightLeg.pitch, -2.0f);
+			leftLeg.pitch = MathHelper.lerp(vault, leftLeg.pitch, -1.7f);
+			body.pitch = 0.35f * vault;
+		}
 	}
 
 	/** Hero powering down: a big exhale, shoulders drop, then a relaxed stretch with one arm and a casual stance. */

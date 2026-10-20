@@ -91,6 +91,25 @@ public final class ModItems {
 	public static final Item BACKPACK_CANNONS = Registry.register(Registries.ITEM, PhantomMod.id("backpack_cannon_module"),
 			new UpgradeItem("cannons", new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
+	public static final Item SHIELD_REMOTE = Registry.register(Registries.ITEM, PhantomMod.id("shield_remote"),
+			new ShieldRemoteItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
+
+	public static final Item ECTO_SKIMMER = Registry.register(Registries.ITEM, PhantomMod.id("ecto_skimmer"),
+			new EctoSkimmerItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
+	public static final Item SKIMMER_CANNONS = skimmerUp("skimmer_plasma_cannons", com.phantompowers.entity.SkimmerEntity.UP_CANNONS,
+			"Plasma Wing Cannons", "Two extra beam cannons on the wings, and faster firing.");
+	public static final Item SKIMMER_THRUSTERS = skimmerUp("skimmer_ecto_thrusters", com.phantompowers.entity.SkimmerEntity.UP_THRUSTERS,
+			"Ecto-Thrusters", "Booster engines: 35% faster.");
+	public static final Item SKIMMER_SHIELD = skimmerUp("skimmer_ecto_shield", com.phantompowers.entity.SkimmerEntity.UP_SHIELD,
+			"Ecto-Shield", "Halves hull damage, protects the pilot, and lets you ram ghosts at speed.");
+	public static final Item SKIMMER_SCANNER = skimmerUp("skimmer_deep_scanner", com.phantompowers.entity.SkimmerEntity.UP_SCANNER,
+			"Deep Scanner", "Tracks every kind of ghost lair, plus ghosts nearby.");
+	public static final Item SKIMMER_PHASE = skimmerUp("skimmer_phase_drive", com.phantompowers.entity.SkimmerEntity.UP_PHASE,
+			"Phase Drive", "Boost to turn the ship intangible and fly straight through walls.");
+
+	public static final Item GHOST_PORTAL_KIT = Registry.register(Registries.ITEM, PhantomMod.id("ghost_portal_kit"),
+			new GhostPortalKitItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
+
 	public static final Item HOVER_GLIDER = Registry.register(Registries.ITEM, PhantomMod.id("hover_glider"),
 			new HoverGliderItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
@@ -139,6 +158,10 @@ public final class ModItems {
 			new SpawnEggItem(ModEntities.WISHKEEPER, 0x2FC9B8, 0xF2C230, new Item.Settings()));
 	public static final Item WISHING_LAMP = Registry.register(Registries.ITEM, PhantomMod.id("wishing_lamp"),
 			new WishingLampItem(new Item.Settings().maxDamage(30).rarity(Rarity.EPIC).fireproof()));
+
+	private static Item skimmerUp(String name, int bit, String title, String blurb) {
+		return Registry.register(Registries.ITEM, PhantomMod.id(name), new SkimmerUpgradeItem(bit, title, blurb, new Item.Settings().maxCount(16).rarity(Rarity.RARE)));
+	}
 
 	private static Item essence(String name, int power, Rarity rarity) {
 		return Registry.register(Registries.ITEM, PhantomMod.id(name), new EssenceItem(power, new Item.Settings().rarity(rarity)));

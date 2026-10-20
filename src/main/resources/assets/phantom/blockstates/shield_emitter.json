@@ -1,0 +1,10 @@
+{
+ "variants": {
+  "active=false": {
+   "model": "phantom:block/shield_emitter"
+  },
+  "active=true": {
+   "model": "phantom:block/shield_emitter_active"
+  }
+ }
+}

@@ -105,7 +105,7 @@ public final class GhostPowers {
 	public static final int A_TRANSFORM = 0, A_BLAST = 1, A_INTANGIBLE = 2, A_POSSESS = 3, A_WAIL = 4, A_TORNADO = 5,
 			A_INVISIBLE = 6, A_INTANGIBLE_RELEASE = 7, A_TRANSFORM_CUTSCENE = 8,
 			A_WAIL_RELEASE = 9, A_SUIT = 10, A_SUIT_CUTSCENE = 11, A_GLIDER_FIRE = 12,
-			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_CONSTRUCT = 20, A_SPIN = 21, A_STINGER = 22, A_ABSORB = 23, A_DARK_TOGGLE = 24, A_BLAST_RELEASE = 25, A_EQUIP = 500, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
+			A_FROST = 13, A_FROST_RELEASE = 14, A_STRUGGLE = 15, A_FISTS = 16, A_SHIELD = 17, A_SHIELD_RELEASE = 18, A_DUPLICATE = 19, A_CONSTRUCT = 20, A_SPIN = 21, A_STINGER = 22, A_ABSORB = 23, A_DARK_TOGGLE = 24, A_BLAST_RELEASE = 25, A_SKIMMER_FIRE = 26, A_SKIMMER_PHASE_ON = 27, A_SKIMMER_PHASE_OFF = 28, A_EQUIP = 500, A_UNLOCK = 100, A_SUIT_VARIANT = 300;
 
 	private static final float BLAST_COST = 12f;
 	private static final float PHASE_TARGET_COST = 25f;
@@ -165,6 +165,9 @@ public final class GhostPowers {
 			case A_SUIT -> { if (d.cutscene == 0) HunterSuit.toggle(p, d, true); }
 			case A_SUIT_CUTSCENE -> startSuitCutscene(p, d);
 			case A_GLIDER_FIRE -> { if (p.getVehicle() instanceof GliderEntity glider) glider.fire(p); }
+			case A_SKIMMER_FIRE -> { if (p.getVehicle() instanceof com.phantompowers.entity.SkimmerEntity sk) sk.fire(p); }
+			case A_SKIMMER_PHASE_ON -> { if (p.getVehicle() instanceof com.phantompowers.entity.SkimmerEntity sk) sk.setPhasing(true); }
+			case A_SKIMMER_PHASE_OFF -> { if (p.getVehicle() instanceof com.phantompowers.entity.SkimmerEntity sk) sk.setPhasing(false); }
 			case A_TORNADO -> { if (ready(p, d, st, TORNADO)) tornado(p, d); }
 			case A_INVISIBLE -> { if (ready(p, d, st, INVISIBLE)) toggleInvisible(p, d); }
 			case A_INTANGIBLE_RELEASE -> releaseHold(p, d, true);

@@ -126,5 +126,15 @@
   "item.phantom.dolora_spawn_egg": "Dolora Spawn Egg",
   "item.phantom.ecto_clear_cream": "Ecto-Clear Cream",
   "key.phantom.radar": "Radar (off / ghosts / mobs / both)",
-  "block.phantom.hunter_workbench": "Hunter Workbench"
+  "block.phantom.hunter_workbench": "Hunter Workbench",
+  "block.phantom.shield_emitter": "Ecto-Shield Emitter",
+  "item.phantom.shield_remote": "Shield Remote",
+  "item.phantom.ecto_skimmer": "Ecto-Skimmer",
+  "entity.phantom.ecto_skimmer": "Ecto-Skimmer",
+  "item.phantom.skimmer_plasma_cannons": "Skimmer Upgrade: Plasma Wing Cannons",
+  "item.phantom.skimmer_ecto_thrusters": "Skimmer Upgrade: Ecto-Thrusters",
+  "item.phantom.skimmer_ecto_shield": "Skimmer Upgrade: Ecto-Shield",
+  "item.phantom.skimmer_deep_scanner": "Skimmer Upgrade: Deep Scanner",
+  "item.phantom.skimmer_phase_drive": "Skimmer Upgrade: Phase Drive",
+  "item.phantom.ghost_portal_kit": "Ghost Portal Kit"
 }

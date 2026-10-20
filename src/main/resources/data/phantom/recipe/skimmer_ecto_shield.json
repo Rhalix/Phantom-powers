@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EDE",
+    "DSD",
+    "EDE"
+  ],
+  "key": {
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "S": {
+      "item": "minecraft:shield"
+    }
+  },
+  "result": {
+    "id": "phantom:skimmer_ecto_shield",
+    "count": 1
+  }
+}

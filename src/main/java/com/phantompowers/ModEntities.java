@@ -106,6 +106,11 @@ public final class ModEntities {
 			EntityType.Builder.<GliderEntity>create(GliderEntity::new, SpawnGroup.MISC)
 					.dimensions(1.6f, 0.3f).maxTrackingRange(10).build("hover_glider"));
 
+	public static final EntityType<com.phantompowers.entity.SkimmerEntity> SKIMMER = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("ecto_skimmer"),
+			EntityType.Builder.<com.phantompowers.entity.SkimmerEntity>create(com.phantompowers.entity.SkimmerEntity::new, SpawnGroup.MISC)
+					.dimensions(2.6f, 2.0f).maxTrackingRange(12).build("ecto_skimmer"));
+
 	public static final EntityType<CrateKingEntity> CRATE_KING = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("crate_king"),
 			EntityType.Builder.create(CrateKingEntity::new, SpawnGroup.MONSTER)

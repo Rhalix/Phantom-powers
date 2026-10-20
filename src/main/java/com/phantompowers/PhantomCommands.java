@@ -310,6 +310,50 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal("Dark test: OK"), false);
 					return 1;
 				}))
+				.then(CommandManager.literal("testgear").executes(ctx -> {
+					var server = ctx.getSource().getServer();
+					ServerWorld zone = server.getWorld(PortalLogic.GHOST_ZONE);
+					if (zone == null) return 0;
+					BlockPos o = new BlockPos(7000, 150, 7000);
+					zone.getChunk(o);
+					zone.getChunk(o.add(12, 0, 12));
+					java.util.List<BlockPos> ems = java.util.List.of(o, o.east(10), o.south(10));
+					for (BlockPos e : ems) zone.setBlockState(e, ModBlocks.SHIELD_EMITTER.getDefaultState(), net.minecraft.block.Block.NOTIFY_LISTENERS);
+					ShieldDomes.Dome d = ShieldDomes.raise(zone, 424242, ems);
+					boolean domeOk = d != null && d.radius > 6 && zone.getBlockState(o).get(ShieldEmitterBlock.ACTIVE) && ShieldDomes.isUp(424242);
+					boolean pushed = false;
+					if (d != null) {
+						var ghost = ModEntities.HOSTILE_GHOST.create(zone);
+						if (ghost != null) {
+							ghost.refreshPositionAndAngles(d.center.x, d.center.y + 2, d.center.z, 0, 0);
+							zone.spawnEntity(ghost);
+							ShieldDomes.tick(server);
+							pushed = ghost.getBoundingBox().getCenter().distanceTo(d.center) > d.radius;
+							ghost.discard();
+						}
+					}
+					ShieldDomes.lower(server, 424242, false);
+					boolean off = !zone.getBlockState(o).get(ShieldEmitterBlock.ACTIVE) && !ShieldDomes.isUp(424242);
+					for (BlockPos e : ems) zone.setBlockState(e, net.minecraft.block.Blocks.AIR.getDefaultState(), net.minecraft.block.Block.NOTIFY_LISTENERS);
+					var sk = ModEntities.SKIMMER.create(zone);
+					boolean skOk = false;
+					if (sk != null) {
+						sk.setUpgrades(com.phantompowers.entity.SkimmerEntity.UP_CANNONS | com.phantompowers.entity.SkimmerEntity.UP_SCANNER);
+						var item = sk.asItem();
+						skOk = item.isOf(ModItems.ECTO_SKIMMER) && sk.has(com.phantompowers.entity.SkimmerEntity.UP_SCANNER)
+								&& !sk.has(com.phantompowers.entity.SkimmerEntity.UP_PHASE) && sk.canopyOpen(0) == 0f && sk.seatProgress(0) == 1f;
+					}
+					int lairs = com.phantompowers.world.GhostZoneLife.lairSignals(zone, o).size();
+					int lab = 0;
+					for (int i = 1; i <= PortalLogic.LAB_W; i++) for (int j = 1; j <= PortalLogic.LAB_H; j++) if (PortalLogic.labOpening(i, j)) lab++;
+					String detail = "dome=" + domeOk + " pushed=" + pushed + " off=" + off + " skimmer=" + skOk + " lairs=" + lairs + " lab=" + lab;
+					if (!(domeOk && pushed && off && skOk && lairs == 6 && lab == 16)) {
+						ctx.getSource().sendError(Text.literal("Gear test: FAILED " + detail));
+						return 0;
+					}
+					ctx.getSource().sendFeedback(() -> Text.literal("Gear test: OK (" + detail + ")"), false);
+					return 1;
+				}))
 				.then(CommandManager.literal("testpalace").executes(ctx -> {
 					ServerWorld zone = ctx.getSource().getServer().getWorld(PortalLogic.GHOST_ZONE);
 					if (zone == null) return 0;

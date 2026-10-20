@@ -175,7 +175,7 @@ public final class PortalLogic {
 		if (scan.frame() == null) {
 			if (explainTo != null && !nearFrameBlocks(w, buttonPos) && nearOldFrame(w, buttonPos)) {
 				explainTo.sendMessage(Text.literal("Ghost Portal: the lab portal is now built from Ghost Portal Frame blocks (8 from iron, redstone and copper) "
-						+ "with optional Hazard Plating trim. Make a ring around an opening (2 wide and 3 tall is perfect, 1x2 is the smallest), then press a button inside it.")
+						+ "with optional Hazard Plating trim. Make a ring around an opening (the classic lab shape is 4 wide and 5 tall with the corners filled in; 1x2 is the smallest), then press a button inside it.")
 						.formatted(Formatting.YELLOW), false);
 				return null;
 			}
@@ -233,7 +233,7 @@ public final class PortalLogic {
 	public static int testPortal(ServerWorld w, BlockPos base) {
 		BlockPos.Mutable m = new BlockPos.Mutable();
 		for (int x = base.getX() - 1; x <= base.getX() + 8; x++)
-			for (int y = base.getY(); y <= base.getY() + 8; y++)
+			for (int y = base.getY(); y <= base.getY() + 9; y++)
 				for (int z = base.getZ() - 2; z <= base.getZ() + 2; z++) w.setBlockState(m.set(x, y, z), Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
 		Set<BlockPos> interior = buildLabPortal(w, base, Direction.Axis.X, Block.NOTIFY_LISTENERS, false);
 		BlockPos button = interior.stream().min((a, b) -> a.getY() != b.getY() ? a.getY() - b.getY() : a.getX() - b.getX()).orElseThrow();
@@ -242,16 +242,25 @@ public final class PortalLogic {
 		return f == null ? -1 : f.interior().size();
 	}
 
+	/** Opening of the lab portal: 4 wide, 5 tall, with the corners clipped off (the classic octagon-ish lab portal). */
+	public static final int LAB_W = 4, LAB_H = 5;
+
+	public static boolean labOpening(int i, int j) {
+		if (i < 1 || i > LAB_W || j < 1 || j > LAB_H) return false;
+		boolean edgeI = i == 1 || i == LAB_W, edgeJ = j == 1 || j == LAB_H;
+		return !(edgeI && edgeJ);
+	}
+
 	/**
-	 * The lab portal: a compact ring of Ghost Portal Frame with Hazard Plating along the bottom and top,
-	 * around a 2 wide, 3 tall opening. {@code base} is the bottom-left corner of the frame.
-	 * Returns the opening (filled with portal if {@code lit}).
+	 * The lab portal: a thick ring of Ghost Portal Frame with chamfered corners and Hazard Plating along the bottom
+	 * and top, around a 4 wide, 5 tall opening with clipped corners. {@code base} is the bottom-left corner of the
+	 * frame's bounding box. Returns the opening (filled with portal if {@code lit}).
 	 */
 	public static Set<BlockPos> buildLabPortal(ServerWorld w, BlockPos base, Direction.Axis axis, int flags, boolean lit) {
 		Set<BlockPos> interior = new HashSet<>();
 		Direction along = axis == Direction.Axis.X ? Direction.EAST : Direction.SOUTH;
-		for (int j = 1; j <= 3; j++)
-			for (int i = 1; i <= 2; i++) interior.add(base.offset(along, i).up(j).toImmutable());
+		for (int j = 1; j <= LAB_H; j++)
+			for (int i = 1; i <= LAB_W; i++) if (labOpening(i, j)) interior.add(base.offset(along, i).up(j).toImmutable());
 		BlockState frame = ModBlocks.PORTAL_FRAME.getDefaultState();
 		BlockState hazard = ModBlocks.HAZARD_PLATING.getDefaultState();
 		for (BlockPos ip : interior) {
@@ -260,7 +269,7 @@ public final class PortalLogic {
 					BlockPos n = ip.offset(along, di).up(dj);
 					if (interior.contains(n) || !w.getBlockState(n).isAir() && isFrame(w.getBlockState(n))) continue;
 					int j = n.getY() - base.getY();
-					w.setBlockState(n, (j == 0 || j == 4) ? hazard : frame, flags);
+					w.setBlockState(n, (j == 0 || j == LAB_H + 1) ? hazard : frame, flags);
 				}
 			}
 		}
@@ -429,6 +438,6 @@ public final class PortalLogic {
 			}
 		}
 		buildLabPortal(zone, new BlockPos(x0 - 1, y0, z0), Direction.Axis.X, flags, true);
-		return new Vec3d(x0 + 1.0, y0, z0 + 2.5);
+		return new Vec3d(x0 + 2.0, y0, z0 + 2.5);
 	}
 }
