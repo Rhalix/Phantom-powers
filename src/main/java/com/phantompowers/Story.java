@@ -137,17 +137,8 @@ public final class Story {
 		};
 	}
 
-	private static final java.util.Map<java.util.UUID, Integer> TRAVEL_COOLDOWN = new java.util.HashMap<>();
-
-	/** Fast travel to Amity Park (once a minute). */
+	/** Fast travel to Amity Park. */
 	public static void fastTravel(ServerPlayerEntity p) {
-		int now = p.getServer().getTicks();
-		Integer until = TRAVEL_COOLDOWN.get(p.getUuid());
-		if (until != null && now < until) {
-			p.sendMessage(Text.literal("Fast travel is recharging (" + ((until - now) / 20 + 1) + "s).").formatted(Formatting.RED), true);
-			return;
-		}
-		TRAVEL_COOLDOWN.put(p.getUuid(), now + 20 * 60);
 		BlockPos c = AmityPark.ensure(p.getServer());
 		Vec3d at = AmityPark.entrance(c);
 		ServerWorld ow = p.getServer().getOverworld();
