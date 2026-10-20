@@ -139,5 +139,13 @@
   "item.phantom.ghost_portal_kit": "Ghost Portal Kit",
   "key.phantom.cannon": "Backpack Cannons (deploy / fire in manual / sneak: stow)",
   "key.phantom.cannon_mode": "Backpack Cannons: Auto / Manual",
-  "item.phantom.ecto_sword": "Hunter Ecto Sword"
+  "item.phantom.ecto_sword": "Hunter Ecto Sword",
+  "item.phantom.ghost_core": "Ghost Core",
+  "item.phantom.spectral_shard": "Spectral Shard",
+  "item.phantom.phantom_heart": "Phantom Heart",
+  "key.phantom.slot1": "Power Slot 1",
+  "key.phantom.slot2": "Power Slot 2",
+  "key.phantom.slot3": "Power Slot 3",
+  "key.phantom.slot4": "Power Slot 4",
+  "key.phantom.menu": "Phantom Menu (story, party, slots)"
 }

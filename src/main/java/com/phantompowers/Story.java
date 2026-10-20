@@ -62,8 +62,8 @@ public final class Story {
 			case HUNTER -> new String[]{
 					"Head to the Ghost Lab house in Amity Park",
 					"Go down the stairs to the basement lab",
-					"Take the Ghost Hunter Suit from the gear locker and put it on",
-					"Suit up! (press U)",
+					"Build your own Ghost Hunter Suit: craft it from 7 iron, 2 white wool and 1 ectoplasm (there's ectoplasm in the lab's gear locker)",
+					"Wear the suit (chest slot) and suit up! (press U)",
 					"Ghosts broke out of the portal! Destroy 3 ghosts"};
 			default -> new String[0];
 		};
@@ -118,13 +118,12 @@ public final class Story {
 		d.storyCount = 0;
 		st.markDirty();
 		BlockPos c = AmityPark.ensure(p.getServer());
-		Vec3d at = AmityPark.entrance(c);
-		ServerWorld ow = p.getServer().getOverworld();
-		p.teleport(ow, at.x, at.y, at.z, -90f, 0f);
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
 		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(missionTitle(path, 1).replace(" (Dark Side)", "")).formatted(path == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
-		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Welcome to Amity Park").formatted(Formatting.GRAY)));
-		ow.playSound(null, at.x, at.y, at.z, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Head for Amity Park").formatted(Formatting.GRAY)));
+		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
+		p.sendMessage(Text.literal("Amity Park is at " + c.getX() + ", " + c.getZ() + " in the Overworld. The tracker shows the way, or fast travel there from the Phantom Menu (Story Mode).")
+				.formatted(Formatting.AQUA), false);
 		p.sendMessage(Text.literal("Story mode: " + PATHS[path] + " path").formatted(Formatting.GREEN, Formatting.BOLD), false);
 		p.sendMessage(Text.literal(intro(path)).formatted(Formatting.GRAY), false);
 		send(p, d, false);
@@ -132,10 +131,43 @@ public final class Story {
 
 	private static String intro(int path) {
 		return switch (path) {
-			case HUNTER -> "Amity Park is crawling with ghosts, and somebody has to stop them. The Ghost Lab has all the gear you need. Ghosts must die!";
+			case HUNTER -> "Amity Park is crawling with ghosts, and somebody has to stop them. Build yourself a hunter suit at the Ghost Lab. Ghosts must die!";
 			case EVIL -> "There's a prototype portal in the Ghost Lab basement. It's unstable. It's dangerous. It's exactly what you need...";
 			default -> "Your parents built a Ghost Portal in the basement of the Ghost Lab, but it doesn't work. Maybe you should take a look inside...";
 		};
+	}
+
+	private static final java.util.Map<java.util.UUID, Integer> TRAVEL_COOLDOWN = new java.util.HashMap<>();
+
+	/** Fast travel to Amity Park (once a minute). */
+	public static void fastTravel(ServerPlayerEntity p) {
+		int now = p.getServer().getTicks();
+		Integer until = TRAVEL_COOLDOWN.get(p.getUuid());
+		if (until != null && now < until) {
+			p.sendMessage(Text.literal("Fast travel is recharging (" + ((until - now) / 20 + 1) + "s).").formatted(Formatting.RED), true);
+			return;
+		}
+		TRAVEL_COOLDOWN.put(p.getUuid(), now + 20 * 60);
+		BlockPos c = AmityPark.ensure(p.getServer());
+		Vec3d at = AmityPark.entrance(c);
+		ServerWorld ow = p.getServer().getOverworld();
+		p.getServerWorld().spawnParticles(GhostPowers.GREEN, p.getX(), p.getY() + 1, p.getZ(), 40, 0.4, 0.8, 0.4, 0.05);
+		p.teleport(ow, at.x, at.y, at.z, -90f, 0f);
+		ow.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 40, 0.4, 0.8, 0.4, 0.05);
+		ow.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1.2f);
+		p.sendMessage(Text.literal("Welcome to Amity Park!").formatted(Formatting.GREEN), true);
+	}
+
+	/** "(312 blocks north-east)" toward the Ghost Lab, for the first objective. */
+	private static String direction(ServerPlayerEntity p) {
+		BlockPos c = AmityPark.state(p.getServer()).center;
+		if (p.getWorld() != p.getServer().getOverworld()) return " (it's in the Overworld)";
+		Vec3d to = AmityPark.labHouseDoor(c).subtract(p.getPos());
+		int dist = (int) Math.sqrt(to.x * to.x + to.z * to.z);
+		String[] dirs = {"south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"};
+		float yaw = (float) Math.toDegrees(Math.atan2(-to.x, to.z));
+		String dir = dirs[Math.floorMod(Math.round(yaw / 45f), 8)];
+		return " (" + dist + " blocks " + dir + ")";
 	}
 
 	// --------------------------------------------------------------- tick
@@ -153,7 +185,7 @@ public final class Story {
 				if (d.storyStep >= steps(d.storyPath).length) complete(p, d);
 				else stepStarted(p, d);
 				send(p, d, false);
-			} else if (server.getTicks() % 40 == 0) {
+			} else if (server.getTicks() % 20 == 0) {
 				send(p, d, false);
 			}
 		}
@@ -169,7 +201,7 @@ public final class Story {
 			default -> switch (d.storyPath) {
 				case HERO -> d.storyStep == 2 ? d.powers : d.storyStep == 3 ? d.transformed : p.getAbilities().flying && d.transformed;
 				case EVIL -> d.storyStep == 2 ? d.acneTicks > 0 || d.dark : d.storyStep == 3 ? d.dark && d.acneTicks <= 0 : d.dark && d.darkMode && d.transformed;
-				case HUNTER -> d.storyStep == 2 ? p.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.HUNTER_SUIT)
+				case HUNTER -> d.storyStep == 2 ? p.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.HUNTER_SUIT) || p.getInventory().contains(new ItemStack(ModItems.HUNTER_SUIT))
 						: d.storyStep == 3 ? d.suitOn : d.storyCount >= 3;
 				default -> false;
 			};
@@ -236,7 +268,9 @@ public final class Story {
 	public static void send(ServerPlayerEntity p, GhostData d, boolean openPicker) {
 		if (!ServerPlayNetworking.canSend(p, StoryPayload.ID)) return;
 		String[] s = steps(d.storyPath);
-		ServerPlayNetworking.send(p, new StoryPayload(openPicker, d.storyPath, missionTitle(d.storyPath, d.storyMission), objective(d),
+		String obj = objective(d);
+		if (d.storyPath != NONE && d.storyMission < DONE && d.storyStep == 0 && AmityPark.state(p.getServer()).built) obj += direction(p);
+		ServerPlayNetworking.send(p, new StoryPayload(openPicker, d.storyPath, missionTitle(d.storyPath, d.storyMission), obj,
 				Math.min(d.storyStep, s.length), s.length));
 	}
 }

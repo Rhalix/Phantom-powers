@@ -74,7 +74,7 @@ public final class GhostPowers {
 			CONSTRUCT = 10, SPIN = 11, STINGER = 12, ABSORB = 13;
 	public static final int SKILL_COUNT = 14;
 	/** How many powers fit in your loadout at once. */
-	public static final int LOADOUT_MAX = 6;
+	public static final int LOADOUT_MAX = Slots.COUNT;
 	public static final String[] NAMES = {"Ecto Blast", "Intangibility", "Possession", "Ghostly Wail", "Wail Tornado", "Invisibility", "Frost Breath", "Ecto Fists", "Ecto Shield", "Duplication",
 			"Ecto Constructs", "Tornado Spin", "Ghost Stinger", "Energy Absorption"};
 	public static final int[] COSTS = {0, 3, 5, 8, 12, 2, 6, 4, 6, 9, 8, 10, 7, 6};
@@ -200,7 +200,7 @@ public final class GhostPowers {
 		}
 		initLoadout(d);
 		if (!d.equipped(skill)) {
-			bar(p, NAMES[skill] + " isn't in your loadout. Equip it in Ghost Skills (K).", Formatting.YELLOW);
+			bar(p, NAMES[skill] + " isn't in a Power Slot. Put it in one from the Phantom Menu (Power Slots).", Formatting.YELLOW);
 			return false;
 		}
 		// Intangibility and invisibility work in human form too
@@ -233,7 +233,7 @@ public final class GhostPowers {
 		d.points -= COSTS[skill];
 		d.unlocked |= 1 << skill;
 		initLoadout(d);
-		if (Integer.bitCount(d.loadout) < LOADOUT_MAX) d.loadout |= 1 << skill;
+		Slots.autoAdd(d, skill);
 		st.markDirty();
 		p.sendMessage(Text.literal("New ghost power unlocked: " + NAMES[skill] + "!").formatted(Formatting.GREEN, Formatting.BOLD), false);
 		syncNow(p);
@@ -244,26 +244,17 @@ public final class GhostPowers {
 
 	/** First time: fill the loadout with the first powers you already have. */
 	public static void initLoadout(GhostData d) {
-		if (d.loadoutInit) return;
-		d.loadoutInit = true;
-		d.loadout = 0;
-		for (int i = 0; i < SKILL_COUNT && Integer.bitCount(d.loadout) < LOADOUT_MAX; i++) if (d.has(i)) d.loadout |= 1 << i;
+		if (!d.loadoutInit) {
+			d.loadoutInit = true;
+			d.loadout = 0;
+			for (int i = 0; i < SKILL_COUNT && Integer.bitCount(d.loadout) < LOADOUT_MAX; i++) if (d.has(i)) d.loadout |= 1 << i;
+		}
+		Slots.ensure(d);
 	}
 
 	private static void toggleEquip(ServerPlayerEntity p, GhostData d, int skill) {
 		initLoadout(d);
-		if (d.equipped(skill)) {
-			d.loadout &= ~(1 << skill);
-			bar(p, NAMES[skill] + " taken out of your loadout.", Formatting.GRAY);
-		} else if (!d.has(skill)) {
-			bar(p, "Unlock " + NAMES[skill] + " first.", Formatting.YELLOW);
-		} else if (Integer.bitCount(d.loadout) >= LOADOUT_MAX) {
-			bar(p, "Your loadout is full (" + LOADOUT_MAX + " powers). Take one out first.", Formatting.YELLOW);
-		} else {
-			d.loadout |= 1 << skill;
-			bar(p, NAMES[skill] + " equipped!", Formatting.GREEN);
-		}
-		syncNow(p);
+		Slots.toggle(p, d, skill);
 	}
 
 	/** The customizer sent new suit colours. */
@@ -1732,6 +1723,8 @@ public final class GhostPowers {
 
 	private static void sync(ServerPlayerEntity p, GhostData d) {
 		if (!ServerPlayNetworking.canSend(p, SyncPayload.ID)) return;
+		initLoadout(d);
+		Slots.send(p, d);
 		boolean intangible = d.intangible || GhostFlags.TEMP.containsKey(p.getUuid());
 		ServerPlayNetworking.send(p, new SyncPayload(d.powers, d.transformed, intangible, d.possessing != null, d.invisible,
 				d.energy, d.points, d.formTicks % POINT_TICKS, d.unlocked, d.wailCooldown, d.tornadoCooldown, d.exhaust, d.cutscene, d.cutsceneToGhost, level(d), d.cutsceneKind,

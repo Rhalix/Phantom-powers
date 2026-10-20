@@ -60,6 +60,16 @@ public final class PhantomCommands {
 	}
 
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+		dispatcher.register(CommandManager.literal("party")
+				.then(CommandManager.literal("invite").then(CommandManager.argument("player", net.minecraft.command.argument.EntityArgumentType.player())
+						.executes(ctx -> {
+							Party.handle(ctx.getSource().getPlayerOrThrow(), Party.INVITE,
+									net.minecraft.command.argument.EntityArgumentType.getPlayer(ctx, "player").getName().getString());
+							return 1;
+						})))
+				.then(CommandManager.literal("accept").executes(ctx -> { Party.handle(ctx.getSource().getPlayerOrThrow(), Party.ACCEPT, ""); return 1; }))
+				.then(CommandManager.literal("decline").executes(ctx -> { Party.handle(ctx.getSource().getPlayerOrThrow(), Party.DECLINE, ""); return 1; }))
+				.then(CommandManager.literal("leave").executes(ctx -> { Party.handle(ctx.getSource().getPlayerOrThrow(), Party.LEAVE, ""); return 1; })));
 		dispatcher.register(CommandManager.literal("story")
 				.executes(ctx -> {
 					Story.open(ctx.getSource().getPlayerOrThrow());
@@ -67,6 +77,10 @@ public final class PhantomCommands {
 				})
 				.then(CommandManager.literal("restart").executes(ctx -> {
 					Story.restart(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				}))
+				.then(CommandManager.literal("travel").executes(ctx -> {
+					Story.fastTravel(ctx.getSource().getPlayerOrThrow());
 					return 1;
 				})));
 		dispatcher.register(CommandManager.literal("phantom")
@@ -410,7 +424,14 @@ public final class PhantomCommands {
 						if (ow.getBlockState(q).isOf(ModBlocks.PORTAL_FRAME)) { frame = true; break; }
 					}
 					boolean story = Story.missionTitle(Story.HUNTER, 1).contains("Ghost Must Die") && Story.missionTitle(Story.HERO, 1).contains("Molecules");
-					boolean sword = ModItems.ECTO_SWORD != null && !EctoSwordItem.lit(new net.minecraft.item.ItemStack(ModItems.ECTO_SWORD));
+					boolean sword = ModItems.ECTO_SWORD != null && !EctoSwordItem.lit(new net.minecraft.item.ItemStack(ModItems.ECTO_SWORD))
+							&& HunterPaint.cost(3)[0][0] == ModItems.PHANTOM_HEART && HunterPaint.gadgetCost(1).length == 4
+							&& !Party.allies(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()) && Slots.GADGETS.length == 4;
+					GhostData td = new GhostData();
+					td.unlocked = 0b111;
+					td.loadout = 0b11;
+					Slots.ensure(td);
+					sword = sword && td.slots[0] == 0 && td.slots[1] == 1 && td.slots[2] == -1 && td.equipped(1);
 					String detail = "dome=" + domeOk + " pushed=" + pushed + " off=" + off + " skimmer=" + skOk + " lairs=" + lairs + " lab=" + lab
 							+ " amity=" + amity + " frame=" + frame + " story=" + story + " sword=" + sword;
 					if (!(domeOk && pushed && off && skOk && lairs == 6 && lab == 16 && amity && frame && story && sword)) {

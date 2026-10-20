@@ -104,7 +104,7 @@ public final class MissileSight {
 			String rng = String.format("%.1fm", target.distanceTo(mc.player));
 			ctx.drawTextWithShadow(mc.textRenderer, rng, cx + 30, cy + 2, dim);
 		}
-		String hint = "WRIST MISSILES  -  release [" + PhantomClient.keyName(PhantomClient.BLAST) + "] to fire";
+		String hint = "WRIST MISSILES  -  release [" + PhantomClient.keyName(PhantomClient.gadgetKey(com.phantompowers.Slots.G_MISSILES)) + "] to fire";
 		ctx.getMatrices().push();
 		ctx.getMatrices().translate(cx, cy + 34, 0);
 		ctx.getMatrices().scale(0.75f, 0.75f, 1f);

@@ -74,7 +74,7 @@ public final class HunterGear {
 			case "cannons" -> {
 				if (n.getBoolean("BackpackCannons")) return false;
 				n.putBoolean("BackpackCannons", true);
-				GhostPowers.bar(p, "Backpack cannons installed! With the suit on, press your Cannon key (,) to deploy them (. switches auto / manual).", Formatting.AQUA);
+				GhostPowers.bar(p, "Backpack cannons installed! With the suit on, press their Power Slot key to deploy them (gadget slots are in the Phantom Menu).", Formatting.AQUA);
 			}
 			default -> {
 				return false;
@@ -183,7 +183,7 @@ public final class HunterGear {
 		if (!d.cannons) {
 			toggleCannons(p, d);
 			if (d.cannons) GhostPowers.bar(p, d.cannonManual ? "Cannons out (MANUAL): press your Cannon key (,) to fire where you look. Sneak + , stows them."
-					: "Cannons out (AUTO): they lock onto ghosts and monsters. Press , to stow.", Formatting.AQUA);
+					: "Cannons out (AUTO): they lock onto ghosts and monsters. Press the key again to stow them.", Formatting.AQUA);
 			return;
 		}
 		if (d.cannonManual) manualFire(p, d);
@@ -192,7 +192,7 @@ public final class HunterGear {
 
 	public static void toggleCannonMode(ServerPlayerEntity p, GhostData d) {
 		d.cannonManual = !d.cannonManual;
-		GhostPowers.bar(p, "Backpack cannons: " + (d.cannonManual ? "MANUAL (press , to fire)" : "AUTO (they aim and fire themselves)"), Formatting.AQUA);
+		GhostPowers.bar(p, "Backpack cannons: " + (d.cannonManual ? "MANUAL (press the cannon key to fire)" : "AUTO (they aim and fire themselves)"), Formatting.AQUA);
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.6f, 1.6f);
 	}
 

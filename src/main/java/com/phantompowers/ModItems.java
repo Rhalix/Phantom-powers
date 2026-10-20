@@ -110,6 +110,11 @@ public final class ModItems {
 	public static final Item GHOST_PORTAL_KIT = Registry.register(Registries.ITEM, PhantomMod.id("ghost_portal_kit"),
 			new GhostPortalKitItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
 
+	/** Hunter Workbench upgrade materials. */
+	public static final Item GHOST_CORE = Registry.register(Registries.ITEM, PhantomMod.id("ghost_core"), new Item(new Item.Settings().rarity(Rarity.UNCOMMON)));
+	public static final Item SPECTRAL_SHARD = Registry.register(Registries.ITEM, PhantomMod.id("spectral_shard"), new Item(new Item.Settings().rarity(Rarity.UNCOMMON)));
+	public static final Item PHANTOM_HEART = Registry.register(Registries.ITEM, PhantomMod.id("phantom_heart"), new Item(new Item.Settings().rarity(Rarity.EPIC)));
+
 	public static final Item ECTO_SWORD = Registry.register(Registries.ITEM, PhantomMod.id("ecto_sword"),
 			new EctoSwordItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof()));
 

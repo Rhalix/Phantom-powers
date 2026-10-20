@@ -33,6 +33,9 @@ public class GhostData {
 	public int[] suitColors = SuitColors.CLASSIC.clone();
 	/** Powers equipped in the loadout (bitmask, at most LOADOUT_MAX). Saved. */
 	public int loadout;
+	/** Power Slots 1-4 (skill ids, -1 = empty) and hunter gadget slots. Saved. */
+	public int[] slots = {-1, -1, -1, -1};
+	public int[] gadgets = {0, 1, 2, 3};
 	public boolean loadoutInit;
 	/** The dark half-ghost: unlocked after the prototype portal's ecto acne wears off. Saved. */
 	public boolean dark;
@@ -108,6 +111,8 @@ public class GhostData {
 		n.putInt("suitVariant", suitVariant);
 		n.putIntArray("suitColors", suitColors);
 		n.putInt("loadout", loadout);
+		n.putIntArray("slots", slots);
+		n.putIntArray("gadgets", gadgets);
 		n.putBoolean("loadoutInit", loadoutInit);
 		n.putBoolean("dark", dark);
 		n.putBoolean("darkMode", darkMode);
@@ -146,6 +151,10 @@ public class GhostData {
 		int[] sc = n.getIntArray("suitColors");
 		if (sc.length == SuitColors.PARTS) d.suitColors = sc;
 		d.loadout = n.getInt("loadout");
+		int[] sl = n.getIntArray("slots");
+		if (sl.length == 4) d.slots = sl;
+		int[] ga = n.getIntArray("gadgets");
+		if (ga.length == 4) d.gadgets = ga;
 		d.loadoutInit = n.getBoolean("loadoutInit");
 		d.dark = n.getBoolean("dark");
 		d.darkMode = n.getBoolean("darkMode");

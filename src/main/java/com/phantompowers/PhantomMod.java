@@ -76,6 +76,11 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.StoryChoicePayload.ID, com.phantompowers.network.StoryChoicePayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.StoryChoicePayload.ID,
 				(payload, context) -> context.server().execute(() -> Story.choose(context.player(), payload.path())));
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.SlotsPayload.ID, com.phantompowers.network.SlotsPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.PartyPayload.ID, com.phantompowers.network.PartyPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.MenuActionPayload.ID, com.phantompowers.network.MenuActionPayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.MenuActionPayload.ID,
+				(payload, context) -> context.server().execute(() -> menuAction(context.player(), payload)));
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,
@@ -144,6 +149,7 @@ public class PhantomMod implements ModInitializer {
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
 			if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) return true;
 			if (com.phantompowers.entity.SkimmerEntity.pilotProtected(entity, source)) return false;
+			if (!Party.allowDamage(entity, source)) return false;
 			return GhostPowers.allowDamage(entity, source);
 		});
 
@@ -151,6 +157,7 @@ public class PhantomMod implements ModInitializer {
 			if (entity instanceof ServerPlayerEntity p) GhostPowers.onDeath(p);
 			GhostPowers.onAnyDeath(entity);
 			Story.onDeath(entity, source);
+			HunterPaint.dropMaterials(entity, source);
 		});
 
 		// Hits by players who ate ghost essences
@@ -175,8 +182,10 @@ public class PhantomMod implements ModInitializer {
 				else handler.player.sendMessage(net.minecraft.text.Text.literal("Type /story to start Story Mode!").formatted(net.minecraft.util.Formatting.GREEN), false);
 			});
 		});
-		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
-				GhostPowers.onLeave(handler.player));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			GhostPowers.onLeave(handler.player);
+			Party.onLeaveGame(handler.player);
+		});
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			GhostPowers.onServerStopping();
@@ -187,5 +196,23 @@ public class PhantomMod implements ModInitializer {
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
 				PhantomCommands.register(dispatcher));
+	}
+
+	private static void menuAction(ServerPlayerEntity p, com.phantompowers.network.MenuActionPayload a) {
+		switch (a.kind()) {
+			case 0 -> Party.handle(p, a.value(), a.text());
+			case 1 -> {
+				if (a.value() == 0) Story.open(p);
+				else if (a.value() == 1) Story.restart(p);
+				else if (a.value() == 2) Story.fastTravel(p);
+			}
+			case 2 -> {
+				GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+				int slot = a.value() / 64, what = a.value() % 64;
+				if ("hunter".equals(a.text())) Slots.assignGadget(p, d, slot, what);
+				else Slots.assign(p, d, slot, what == 63 ? -1 : what);
+			}
+			default -> {}
+		}
 	}
 }

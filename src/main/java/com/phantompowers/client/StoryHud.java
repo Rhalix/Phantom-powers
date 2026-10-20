@@ -22,6 +22,18 @@ public final class StoryHud {
 		if (p.openPicker()) MinecraftClient.getInstance().setScreen(new StoryScreen());
 	}
 
+	public static int path() {
+		return current == null ? 0 : current.path();
+	}
+
+	public static String title() {
+		return current == null ? "" : current.title();
+	}
+
+	public static String objective() {
+		return current == null ? "" : current.objective();
+	}
+
 	public static void clear() {
 		current = null;
 	}

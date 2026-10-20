@@ -25,17 +25,46 @@ public class StoryScreen extends Screen {
 
 	@Override
 	protected void init() {
+		if (StoryHud.path() != 0) {
+			initInfo();
+			return;
+		}
 		cw = Math.min(130, (width - 40) / 3);
 		ch = 150;
 		left = (width - (cw * 3 + 20)) / 2;
 		top = Math.max(40, (height - ch) / 2 + 10);
 		for (int i = 0; i < 3; i++) {
 			final int path = i + 1;
-			addDrawableChild(ButtonWidget.builder(Text.literal("Choose"), b -> {
+			addDrawableChild(new GhostlyUi.GhostButton(left + i * (cw + 10) + 10, top + ch - 28, cw - 20, 20, Text.literal("Choose"), b -> {
 				ClientPlayNetworking.send(new StoryChoicePayload(path));
 				close();
-			}).dimensions(left + i * (cw + 10) + 10, top + ch - 28, cw - 20, 20).build());
+			}, COLOR[i] & 0xFFFFFF));
 		}
+	}
+
+	private boolean confirmRestart;
+
+	/** Story already running: mission, objective, fast travel, restart. */
+	private void initInfo() {
+		cw = Math.min(300, width - 20);
+		ch = 170;
+		left = (width - cw) / 2;
+		top = (height - ch) / 2;
+		int acc = COLOR[StoryHud.path() - 1] & 0xFFFFFF;
+		addDrawableChild(new GhostlyUi.GhostButton(left + 14, top + ch - 56, cw - 28, 20, Text.literal("Fast travel to Amity Park"),
+				b -> { MenuNet.send(1, 2, ""); close(); }, acc));
+		addDrawableChild(new GhostlyUi.GhostButton(left + 14, top + ch - 30, 130, 20,
+				Text.literal(confirmRestart ? "Click again to restart" : "Restart story"), b -> {
+					if (confirmRestart) {
+						MenuNet.send(1, 1, "");
+						close();
+					} else {
+						confirmRestart = true;
+						clearChildren();
+						initInfo();
+					}
+				}, GhostlyUi.PINK));
+		addDrawableChild(new GhostlyUi.GhostButton(left + cw - 74, top + ch - 30, 60, 20, Text.literal("Back"), b -> close(), 0x8899AA));
 	}
 
 	@Override
@@ -47,15 +76,30 @@ public class StoryScreen extends Screen {
 	public void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {
 		super.renderBackground(ctx, mouseX, mouseY, delta);
 		float t = ticks + delta;
-		ctx.drawCenteredTextWithShadow(textRenderer, Text.literal("STORY MODE").formatted(net.minecraft.util.Formatting.BOLD), width / 2, top - 30, 0xFF66FF99);
+		if (StoryHud.path() != 0) {
+			int acc = COLOR[StoryHud.path() - 1] & 0xFFFFFF;
+			GhostlyUi.panel(ctx, left, top, cw, ch, acc);
+			GhostlyUi.title(ctx, textRenderer, "STORY MODE", left + cw / 2, top + 10, acc);
+			ctx.drawCenteredTextWithShadow(textRenderer, NAME[StoryHud.path() - 1] + " PATH", left + cw / 2, top + 24, 0xFF000000 | acc);
+			int ly = top + 42;
+			for (net.minecraft.text.OrderedText line : textRenderer.wrapLines(Text.literal(StoryHud.title()), cw - 24)) {
+				ctx.drawCenteredTextWithShadow(textRenderer, line, left + cw / 2, ly, 0xFFFFE680);
+				ly += 10;
+			}
+			ly += 4;
+			for (net.minecraft.text.OrderedText line : textRenderer.wrapLines(Text.literal("Objective: " + StoryHud.objective()), cw - 24)) {
+				ctx.drawCenteredTextWithShadow(textRenderer, line, left + cw / 2, ly, 0xFFE0F0EA);
+				ly += 10;
+			}
+			return;
+		}
+		GhostlyUi.title(ctx, textRenderer, "STORY MODE", width / 2, top - 30, GhostlyUi.GREEN);
 		ctx.drawCenteredTextWithShadow(textRenderer, "Choose your path. You can't change it without restarting the story.", width / 2, top - 16, 0xFFB0C8BC);
 		for (int i = 0; i < 3; i++) {
 			int x = left + i * (cw + 10), col = COLOR[i];
 			boolean hover = mouseX >= x && mouseX < x + cw && mouseY >= top && mouseY < top + ch;
-			int glow = hover ? 6 : 3;
-			for (int k = glow; k >= 1; k--) ctx.fill(x - k, top - k, x + cw + k, top + ch + k, ((0x12 * (glow + 1 - k)) << 24) | (col & 0xFFFFFF));
-			ctx.fillGradient(x, top, x + cw, top + ch, 0xF0101418, 0xF0060809);
-			ctx.fill(x, top, x + cw, top + 2, col);
+			GhostlyUi.panel(ctx, x, top, cw, ch, col & 0xFFFFFF);
+			if (hover) ctx.fill(x, top, x + cw, top + ch, 0x12FFFFFF);
 			// little animated emblem: a swirl of dots
 			int cx = x + cw / 2, cy = top + 28;
 			for (int d = 0; d < 10; d++) {

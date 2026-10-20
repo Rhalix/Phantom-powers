@@ -263,7 +263,7 @@ public final class AmityPark {
 			set(x1 - 1, lf + 2, z0 + 4, Blocks.BREWING_STAND.getDefaultState());
 			set(x1 - 1, lf + 2, z0 + 5, Blocks.TARGET.getDefaultState());
 			lockers(x0 + 6, lf + 1, z1 - 1);
-			sign(x0 + 7, lf + 2, z1 - 2, Direction.NORTH, true, "GEAR LOCKER", "Suit, blaster,", "ecto sword...", "Ghost hunters only");
+			sign(x0 + 7, lf + 2, z1 - 2, Direction.NORTH, true, "GEAR LOCKER", "Blaster, sword,", "ectoplasm...", "Ghost hunters only");
 			// stairs down (east side)
 			for (int i = 0; i < 8; i++) {
 				fill(x1 - 3, g - 1 - i, z1 - 2 - i, x1 - 2, g + 2 - i, z1 - 2 - i, Blocks.AIR.getDefaultState());
@@ -331,7 +331,7 @@ public final class AmityPark {
 			set(x, y, z, Blocks.CHEST.getDefaultState().with(ChestBlock.FACING, Direction.NORTH));
 			set(x + 3, y, z, Blocks.CHEST.getDefaultState().with(ChestBlock.FACING, Direction.NORTH));
 			if (w.getBlockEntity(c.add(x, y - g, z)) instanceof ChestBlockEntity ch) {
-				ch.setStack(4, new ItemStack(ModItems.HUNTER_SUIT));
+				ch.setStack(4, new ItemStack(ModItems.ECTOPLASM, 2));
 				ch.setStack(11, new ItemStack(ModItems.GHOST_BLASTER));
 				ch.setStack(13, new ItemStack(ModItems.ECTO_SWORD));
 				ch.setStack(15, new ItemStack(ModItems.THERMOS));

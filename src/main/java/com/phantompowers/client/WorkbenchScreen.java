@@ -26,7 +26,7 @@ public class WorkbenchScreen extends Screen {
 	private float hue = 0.55f, sat = 0.7f, val = 0.8f;
 	private int dragging;
 	private int sqX, sqY, sqW, sqH, hueY;
-	private ButtonWidget paintBtn, stripBtn, upgradeBtn;
+	private ButtonWidget paintBtn, stripBtn, upgradeBtn, missileBtn, cannonBtn;
 
 	public WorkbenchScreen(BlockPos pos) {
 		super(Text.literal("Hunter Workbench"));
@@ -63,6 +63,8 @@ public class WorkbenchScreen extends Screen {
 		paintBtn = addDrawableChild(ButtonWidget.builder(Text.literal("Paint it"), b -> send(0, color())).dimensions(sqX, by - 2, 74, 20).build());
 		stripBtn = addDrawableChild(ButtonWidget.builder(Text.literal("Factory finish"), b -> send(0, -1)).dimensions(sqX + 78, by - 2, Math.min(100, sqW - 78), 20).build());
 		upgradeBtn = addDrawableChild(ButtonWidget.builder(Text.literal("Upgrade"), b -> send(1, 0)).dimensions(left + 10, top + panelH - 28, 100, 20).build());
+		missileBtn = addDrawableChild(ButtonWidget.builder(Text.literal("+Missiles"), b -> send(2, 0)).dimensions(left + 114, top + panelH - 28, 70, 20).build());
+		cannonBtn = addDrawableChild(ButtonWidget.builder(Text.literal("+Cannons"), b -> send(2, 1)).dimensions(left + 188, top + panelH - 28, 70, 20).build());
 		addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close()).dimensions(left + panelW - 70, top + panelH - 28, 60, 20).build());
 	}
 
@@ -90,7 +92,16 @@ public class WorkbenchScreen extends Screen {
 		int tier = upgradable ? HunterPaint.tier(s) : 0;
 		upgradeBtn.active = upgradable && tier < HunterPaint.MAX_TIER;
 		upgradeBtn.setMessage(Text.literal(!upgradable ? "Upgrade" : tier >= HunterPaint.MAX_TIER ? "Maxed out" : "Upgrade to Lv " + (tier + 1)));
+		boolean suit = s.isOf(com.phantompowers.ModItems.HUNTER_SUIT);
+		missileBtn.visible = cannonBtn.visible = suit;
+		missileBtn.active = suit && !com.phantompowers.HunterGear.hasMissiles(s);
+		cannonBtn.active = suit && !com.phantompowers.HunterGear.hasCannons(s);
 		super.render(ctx, mouseX, mouseY, delta);
+		if (suit && (missileBtn.isHovered() || cannonBtn.isHovered())) {
+			int g = missileBtn.isHovered() ? 0 : 1;
+			ctx.drawTooltip(textRenderer, java.util.List.of(Text.literal(g == 0 ? "Build wrist missiles into the suit" : "Build backpack cannons into the suit"),
+					Text.literal("Cost: " + HunterPaint.costText(HunterPaint.gadgetCost(g))).formatted(net.minecraft.util.Formatting.GRAY)), mouseX, mouseY);
+		}
 		ctx.drawCenteredTextWithShadow(textRenderer, "HUNTER WORKBENCH", left + panelW / 2, top + 9, 0xFF66E0FF);
 
 		// big preview of the held item, wearing the colour you're about to paint
