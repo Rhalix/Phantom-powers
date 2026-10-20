@@ -34,7 +34,9 @@ public final class SuitTrackerHud {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		PlayerEntity me = mc.player;
 		if (me == null || mc.world == null || mc.options.hudHidden || mc.currentScreen != null || ClientGhost.cutscene > 0) return;
-		if (!GhostFlags.CLIENT_SUITED.contains(me.getUuid()) || GhostFlags.CLIENT_GHOSTS.contains(me.getUuid())) return;
+		// hunters in their suit, and half-ghosts in ghost form, get the radar (M switches it off / ghosts / mobs / both)
+		if (RadarSettings.mode() == RadarSettings.OFF) return;
+		if (!GhostFlags.CLIENT_SUITED.contains(me.getUuid()) && !GhostFlags.CLIENT_GHOSTS.contains(me.getUuid())) return;
 		float partial = counter.getTickDelta(true);
 
 		List<LivingEntity> found = new ArrayList<>();
@@ -42,7 +44,7 @@ public final class SuitTrackerHud {
 			if (!(e instanceof LivingEntity le) || e == me || !e.isAlive()) continue;
 			boolean ghost = e instanceof AbstractGhostEntity;
 			boolean ghostPlayer = e instanceof PlayerEntity && GhostFlags.CLIENT_GHOSTS.contains(e.getUuid());
-			if (!(ghost || ghostPlayer || e instanceof Monster)) continue;
+			if (!((ghost || ghostPlayer) && RadarSettings.ghosts() || e instanceof Monster && !ghost && RadarSettings.mobs())) continue;
 			if (e.squaredDistanceTo(me) > RANGE * RANGE) continue;
 			found.add(le);
 		}

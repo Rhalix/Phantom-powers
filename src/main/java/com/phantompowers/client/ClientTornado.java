@@ -41,7 +41,7 @@ public final class ClientTornado {
 	private static final float HEIGHT = 17f;
 	private static final int LAYERS = 30, SEGS = 36;
 	private static final DustParticleEffect GREEN = new DustParticleEffect(new Vector3f(0.3f, 1f, 0.5f), 1.6f);
-	private static final DustParticleEffect RED = new DustParticleEffect(new Vector3f(1f, 0.2f, 0.35f), 1.4f);
+	private static final DustParticleEffect RED = new DustParticleEffect(new Vector3f(1f, 0.31f, 0.78f), 1.4f);
 	private static final DustParticleEffect PALE = new DustParticleEffect(new Vector3f(0.85f, 1f, 0.9f), 1.2f);
 
 	private ClientTornado() {}
@@ -260,17 +260,17 @@ public final class ClientTornado {
 		}
 	}
 
-	// Dark Tornado: the same funnel in crimson
+	// Dark Tornado: the same funnel in hot pink
 	private static int tr(int r, int g) {
 		return darkNow ? g : r;
 	}
 
 	private static int tg(int r, int g) {
-		return darkNow ? (int) (r * 0.35f) : g;
+		return darkNow ? (int) (r * 0.6f) : g;
 	}
 
 	private static int tb(int b) {
-		return darkNow ? (int) (b * 0.6f) : b;
+		return darkNow ? Math.min(255, (int) (b * 1.3f)) : b;
 	}
 
 	/** A thin glowing strip between two points, drawn as a cross so it shows from any side. */

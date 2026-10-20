@@ -1,6 +1,7 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "phantom:item/hover_glider"
-  }
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "phantom:item/hover_glider",
+  "layer1": "phantom:item/hover_glider_paint"
+ }
 }

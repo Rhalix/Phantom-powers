@@ -84,14 +84,14 @@ public class GhostSkillsScreen extends Screen {
 	public void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {
 		super.renderBackground(ctx, mouseX, mouseY, delta);
 		boolean dark = ClientGhost.darkMode;
-		int edge = dark ? 0xFFFF3355 : 0xFF33FF77;
+		int edge = dark ? 0xFF1FE05A : 0xFF33FF77;
 		float t = ticks + delta;
 		// soft outer glow
 		for (int i = 4; i >= 1; i--) {
 			int a = 0x10 * (5 - i);
 			ctx.fill(left - i, top - i, left + panelW + i, top + panelH + i, a << 24 | (edge & 0xFFFFFF));
 		}
-		ctx.fillGradient(left, top, left + panelW, top + panelH, dark ? 0xF0180A10 : 0xF00A1A12, 0xF0050A08);
+		ctx.fillGradient(left, top, left + panelW, top + panelH, dark ? 0xF0041208 : 0xF00A1A12, 0xF0050A08);
 		// dripping ectoplasm along the top edge
 		ctx.fill(left, top, left + panelW, top + 2, edge);
 		for (int x = left + 6; x < left + panelW - 6; x += 9) {
@@ -107,7 +107,7 @@ public class GhostSkillsScreen extends Screen {
 			float life = (w[1] - top) / panelH;
 			int a = (int) (110 * life);
 			int s = (int) w[3];
-			ctx.fill((int) wx, (int) w[1], (int) wx + s, (int) w[1] + s, a << 24 | (dark ? 0xFF8899 : 0xA0FFC8));
+			ctx.fill((int) wx, (int) w[1], (int) wx + s, (int) w[1] + s, a << 24 | (dark ? 0x6CFF6C : 0xA0FFC8));
 		}
 	}
 
@@ -119,7 +119,7 @@ public class GhostSkillsScreen extends Screen {
 		TextRenderer tr = textRenderer;
 		float t = ticks + delta;
 		boolean dark = ClientGhost.darkMode;
-		int accent = dark ? 0xFFFF5577 : 0xFF66FF99;
+		int accent = dark ? 0xFF8CFF4A : 0xFF66FF99;
 
 		// wavering title
 		String title = dark ? "DARK GHOST SKILLS" : "GHOST SKILLS";
@@ -174,10 +174,10 @@ public class GhostSkillsScreen extends Screen {
 			boolean on = ClientGhost.equipped(i);
 			boolean darkLocked = GhostPowers.darkOnly(i) && !ClientGhost.dark;
 			boolean rowHover = mouseX >= left + 6 && mouseX < left + panelW - 6 && mouseY >= Math.max(y, y0) && mouseY < Math.min(y + ROW_H - 2, y1);
-			int bg = on ? (dark ? 0x60401020 : 0x60104020) : 0x40000000;
+			int bg = on ? (dark ? 0x6014501E : 0x60104020) : 0x40000000;
 			if (rowHover) bg += 0x18000000;
 			ctx.fill(left + 6, y, left + panelW - 6, y + ROW_H - 2, bg);
-			ctx.fill(left + 6, y, left + 8, y + ROW_H - 2, has ? (GhostPowers.darkOnly(i) ? 0xFFFF3355 : 0xFF3FD978) : 0xFF3A403C);
+			ctx.fill(left + 6, y, left + 8, y + ROW_H - 2, has ? (GhostPowers.darkOnly(i) ? 0xFFFF4FC8 : 0xFF3FD978) : 0xFF3A403C);
 
 			// right-side button
 			int bw = 62, bx = left + panelW - 12 - bw, byy = y + 5;
@@ -192,7 +192,7 @@ public class GhostSkillsScreen extends Screen {
 				bc = afford && ClientGhost.powers ? 0xFF2A8A50 : 0xFF2E3431;
 			} else {
 				label = on ? "Equipped" : "Equip";
-				bc = on ? (dark ? 0xFFB02844 : 0xFF2FB866) : 0xFF35503F;
+				bc = on ? (dark ? 0xFF22A83C : 0xFF2FB866) : 0xFF35503F;
 			}
 			boolean bHover = mouseX >= bx && mouseX < bx + bw && mouseY >= byy && mouseY < byy + 18 && mouseY >= y0 && mouseY < y1;
 			ctx.fill(bx, byy, bx + bw, byy + 18, bHover ? 0xFFE0FFE8 : 0xFF0A100C);
@@ -202,7 +202,7 @@ public class GhostSkillsScreen extends Screen {
 			// name + key, then a one-line description that's trimmed to fit (full text in the tooltip)
 			int textW = bx - (left + 14) - 6;
 			String name = GhostPowers.NAMES[i] + "  [" + PhantomClient.keyName(keys[i]) + "]";
-			int nameColor = has ? (GhostPowers.darkOnly(i) ? 0xFFFF7790 : 0xFF7DFFA8) : 0xFFBBBBBB;
+			int nameColor = has ? (GhostPowers.darkOnly(i) ? 0xFFFF7FD8 : 0xFF7DFFA8) : 0xFFBBBBBB;
 			ctx.drawTextWithShadow(tr, tr.trimToWidth(name, textW), left + 14, y + 5, nameColor);
 			String desc = GhostPowers.DESCRIPTIONS[i];
 			int descW = (int) (textW / 0.75f);

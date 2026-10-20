@@ -38,6 +38,9 @@ public class GhostData {
 	public boolean dark;
 	public net.minecraft.util.math.Vec3d portalCenter;
 	public boolean missileAim;
+	public int spinCooldown, dashTicks;
+	public net.minecraft.util.math.Vec3d spinDir = new net.minecraft.util.math.Vec3d(0, 0, 1);
+	public net.minecraft.entity.Entity dashTarget;
 	/** Use the dark form when going ghost (can be switched in Ghost Skills). Saved. */
 	public boolean darkMode;
 	/** Ticks of ecto acne left. Saved. */

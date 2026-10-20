@@ -219,15 +219,9 @@ public final class PortalLogic {
 		GhostState st = GhostState.of(w.getServer());
 		GhostData d = st.data(p.getUuid());
 		if (inside && !d.powers && p.isAlive()) {
-			d.pendingPowers = true;
-			d.respawnDim = w.getRegistryKey().getValue().toString();
-			d.respawnPos = BlockPos.ofFloored(front);
-			st.markDirty();
+			// the origin story: the portal surges through you (a cutscene), and you step out half ghost
 			p.sendMessage(Text.literal("The Ghost Portal surges to life... with you inside it!").formatted(Formatting.GREEN), false);
-			DamageSource src = new DamageSource(
-					w.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(PhantomMod.GHOST_PORTAL_DAMAGE));
-			p.damage(src, Float.MAX_VALUE);
-			if (p.isAlive()) finishGhostRebirth(p); // something saved them: give powers anyway
+			Cutscenes.startOrigin(p, centerOf(f), front);
 		} else if (!d.powers) {
 			p.sendMessage(Text.literal("The Ghost Portal is open! (You have to be standing inside it when it turns on to get ghost powers.)").formatted(Formatting.GREEN), false);
 		} else {

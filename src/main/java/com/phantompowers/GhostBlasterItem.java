@@ -66,6 +66,7 @@ public class GhostBlasterItem extends Item {
 			float dmg = 5f * HunterSuit.ghostBonus(t);
 			if (suited) dmg *= 1.5f;
 			if (scoped) dmg *= 1.35f;
+			dmg *= HunterPaint.weaponBoost(stack);
 			t.damage(w.getDamageSources().indirectMagic(p, p), dmg);
 			if (t instanceof LivingEntity le) le.takeKnockback(0.4, -look.x, -look.z);
 		}

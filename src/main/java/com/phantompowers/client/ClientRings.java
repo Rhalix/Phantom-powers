@@ -117,6 +117,8 @@ public final class ClientRings {
 			int alpha = (int) (255 * fade);
 			double up = mid + (h - mid + 0.1) * ease;
 			double down = mid - (mid + 0.05) * ease;
+			// the dark half-ghost's rings burn hot pink
+			pink = !com.phantompowers.GhostFlags.CLIENT_DARK.isEmpty() && com.phantompowers.GhostFlags.CLIENT_DARK.contains(e.getUuid());
 			ring(vc, m, pos.x, pos.y + up, pos.z, radius, alpha);
 			if (split > 0) ring(vc, m, pos.x, pos.y + down, pos.z, radius, alpha);
 		}
@@ -160,6 +162,8 @@ public final class ClientRings {
 		}
 	}
 
+	private static boolean pink;
+
 	/** A flat glowing band plus a thin outer wall, so it reads as a solid ring from any angle. */
 	private static void ring(VertexConsumer vc, Matrix4f m, double cx, double cy, double cz, float radius, int alpha) {
 		if (alpha <= 0) return;
@@ -173,14 +177,14 @@ public final class ClientRings {
 			float x = (float) cx, y = (float) cy, z = (float) cz;
 			// flat band (both sides)
 			quad(vc, m, x + c1 * inner, y, z + s1 * inner, x + c1 * radius, y, z + s1 * radius,
-					x + c2 * radius, y, z + s2 * radius, x + c2 * inner, y, z + s2 * inner, 235, 250, 255, alpha);
+					x + c2 * radius, y, z + s2 * radius, x + c2 * inner, y, z + s2 * inner, pink ? 255 : 235, pink ? 200 : 250, pink ? 240 : 255, alpha);
 			// outer wall (both sides)
 			quad(vc, m, x + c1 * radius, y - halfH, z + s1 * radius, x + c1 * radius, y + halfH, z + s1 * radius,
-					x + c2 * radius, y + halfH, z + s2 * radius, x + c2 * radius, y - halfH, z + s2 * radius, 170, 230, 255, alpha);
+					x + c2 * radius, y + halfH, z + s2 * radius, x + c2 * radius, y - halfH, z + s2 * radius, pink ? 255 : 170, pink ? 90 : 230, pink ? 210 : 255, alpha);
 			// soft outer glow
 			float glow = radius + 0.12f;
 			quad(vc, m, x + c1 * radius, y, z + s1 * radius, x + c1 * glow, y, z + s1 * glow,
-					x + c2 * glow, y, z + s2 * glow, x + c2 * radius, y, z + s2 * radius, 120, 255, 170, alpha / 3);
+					x + c2 * glow, y, z + s2 * glow, x + c2 * radius, y, z + s2 * radius, pink ? 255 : 120, pink ? 79 : 255, pink ? 200 : 170, alpha / 3);
 		}
 	}
 

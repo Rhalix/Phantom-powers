@@ -34,6 +34,7 @@ public class EctoLauncherItem extends Item {
 		Vec3d look = p.getRotationVec(1f);
 		Vec3d muzzle = p.getEyePos().add(look.multiply(1.0)).add(0, -0.15, 0);
 		orb.setPosition(muzzle.x, muzzle.y, muzzle.z);
+		orb.boost = HunterPaint.weaponBoost(stack);
 		orb.setVelocity(look.x, look.y, look.z, suited ? 2.0f : 1.6f, 0.4f);
 		world.spawnEntity(orb);
 		// recoil

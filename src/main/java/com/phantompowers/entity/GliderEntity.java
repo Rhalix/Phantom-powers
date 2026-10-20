@@ -43,13 +43,27 @@ public class GliderEntity extends Entity {
 		this.setNoGravity(true);
 	}
 
+	private static final net.minecraft.entity.data.TrackedData<Integer> PAINT =
+			DataTracker.registerData(GliderEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.INTEGER);
+
 	@Override
 	protected void initDataTracker(DataTracker.Builder builder) {
+		builder.add(PAINT, -1);
+	}
+
+	/** Paint job from the Hunter Workbench (-1 = factory finish). */
+	public int paint() {
+		return dataTracker.get(PAINT);
+	}
+
+	public void setPaint(int c) {
+		dataTracker.set(PAINT, c);
 	}
 
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
 		tier = nbt.getInt("GliderTier");
+		setPaint(nbt.contains("GliderPaint") ? nbt.getInt("GliderPaint") : -1);
 	}
 
 	/** Upgrade tier 0-3 (from Glider Upgrade Kits): faster, harder-hitting lasers, quicker fire. */
@@ -57,9 +71,10 @@ public class GliderEntity extends Entity {
 
 	public ItemStack asItem() {
 		ItemStack stack = new ItemStack(ModItems.HOVER_GLIDER);
-		if (tier > 0) {
+		if (tier > 0 || paint() >= 0) {
 			NbtCompound n = new NbtCompound();
-			n.putInt("GliderTier", tier);
+			if (tier > 0) n.putInt("GliderTier", tier);
+			if (paint() >= 0) n.putInt("Paint", paint());
 			stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA, net.minecraft.component.type.NbtComponent.of(n));
 		}
 		return stack;
@@ -68,6 +83,7 @@ public class GliderEntity extends Entity {
 	@Override
 	protected void writeCustomDataToNbt(NbtCompound nbt) {
 		nbt.putInt("GliderTier", tier);
+		if (paint() >= 0) nbt.putInt("GliderPaint", paint());
 	}
 
 	@Override

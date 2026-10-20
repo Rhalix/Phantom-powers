@@ -56,6 +56,7 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding SPIN;
 	public static KeyBinding STINGER;
 	public static KeyBinding ABSORB;
+	public static KeyBinding RADAR;
 
 	/** Key bound to each skill, in skill order (used by the HUD and skills screen). */
 	public static KeyBinding[] skillKeys() {
@@ -92,6 +93,7 @@ public class PhantomClient implements ClientModInitializer {
 		SPIN = key("spin", GLFW.GLFW_KEY_O);
 		STINGER = key("stinger", GLFW.GLFW_KEY_P);
 		ABSORB = key("absorb", GLFW.GLFW_KEY_SEMICOLON);
+		RADAR = key("radar", GLFW.GLFW_KEY_M);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
@@ -176,6 +178,7 @@ public class PhantomClient implements ClientModInitializer {
 			while (SPIN.wasPressed()) send(GhostPowers.A_SPIN);
 			while (STINGER.wasPressed()) send(GhostPowers.A_STINGER);
 			while (ABSORB.wasPressed()) send(GhostPowers.A_ABSORB);
+			while (RADAR.wasPressed()) RadarSettings.cycle();
 			boolean shieldNow = SHIELD.isPressed();
 			if (shieldHeld && !shieldNow) send(GhostPowers.A_SHIELD_RELEASE);
 			shieldHeld = shieldNow;
@@ -252,6 +255,23 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.DOLORA, DoloraRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.PONYTAIL, PlayerCloneRenderer::ponytailModel);
 		EntityRendererRegistry.register(ModEntities.PLAYER_CLONE, PlayerCloneRenderer::new);
+		com.phantompowers.HunterWorkbenchBlock.openScreen = pos -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new WorkbenchScreen(pos));
+		PaintTextures.init();
+		// painted hunter gear: the paintable parts of each model are tinted with the item's paint colour
+		net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register((stack, tint) -> tint != 0 ? -1
+				: 0xFF000000 | (com.phantompowers.HunterPaint.paint(stack) >= 0 ? com.phantompowers.HunterPaint.paint(stack)
+				: stack.isOf(com.phantompowers.ModItems.ECTO_LAUNCHER) ? 0x9CA4B6 : stack.isOf(com.phantompowers.ModItems.THERMOS) ? 0xDFE6F0 : 0xE2E8F2),
+				com.phantompowers.ModItems.GHOST_BLASTER, com.phantompowers.ModItems.ECTO_LAUNCHER, com.phantompowers.ModItems.THERMOS);
+		net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register((stack, tint) -> tint != 1 ? -1
+				: 0xFF000000 | (com.phantompowers.HunterPaint.paint(stack) >= 0 ? com.phantompowers.HunterPaint.paint(stack)
+				: stack.isOf(com.phantompowers.ModItems.HOVER_GLIDER) ? 0x656B79 : 0x43444F),
+				com.phantompowers.ModItems.HOVER_GLIDER, com.phantompowers.ModItems.HUNTER_SUIT);
+		net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback.EVENT.register((stack, tctx, ttype, lines) -> {
+			if (com.phantompowers.HunterPaint.paintable(stack) && com.phantompowers.HunterPaint.paint(stack) >= 0)
+				lines.add(net.minecraft.text.Text.literal("Paint: " + String.format("#%06X", com.phantompowers.HunterPaint.paint(stack))).withColor(com.phantompowers.HunterPaint.paint(stack)));
+			if (com.phantompowers.HunterPaint.upgradable(stack) && com.phantompowers.HunterPaint.tier(stack) > 0)
+				lines.add(net.minecraft.text.Text.literal("Upgrade level " + com.phantompowers.HunterPaint.tier(stack)).formatted(net.minecraft.util.Formatting.AQUA));
+		});
 		com.phantompowers.CloningPodBlock.openChoice = pos -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new CloneChoiceScreen(pos));
 		BlockRenderLayerMap.INSTANCE.putBlock(com.phantompowers.ModBlocks.CLONING_POD, RenderLayer.getTranslucent());
 		EntityModelLayerRegistry.registerModelLayer(WalkerModel.GHOUL, WalkerModel::ghoul);
@@ -265,6 +285,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.ECTO_CONSTRUCT, ConstructRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(DarkCapeFeature.LAYER, DarkCapeFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(CannonFeature.LAYER, CannonFeature::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(AcneFeature.LAYER, AcneFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(WristGadgetFeature.LAYER, WristGadgetFeature::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
@@ -281,7 +302,7 @@ public class PhantomClient implements ClientModInitializer {
 				helper.register(new DarkCapeFeature(playerRenderer, ctx.getPart(DarkCapeFeature.LAYER)));
 				helper.register(new CannonFeature(playerRenderer, ctx.getPart(CannonFeature.LAYER)));
 				helper.register(new WristGadgetFeature(playerRenderer, ctx.getPart(WristGadgetFeature.LAYER)));
-				helper.register(new AcneFeature(playerRenderer));
+				helper.register(new AcneFeature(playerRenderer, ctx.getPart(AcneFeature.LAYER)));
 				helper.register(new TransitionFeature(playerRenderer));
 				helper.register(new FistGlowFeature(playerRenderer, ctx.getPart(FistGlowFeature.WIDE), ctx.getPart(FistGlowFeature.SLIM)));
 				helper.register(new GhostSuitFeature(playerRenderer,
@@ -317,6 +338,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientGhostSense.clear();
 			ClientCutscene.reset(client);
 			SuitTextures.clear();
+			PaintTextures.clear();
 			com.phantompowers.PortalSwirls.ACTIVE.clear();
 		});
 

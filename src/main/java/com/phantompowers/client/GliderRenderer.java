@@ -33,7 +33,8 @@ public class GliderRenderer extends EntityRenderer<GliderEntity> {
 		matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-p));
 		matrices.scale(-1f, -1f, 1f);
 		matrices.translate(0.0, -1.5, 0.0);
-		model.render(matrices, consumers.getBuffer(model.getLayer(TEXTURE)), light, OverlayTexture.DEFAULT_UV, -1);
+		Identifier tex = entity.paint() >= 0 ? PaintTextures.painted(TEXTURE, entity.paint()) : TEXTURE;
+		model.render(matrices, consumers.getBuffer(model.getLayer(tex)), light, OverlayTexture.DEFAULT_UV, -1);
 		model.render(matrices, consumers.getBuffer(RenderLayer.getEyes(GLOW)), light, OverlayTexture.DEFAULT_UV, -1);
 		matrices.pop();
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);

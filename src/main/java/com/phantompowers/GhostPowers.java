@@ -272,6 +272,11 @@ public final class GhostPowers {
 
 	// -------------------------------------------------------------- transform
 
+	/** Change into ghost form right now (used by the bigger cutscenes). */
+	public static void forceTransform(ServerPlayerEntity p, GhostData d) {
+		if (!d.transformed) toggleTransform(p, d, false);
+	}
+
 	private static void toggleTransform(ServerPlayerEntity p, GhostData d, boolean rings) {
 		if (!d.powers) {
 			bar(p, "You don't have ghost powers yet. Activate a Ghost Portal!", Formatting.RED);
@@ -676,6 +681,8 @@ public final class GhostPowers {
 			return;
 		}
 		if (!d.transformed && d.suitOn) HunterSuit.toggle(p, d, false);
+		// the dark half-ghost gets its own, much more sinister transformation
+		if (!d.transformed && Cutscenes.startDark(p, d)) return;
 		d.cutscene = CUTSCENE_TICKS;
 		d.cutsceneKind = 0;
 		d.cutsceneToGhost = !d.transformed;
@@ -757,6 +764,18 @@ public final class GhostPowers {
 			DarkPowers.tickPortalCutscene(p, d);
 			return;
 		}
+		if (d.cutsceneKind == 4) {
+			DarkPowers.tickSpinCutscene(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 5) {
+			Cutscenes.tickDark(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 6) {
+			Cutscenes.tickOrigin(p, d);
+			return;
+		}
 		d.cutscene--;
 		// Hold still (and float a tiny bit) while the rings pass over you
 		if (d.cutsceneAnchor != null) {
@@ -811,7 +830,7 @@ public final class GhostPowers {
 		Vec3d right = dir.crossProduct(new Vec3d(0, 1, 0));
 		if (right.lengthSquared() < 1.0E-4) right = new Vec3d(1, 0, 0);
 		Vec3d from = start.add(dir.multiply(0.6)).add(right.normalize().multiply(0.3)).add(0, -0.25, 0);
-		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z, 0x33FF77);
+		BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z, d.dark && d.darkMode ? DarkPowers.PINK : 0x33FF77);
 		for (ServerPlayerEntity viewer : PlayerLookup.around(w, start, 96)) {
 			if (ServerPlayNetworking.canSend(viewer, BeamPayload.ID)) ServerPlayNetworking.send(viewer, beam);
 		}

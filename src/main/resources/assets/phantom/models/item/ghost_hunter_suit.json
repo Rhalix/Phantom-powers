@@ -1,6 +1,7 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "phantom:item/ghost_hunter_suit"
-  }
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "phantom:item/ghost_hunter_suit",
+  "layer1": "phantom:item/ghost_hunter_suit_paint"
+ }
 }

@@ -22,6 +22,9 @@ import org.joml.Vector3f;
 
 /** A ball of pink energy from the Ecto Launcher. Bursts on impact; built to hit ghosts especially hard. No block damage. */
 public class PinkOrbEntity extends ThrownItemEntity {
+	/** Damage multiplier from the launcher's upgrade level. */
+	public float boost = 1f;
+
 	public static final DustParticleEffect PINK = new DustParticleEffect(new Vector3f(1f, 0.35f, 0.75f), 1.6f);
 
 	public PinkOrbEntity(EntityType<? extends PinkOrbEntity> type, World world) {
@@ -65,7 +68,7 @@ public class PinkOrbEntity extends ThrownItemEntity {
 		for (Entity e : w.getOtherEntities(this, new Box(c, c).expand(3.5), e -> e instanceof LivingEntity && e.isAlive() && e != owner)) {
 			double d = e.getPos().add(0, e.getHeight() / 2, 0).distanceTo(c);
 			if (d > 3.5) continue;
-			float dmg = (float) (10 * (1 - d / 5.0)) * HunterSuit.ghostBonus(e);
+			float dmg = (float) (10 * (1 - d / 5.0)) * HunterSuit.ghostBonus(e) * boost;
 			e.damage(getDamageSources().indirectMagic(this, owner), dmg);
 			Vec3d push = e.getPos().subtract(c).normalize();
 			e.addVelocity(push.x * 1.1, 0.45, push.z * 1.1);

@@ -6,7 +6,7 @@ public final class SuitColors {
 	public static final String[] PART_NAMES = {"Suit", "Stripes", "Gloves", "Boots", "Trail & Glow"};
 	public static final int[] CLASSIC = {0xF4F6FA, 0x16161E, 0xF4F6FA, 0xF4F6FA, 0x55FF88, 0};
 	/** What your suit turns into when you become the dark half-ghost. */
-	public static final int[] VILLAIN = {0x24222C, 0xB01830, 0x0E0E12, 0x0E0E12, 0xFF3355, 1};
+	public static final int[] VILLAIN = {0x24202C, 0xFF4FC8, 0x0E0C12, 0x0E0C12, 0xFF4FC8, 1};
 	public static final String[] PRESET_NAMES = {"Classic", "Shadow", "Ecto Glow", "Crimson", "Frostbite", "Royal", "Villain"};
 	public static final int[][] PRESETS = {
 			CLASSIC,

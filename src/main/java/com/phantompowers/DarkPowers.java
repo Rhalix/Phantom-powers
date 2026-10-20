@@ -28,6 +28,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.UUID;
+
 /**
  * The dark half-ghost: how you become it (the prototype portal and its ecto acne) and its four powers:
  * Ecto Constructs, Tornado Spin, Ghost Stinger and Energy Absorption.
@@ -170,6 +172,25 @@ public final class DarkPowers {
 		GhostPowers.syncNow(p);
 	}
 
+	/** Clear ecto acne. finish = skip the wait and turn dark right now; otherwise it just goes away (no change). */
+	public static void endAcne(ServerPlayerEntity p, boolean finish) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		if (d.acneTicks <= 0 && !finish) return;
+		d.acneTicks = 0;
+		st.markDirty();
+		if (finish) {
+			if (!d.dark) finishAcne(p, d);
+		} else {
+			ServerWorld w = p.getServerWorld();
+			w.spawnParticles(ParticleTypes.HAPPY_VILLAGER, p.getX(), p.getEyeY(), p.getZ(), 12, 0.3, 0.3, 0.3, 0);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_HONEY_BOTTLE_DRINK, SoundCategory.PLAYERS, 1f, 1.2f);
+			p.sendMessage(Text.literal("Your ecto acne clears right up. Whatever it was doing to you has stopped.").formatted(Formatting.GREEN), false);
+			GhostPowers.broadcastStates(p.getServer());
+		}
+		GhostPowers.syncNow(p);
+	}
+
 	private static void finishAcne(ServerPlayerEntity p, GhostData d) {
 		boolean wasHuman = !d.powers;
 		if (wasHuman) GhostPowers.grantPowers(p);
@@ -215,7 +236,8 @@ public final class DarkPowers {
 			if (d.acneTicks % 1200 == 0 && d.acneTicks > 0) GhostPowers.syncNow(p);
 			if (d.acneTicks == 0) finishAcne(p, d);
 		}
-		if (d.spinning) tickSpin(p, d, w);
+		if (d.spinCooldown > 0) d.spinCooldown--;
+		if (d.dashTarget != null) tickDash(p, d, w);
 		if (d.stingTarget != null) tickSting(p, d, w);
 		if (d.absorbTicks > 0) {
 			d.absorbTicks--;
@@ -239,6 +261,7 @@ public final class DarkPowers {
 	public static void endForm(ServerPlayerEntity p, GhostData d) {
 		d.spinning = false;
 		d.stingTarget = null;
+		d.dashTarget = null;
 		d.absorbTicks = 0;
 	}
 
@@ -270,59 +293,151 @@ public final class DarkPowers {
 
 	// ----------------------------------------------------------- tornado spin
 
-	public static void toggleSpin(ServerPlayerEntity p, GhostData d) {
-		d.spinning = !d.spinning;
-		GhostPowers.bar(p, d.spinning ? "Tornado Spin on! Move or fly fast to whip up a twister." : "Tornado Spin off.",
-				d.spinning ? Formatting.DARK_GREEN : Formatting.GRAY);
-		if (!d.spinning) sendSpin(p, true);
+	/** Dark Tornado: fly round and round in a tight circle to whip up a twister, then send it off. */
+	public static final int SPIN_TICKS = 56;
+	public static final double SPIN_RADIUS = 3.2;
+	/** The pink colour of every dark-form beam and ring. */
+	public static final int PINK = 0xFF4FC8;
+
+	/** Where the circling player should be at a given tick (shared with the client so it moves smoothly). */
+	public static Vec3d spinPos(Vec3d center, int elapsed) {
+		double a = elapsed * 0.42;
+		double r = SPIN_RADIUS * Math.min(1.0, 0.4 + elapsed / 10.0);
+		double lift = Math.min(2.2, elapsed * 0.06);
+		return center.add(Math.cos(a) * r, lift, Math.sin(a) * r);
 	}
 
-	private static void sendSpin(ServerPlayerEntity p, boolean done) {
-		TornadoPayload msg = new TornadoPayload(1_000_000 + p.getId(), p.getX(), p.getY() - 0.5, p.getZ(), p.age, done, 0.32f);
-		for (ServerPlayerEntity v : PlayerLookup.around(p.getServerWorld(), p.getPos(), 96)) {
+	public static void toggleSpin(ServerPlayerEntity p, GhostData d) {
+		if (d.cutscene > 0) return;
+		if (d.spinCooldown > 0) {
+			GhostPowers.bar(p, "Your next tornado needs a moment... (" + (d.spinCooldown / 20 + 1) + "s)", Formatting.GRAY);
+			return;
+		}
+		if (d.energy < 30) {
+			GhostPowers.bar(p, "Not enough ghost energy!", Formatting.RED);
+			return;
+		}
+		d.energy -= 30;
+		d.spinCooldown = 240;
+		Vec3d look = p.getRotationVec(1f);
+		Vec3d flat = new Vec3d(look.x, 0, look.z);
+		flat = flat.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : flat.normalize();
+		d.spinDir = flat;
+		// circle around a spot just in front of you
+		d.cutsceneAnchor = p.getPos().add(flat.multiply(SPIN_RADIUS));
+		d.cutscene = SPIN_TICKS;
+		d.cutsceneKind = 4;
+		d.cutsceneToGhost = false;
+		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.WAIL_TORNADO, SoundCategory.PLAYERS, 1.2f, 0.8f);
+		GhostPowers.syncNow(p);
+	}
+
+	public static void tickSpinCutscene(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = SPIN_TICKS - d.cutscene;
+		Vec3d c = d.cutsceneAnchor;
+		if (c == null) {
+			d.cutscene = 0;
+			return;
+		}
+		ServerWorld w = p.getServerWorld();
+		Vec3d want = spinPos(c, e);
+		if (p.getPos().squaredDistanceTo(want) > 25) p.requestTeleport(want.x, want.y, want.z);
+		p.fallDistance = 0;
+		float scale = 0.25f + 0.75f * e / (float) SPIN_TICKS;
+		sendTwister(w, 1_000_000 + p.getId(), c, e, false, scale);
+		// a pink streak follows you round the circle
+		w.spawnParticles(PINK_DUST, p.getX(), p.getY() + 1, p.getZ(), 3, 0.2, 0.3, 0.2, 0);
+		if (e % 6 == 0) w.playSound(null, c.x, c.y, c.z, SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.PLAYERS, 0.6f, 0.8f + e / 80f);
+		pull(w, p, c, 2.5 + 3.0 * scale, e % 8 == 0 ? 3f : 0f);
+		if (d.cutscene <= 0) {
+			d.cutscene = 0;
+			d.cutsceneAnchor = null;
+			TWISTERS.add(new Twister(p.getUuid(), w, 1_000_000 + p.getId(), c, d.spinDir, 110));
+			w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_WITHER_SHOOT, SoundCategory.PLAYERS, 1.2f, 0.6f);
+			GhostPowers.bar(p, "Your tornado tears off across the ground!", Formatting.LIGHT_PURPLE);
+			GhostPowers.syncNow(p);
+		}
+	}
+
+	private static final net.minecraft.particle.DustParticleEffect PINK_DUST =
+			new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(1f, 0.31f, 0.78f), 1.4f);
+
+	/** A launched tornado roaming forward on its own. */
+	private static final class Twister {
+		final UUID owner;
+		final ServerWorld world;
+		final int id;
+		Vec3d pos, dir;
+		int life, age;
+
+		Twister(UUID owner, ServerWorld world, int id, Vec3d pos, Vec3d dir, int life) {
+			this.owner = owner;
+			this.world = world;
+			this.id = id;
+			this.pos = pos;
+			this.dir = dir;
+			this.life = life;
+		}
+	}
+
+	private static final java.util.List<Twister> TWISTERS = new java.util.ArrayList<>();
+
+	/** Moves the launched tornadoes (called every server tick). */
+	public static void tickTwisters() {
+		var it = TWISTERS.iterator();
+		while (it.hasNext()) {
+			Twister t = it.next();
+			t.age++;
+			// drift forward, weaving a little, hugging the ground
+			Vec3d side = new Vec3d(-t.dir.z, 0, t.dir.x).multiply(Math.sin(t.age * 0.15) * 0.12);
+			Vec3d next = t.pos.add(t.dir.multiply(0.32)).add(side);
+			Vec3d ground = com.phantompowers.entity.BossMoves.ground(t.world, next);
+			t.pos = new Vec3d(next.x, ground.y, next.z);
+			boolean done = t.age >= t.life;
+			sendTwister(t.world, t.id, t.pos, SPIN_TICKS + t.age, done, done ? 1f : 1f);
+			ServerPlayerEntity owner = t.world.getServer().getPlayerManager().getPlayer(t.owner);
+			pull(t.world, owner, t.pos, 5.5, t.age % 8 == 0 ? 4f : 0f);
+			if (t.age % 10 == 0) t.world.playSound(null, t.pos.x, t.pos.y, t.pos.z, SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.PLAYERS, 0.9f, 0.7f);
+			if (done) it.remove();
+		}
+	}
+
+	private static void sendTwister(ServerWorld w, int id, Vec3d at, int age, boolean done, float scale) {
+		TornadoPayload msg = new TornadoPayload(id, at.x, at.y - 0.3, at.z, age, done, scale);
+		for (ServerPlayerEntity v : PlayerLookup.around(w, at, 128)) {
 			if (ServerPlayNetworking.canSend(v, TornadoPayload.ID)) ServerPlayNetworking.send(v, msg);
 		}
 	}
 
-	private static void tickSpin(ServerPlayerEntity p, GhostData d, ServerWorld w) {
-		double speed = Math.sqrt(Math.pow(p.getX() - p.prevX, 2) + Math.pow(p.getZ() - p.prevZ, 2) + Math.pow(p.getY() - p.prevY, 2));
-		d.energy -= SPIN_DRAIN;
-		if (d.energy <= 0) {
-			d.energy = 0;
-			d.spinning = false;
-			sendSpin(p, true);
-			GhostPowers.bar(p, "Out of ghost energy, your twister dies down.", Formatting.RED);
-			return;
-		}
-		if (speed < 0.2) {
-			if (p.age % 10 == 0) sendSpin(p, true);
-			return;
-		}
-		sendSpin(p, false);
-		if (p.age % 10 == 0) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.PLAYERS, 0.8f, 1.3f);
-		for (Entity e : w.getOtherEntities(p, p.getBoundingBox().expand(4.5), e -> (e instanceof LivingEntity || e instanceof net.minecraft.entity.ItemEntity)
-				&& !(e instanceof com.phantompowers.entity.GhostCloneEntity))) {
+	/** Suck things in and whirl them round (never the tornado's owner or their clones). */
+	private static void pull(ServerWorld w, ServerPlayerEntity owner, Vec3d c, double radius, float damage) {
+		for (Entity e : w.getOtherEntities(owner, new Box(c, c).expand(radius, 6, radius), e -> (e instanceof LivingEntity || e instanceof net.minecraft.entity.ItemEntity)
+				&& !(e instanceof com.phantompowers.entity.GhostCloneEntity) && !(e instanceof com.phantompowers.entity.PlayerCloneEntity))) {
 			if (e instanceof PlayerEntity pl && pl.isCreative()) continue;
-			Vec3d to = new Vec3d(p.getX() - e.getX(), 0, p.getZ() - e.getZ());
+			Vec3d to = new Vec3d(c.x - e.getX(), 0, c.z - e.getZ());
 			double dist = Math.max(0.3, to.length());
+			if (dist > radius) continue;
 			Vec3d in = to.multiply(1 / dist), around = new Vec3d(-in.z, 0, in.x);
-			e.setVelocity(e.getVelocity().multiply(0.6).add(in.x * 0.15 + around.x * 0.55, 0.22, in.z * 0.15 + around.z * 0.55));
+			e.setVelocity(e.getVelocity().multiply(0.6).add(in.x * 0.18 + around.x * 0.5, 0.2, in.z * 0.18 + around.z * 0.5));
 			e.velocityModified = true;
 			e.fallDistance = 0;
-			if (p.age % 8 == 0 && e instanceof LivingEntity) e.damage(w.getDamageSources().indirectMagic(p, p), 4f);
+			if (damage > 0 && e instanceof LivingEntity) e.damage(owner != null ? w.getDamageSources().indirectMagic(owner, owner) : w.getDamageSources().magic(), damage);
 		}
 	}
 
 	// ----------------------------------------------------------- ghost stinger
 
+	/** Ghost Stinger: lock onto someone, dash straight at them, grab them and shock them with ecto-electricity. */
 	public static void stinger(ServerPlayerEntity p, GhostData d) {
 		if (d.stingCooldown > 0) {
 			GhostPowers.bar(p, "The stinger is recharging... (" + (d.stingCooldown / 20 + 1) + "s)", Formatting.GRAY);
 			return;
 		}
-		Entity t = GhostPowers.aimEntity(p, d, 7);
-		if (!(t instanceof LivingEntity) || t.squaredDistanceTo(p) > 49) {
-			GhostPowers.bar(p, "Get closer and look at someone to grab them.", Formatting.GRAY);
+		if (d.stingTarget != null || d.dashTarget != null) return;
+		Entity t = GhostPowers.aimEntity(p, d, 20);
+		if (!(t instanceof LivingEntity) || t.squaredDistanceTo(p) > 400) {
+			GhostPowers.bar(p, "Look at someone to dash at them.", Formatting.GRAY);
 			return;
 		}
 		if (d.energy < 20) {
@@ -330,12 +445,47 @@ public final class DarkPowers {
 			return;
 		}
 		d.energy -= 20;
+		d.stingCooldown = 160;
+		d.dashTarget = t;
+		d.dashTicks = 16;
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, SoundCategory.PLAYERS, 1.2f, 1.4f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_PHANTOM_SWOOP, SoundCategory.PLAYERS, 1.2f, 1.2f);
+	}
+
+	/** The dash: rocket toward the target, leaving a pink streak; grab them when you get there. */
+	private static void tickDash(ServerPlayerEntity p, GhostData d, ServerWorld w) {
+		Entity t = d.dashTarget;
+		if (t == null || t.isRemoved() || !t.isAlive() || !d.transformed || --d.dashTicks < 0) {
+			d.dashTarget = null;
+			if (t != null && d.dashTicks < 0) GhostPowers.bar(p, "They slipped away!", Formatting.GRAY);
+			return;
+		}
+		Vec3d to = t.getPos().add(0, t.getHeight() * 0.4, 0).subtract(p.getPos().add(0, 0.9, 0));
+		double dist = to.length();
+		if (dist < 2.4) {
+			d.dashTarget = null;
+			grab(p, d, t);
+			return;
+		}
+		Vec3d v = to.multiply(Math.min(1.9, dist) / dist);
+		p.setVelocity(v);
+		p.velocityModified = true;
+		p.fallDistance = 0;
+		w.spawnParticles(PINK_DUST, p.getX(), p.getY() + 1, p.getZ(), 6, 0.25, 0.4, 0.25, 0);
+		w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, p.getX(), p.getY() + 1, p.getZ(), 3, 0.2, 0.3, 0.2, 0.05);
+	}
+
+	private static void grab(ServerPlayerEntity p, GhostData d, Entity t) {
 		d.stingTarget = t;
 		d.stingTicks = 40;
-		d.stingCooldown = 160;
+		p.setVelocity(Vec3d.ZERO);
+		p.velocityModified = true;
 		if (t instanceof MobEntity m) m.setAiDisabled(true);
 		if (t instanceof ServerPlayerEntity tp) tp.sendMessage(Text.literal(p.getName().getString() + " grabbed you with a Ghost Stinger!").formatted(Formatting.RED, Formatting.BOLD), true);
-		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_GUARDIAN_ATTACK, SoundCategory.PLAYERS, 1.2f, 1.6f);
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_GUARDIAN_ATTACK, SoundCategory.PLAYERS, 1.2f, 1.6f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, SoundCategory.PLAYERS, 1.2f, 0.7f);
 	}
 
 	private static void tickSting(ServerPlayerEntity p, GhostData d, ServerWorld w) {
@@ -356,10 +506,10 @@ public final class DarkPowers {
 		if (d.stingTicks % 4 == 0) {
 			Vec3d hand = p.getEyePos().add(p.getRotationVec(1f).multiply(0.7)).add(0, -0.3, 0);
 			Vec3d mid = t.getPos().add(0, t.getHeight() * 0.5, 0);
-			BeamPayload beam = new BeamPayload((float) hand.x, (float) hand.y, (float) hand.z, (float) mid.x, (float) mid.y, (float) mid.z, 0xA0FFD0);
+			BeamPayload beam = new BeamPayload((float) hand.x, (float) hand.y, (float) hand.z, (float) mid.x, (float) mid.y, (float) mid.z, PINK);
 			for (ServerPlayerEntity v : PlayerLookup.around(w, hand, 64)) if (ServerPlayNetworking.canSend(v, BeamPayload.ID)) ServerPlayNetworking.send(v, beam);
 			w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, mid.x, mid.y, mid.z, 12, 0.4, 0.5, 0.4, 0.2);
-			w.spawnParticles(GhostPowers.GREEN, mid.x, mid.y, mid.z, 6, 0.3, 0.4, 0.3, 0.05);
+			w.spawnParticles(PINK_DUST, mid.x, mid.y, mid.z, 6, 0.3, 0.4, 0.3, 0.05);
 			t.damage(w.getDamageSources().indirectMagic(p, p), 2.5f);
 			w.playSound(null, mid.x, mid.y, mid.z, ModSounds.NET_ZAP, SoundCategory.PLAYERS, 0.9f, 0.8f + w.random.nextFloat() * 0.3f);
 		}

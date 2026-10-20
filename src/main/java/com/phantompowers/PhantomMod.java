@@ -72,6 +72,9 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,
 				(payload, context) -> context.server().execute(() -> GhostPowers.setSuitColors(context.player(), payload.colors())));
+		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.WorkbenchPayload.ID, com.phantompowers.network.WorkbenchPayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.WorkbenchPayload.ID,
+				(payload, context) -> context.server().execute(() -> HunterPaint.handle(context.player(), payload.pos(), payload.action(), payload.value())));
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.ClonePayload.ID, com.phantompowers.network.ClonePayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ClonePayload.ID,
 				(payload, context) -> context.server().execute(() -> CloningPodBlock.start(context.player(), payload.pos(), payload.female())));
@@ -121,6 +124,7 @@ public class PhantomMod implements ModInitializer {
 			ThermosItem.tick();
 			GhostSense.tick(server);
 			GhostZoneLife.tick(server);
+			DarkPowers.tickTwisters();
 			com.phantompowers.entity.BossMoves.tick(server);
 			ThermosPrison.tick(server);
 			CloningPodBlock.tick(server);

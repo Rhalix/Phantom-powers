@@ -1,0 +1,27 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "misc",
+ "pattern": [
+  "IHI",
+  "RCR",
+  "I I"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "H": {
+   "item": "phantom:hazard_plating"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  },
+  "C": {
+   "item": "minecraft:crafting_table"
+  }
+ },
+ "result": {
+  "id": "phantom:hunter_workbench",
+  "count": 1
+ }
+}

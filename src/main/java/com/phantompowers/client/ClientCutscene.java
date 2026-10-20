@@ -25,7 +25,8 @@ public final class ClientCutscene {
 			previous = o.getPerspective();
 			o.setPerspective(Perspective.THIRD_PERSON_BACK);
 			anchor = mc.player.getPos();
-			baseYaw = ClientGhost.cutsceneKind == 3 ? mc.player.getYaw() : mc.player.getBodyYaw();
+			int k = ClientGhost.cutsceneKind;
+			baseYaw = k == 3 || k == 4 || k == 6 ? mc.player.getYaw() : mc.player.getBodyYaw();
 		}
 		if (running) {
 			shown++;
@@ -64,6 +65,37 @@ public final class ClientCutscene {
 			p.fallDistance = 0;
 			return;
 		}
+		var pl = mc.player;
+		var look0 = net.minecraft.util.math.Vec3d.fromPolar(0, baseYaw);
+		if (ClientGhost.cutsceneKind == 4) {
+			// Dark Tornado: fly round and round the spot in front of you
+			int el = Math.max(0, com.phantompowers.DarkPowers.SPIN_TICKS - ClientGhost.cutscene);
+			var center = anchor.add(look0.multiply(com.phantompowers.DarkPowers.SPIN_RADIUS));
+			var want = com.phantompowers.DarkPowers.spinPos(center, el);
+			var next = pl.getPos().lerp(want, 0.6);
+			pl.setVelocity(0, 0, 0);
+			pl.setPosition(next.x, next.y, next.z);
+			// face along the circle
+			var tangent = com.phantompowers.DarkPowers.spinPos(center, el + 1).subtract(want);
+			float face = (float) Math.toDegrees(Math.atan2(-tangent.x, tangent.z));
+			pl.setYaw(face);
+			pl.setBodyYaw(face);
+			pl.setHeadYaw(face);
+			pl.fallDistance = 0;
+			return;
+		}
+		if (ClientGhost.cutsceneKind == 5 || ClientGhost.cutsceneKind == 6) {
+			boolean dark = ClientGhost.cutsceneKind == 5;
+			int total = dark ? com.phantompowers.Cutscenes.DARK_TICKS : com.phantompowers.Cutscenes.ORIGIN_TICKS;
+			int el = Math.max(0, total - ClientGhost.cutscene);
+			var want = dark ? anchor.add(0, com.phantompowers.Cutscenes.darkLift(el), 0)
+					: anchor.add(look0.multiply(com.phantompowers.Cutscenes.originForward(el))).add(0, com.phantompowers.Cutscenes.originLift(el), 0);
+			var next = pl.getPos().lerp(want, 0.5);
+			pl.setVelocity(0, 0, 0);
+			pl.setPosition(next.x, next.y, next.z);
+			pl.fallDistance = 0;
+			return;
+		}
 		int total = ClientGhost.cutsceneKind == 2 ? com.phantompowers.GhostPowers.WAIL_FINALE_TICKS : com.phantompowers.GhostPowers.CUTSCENE_TICKS;
 		int elapsed = Math.max(0, total - ClientGhost.cutscene);
 		double lift;
@@ -91,6 +123,9 @@ public final class ClientCutscene {
 		if (e != mc.player) return null;
 		float t = shown + partial;
 		if (ClientGhost.cutsceneKind == 3) return portalShot(mc, e, t, partial);
+		if (ClientGhost.cutsceneKind == 4) return spinShot(mc, e, t, partial);
+		if (ClientGhost.cutsceneKind == 5) return darkShot(mc, e, t, partial);
+		if (ClientGhost.cutsceneKind == 6) return originShot(mc, e, t, partial);
 		boolean wail = ClientGhost.cutsceneKind == 2;
 		// Start facing you, then drift around to a three-quarter angle
 		double orbit = Math.toRadians(baseYaw + (wail ? 25 : 35) * Math.sin(t * 0.035) - 20);
@@ -110,6 +145,74 @@ public final class ClientCutscene {
 		float yaw = (float) (Math.toDegrees(Math.atan2(d.z, d.x)) - 90.0);
 		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
 		return new float[]{(float) from.x, (float) from.y, (float) from.z, yaw, pitch};
+	}
+
+	private static float[] aim(MinecraftClient mc, net.minecraft.entity.Entity e, net.minecraft.util.math.Vec3d from, net.minecraft.util.math.Vec3d target) {
+		var hit = mc.world.raycast(new net.minecraft.world.RaycastContext(target, from,
+				net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, e));
+		if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
+			var back = from.subtract(target).normalize();
+			from = hit.getPos().subtract(back.multiply(0.3));
+		}
+		var d = target.subtract(from);
+		float yaw = (float) (Math.toDegrees(Math.atan2(d.z, d.x)) - 90.0);
+		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
+		return new float[]{(float) from.x, (float) from.y, (float) from.z, yaw, pitch};
+	}
+
+	/** Dark Tornado: a high wide shot of you circling and the twister rising in the middle. */
+	private static float[] spinShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial) {
+		var look = net.minecraft.util.math.Vec3d.fromPolar(0, baseYaw);
+		var center = anchor.add(look.multiply(com.phantompowers.DarkPowers.SPIN_RADIUS));
+		double back = 9 + t * 0.03;
+		var from = center.add(look.multiply(-back)).add(0, 4.5 + t * 0.02, 0);
+		var target = center.add(0, 2.2 + t * 0.03, 0);
+		return aim(mc, e, from, target);
+	}
+
+	/** The evil transformation: a low-angle shot slowly orbiting up and around you (pure aura farming). */
+	private static float[] darkShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial) {
+		var pos = e.getLerpedPos(partial);
+		double ang = Math.toRadians(baseYaw + 180 - 50 + t * 1.1);
+		double dist = 4.4 - 1.4 * smooth(Math.min(1f, t / 70f));
+		double low = -0.4 + 0.9 * smooth(Math.min(1f, t / 80f));
+		var target = pos.add(0, 1.1, 0);
+		var from = new net.minecraft.util.math.Vec3d(target.x - Math.sin(ang) * dist, pos.y + 0.3 + low, target.z + Math.cos(ang) * dist);
+		float shake = t > com.phantompowers.Cutscenes.DARK_CHANGE && t < com.phantompowers.Cutscenes.DARK_CHANGE + 10 ? 0.15f : 0f;
+		from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.1) * shake, 0);
+		return aim(mc, e, from, target);
+	}
+
+	/** The origin story: looking into the portal at you as it surges, then you get blown out toward the camera. */
+	private static float[] originShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial) {
+		var look = net.minecraft.util.math.Vec3d.fromPolar(0, baseYaw);
+		var side = new net.minecraft.util.math.Vec3d(-look.z, 0, look.x);
+		var pos = e.getLerpedPos(partial);
+		var target = pos.add(0, 1.2, 0);
+		float blast = com.phantompowers.Cutscenes.ORIGIN_BLAST;
+		double dist = 5.2 - 1.6 * smooth(Math.min(1f, t / blast));
+		var front = anchor.add(look.multiply(dist)).add(side.multiply(0.8)).add(0, 1.3, 0);
+		float later = smooth(clamp01((t - blast - 8) / 20f));
+		var side2 = anchor.add(look.multiply(4.0)).add(side.multiply(3.5)).add(0, 1.6, 0);
+		var from = front.lerp(side2, later);
+		float shake = t > blast - 30 && t < blast + 12 ? (t < blast ? 0.05f : 0.2f * Math.max(0f, 1f - (t - blast) / 12f)) : 0f;
+		from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.3) * shake, Math.sin(t * 5.1) * shake);
+		return aim(mc, e, from, target);
+	}
+
+	/** Elapsed ticks of the evil transformation / origin cutscene for this player (yourself only), or -1. */
+	public static float darkTime(net.minecraft.entity.Entity e, float partial) {
+		if (!active || ClientGhost.cutsceneKind != 5 || e != MinecraftClient.getInstance().player) return -1f;
+		return com.phantompowers.Cutscenes.DARK_TICKS - ClientGhost.cutscene + partial;
+	}
+
+	public static float originTime(net.minecraft.entity.Entity e, float partial) {
+		if (!active || ClientGhost.cutsceneKind != 6 || e != MinecraftClient.getInstance().player) return -1f;
+		return com.phantompowers.Cutscenes.ORIGIN_TICKS - ClientGhost.cutscene + partial;
+	}
+
+	public static boolean spinning(net.minecraft.entity.Entity e) {
+		return active && ClientGhost.cutsceneKind == 4 && e == MinecraftClient.getInstance().player;
 	}
 
 	/** How far into the prototype portal cutscene this player is (only known for yourself), or -1. */
@@ -179,6 +282,73 @@ public final class ClientCutscene {
 		ctx.fill(0, 0, w, bar, 0xFF000000);
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 
+		if (ClientGhost.cutsceneKind == 4) return;   // the tornado: no captions, just the action
+		if (ClientGhost.cutsceneKind == 5) {
+			float el = com.phantompowers.Cutscenes.DARK_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float change = com.phantompowers.Cutscenes.DARK_CHANGE;
+			// a sickly green tint creeping in from the edges, pulsing like a heartbeat
+			float beat = (float) Math.pow(Math.abs(Math.sin(el * 0.12)), 4);
+			int a = (int) (Math.min(1f, el / 40f) * (50 + 50 * beat));
+			ctx.fillGradient(0, bar, w, h / 3, (a << 24) | 0x0F6A1E, 0);
+			ctx.fillGradient(0, h * 2 / 3, w, h - bar, 0, (a << 24) | 0x0F6A1E);
+			ctx.fill(0, bar, w, h - bar, ((a / 3) << 24) | 0x1EA040);
+			String line;
+			int color;
+			float size;
+			if (el < 35) {
+				line = "The darkness answers...";
+				color = 0xFF7DDC8A;
+				size = 1.5f;
+			} else if (el < change - 12) {
+				line = "No more holding back.";
+				color = 0xFF9CFF9C;
+				size = 1.7f;
+			} else {
+				line = "TIME TO GO GHOST.";
+				color = 0xFFFF4FC8;
+				size = 2.6f;
+				if (el >= change) {
+					int fl = (int) (220 * Math.max(0f, 1f - (el - change) / 8f));
+					if (fl > 0) ctx.fill(0, 0, w, h, (fl << 24) | 0xFF80E0);
+				}
+			}
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f, h - bar / 2f - 6, 0);
+			ctx.getMatrices().scale(size, size, 1f);
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+			ctx.getMatrices().pop();
+			return;
+		}
+		if (ClientGhost.cutsceneKind == 6) {
+			float el = com.phantompowers.Cutscenes.ORIGIN_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float blast = com.phantompowers.Cutscenes.ORIGIN_BLAST;
+			String line;
+			int color = 0xFFFFFFFF;
+			float size = 1.6f;
+			if (el < 18) line = "Huh... the portal's turning on?";
+			else if (el < blast) {
+				line = "AAAAAAHHHHH!";
+				color = 0xFF66FF99;
+				size = 2.4f;
+				// green flicker as the energy tears through you
+				int a = (int) (40 + 60 * Math.abs(Math.sin(el * 1.3)));
+				ctx.fill(0, bar, w, h - bar, (a << 24) | 0x33FF77);
+			} else {
+				float k = el - blast;
+				int a = (int) (255 * Math.max(0f, 1f - k / 16f));
+				if (a > 0) ctx.fill(0, 0, w, h, (a << 24) | (k < 4 ? 0xFFFFFF : 0x99FFBB));
+				line = k < 18 ? "..." : "Whoa... I'm a GHOST?!";
+				color = 0xFF66FF99;
+				size = k < 18 ? 1.6f : 2.0f;
+			}
+			float jitter = el >= 18 && el < blast ? (float) Math.sin(shown * 3.3) * 2.5f : 0f;
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f + jitter, h - bar / 2f - 6, 0);
+			ctx.getMatrices().scale(size, size, 1f);
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+			ctx.getMatrices().pop();
+			return;
+		}
 		if (ClientGhost.cutsceneKind == 3) {
 			float el = com.phantompowers.DarkPowers.PORTAL_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
 			float blast = com.phantompowers.DarkPowers.PORTAL_BLAST;

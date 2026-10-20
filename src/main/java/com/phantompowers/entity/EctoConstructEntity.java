@@ -67,7 +67,7 @@ public class EctoConstructEntity extends Entity {
 			spot = BossMoves.ground(w, target.getPos());
 			refreshPositionAndAngles(spot.x, spot.y, spot.z, getYaw(), 0);
 		}
-		if (age == SLAM - 6) BossMoves.warn(w, getPos(), kind() == 1 ? 5.0 : 3.5, 6, 0x55FF88);
+		if (age == SLAM - 6) BossMoves.warn(w, getPos(), kind() == 1 ? 5.0 : 3.5, 6, com.phantompowers.DarkPowers.PINK);
 		if (age == SLAM) strike(w);
 		if (age > LIFE) discard();
 	}
@@ -86,8 +86,8 @@ public class EctoConstructEntity extends Entity {
 			e.addVelocity(push.x * 0.9, kind() == 1 ? 0.9 : 0.4, push.z * 0.9);
 			e.velocityModified = true;
 		}
-		if (kind() == 1) BossMoves.groundWave(w, this, c, 7, 6f, 0x55FF88);
-		w.spawnParticles(GhostPowers.GREEN, c.x, c.y + 0.5, c.z, 60, r * 0.5, 0.4, r * 0.5, 0.15);
+		if (kind() == 1) BossMoves.groundWave(w, this, c, 7, 6f, com.phantompowers.DarkPowers.PINK);
+		w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(1f, 0.31f, 0.78f), 1.5f), c.x, c.y + 0.5, c.z, 60, r * 0.5, 0.4, r * 0.5, 0.15);
 		w.spawnParticles(ParticleTypes.FLASH, c.x, c.y + 1, c.z, 1, 0, 0, 0, 0);
 		w.playSound(null, c.x, c.y, c.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 1.4f, kind() == 1 ? 0.6f : 1.1f);
 		w.playSound(null, c.x, c.y, c.z, SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, SoundCategory.PLAYERS, 1.6f, 0.6f);

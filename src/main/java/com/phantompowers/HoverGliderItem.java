@@ -30,7 +30,10 @@ public class HoverGliderItem extends Item {
 		float yaw = ctx.getPlayer() != null ? ctx.getPlayer().getYaw() : 0f;
 		glider.refreshPositionAndAngles(at.x, at.y + 0.3, at.z, yaw, 0f);
 		var cd = ctx.getStack().get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
-		if (cd != null) glider.tier = cd.copyNbt().getInt("GliderTier");
+		if (cd != null) {
+			glider.tier = cd.copyNbt().getInt("GliderTier");
+			if (cd.copyNbt().contains("Paint")) glider.setPaint(cd.copyNbt().getInt("Paint"));
+		}
 		((ServerWorld) world).spawnEntity(glider);
 		if (ctx.getPlayer() == null || !ctx.getPlayer().getAbilities().creativeMode) ctx.getStack().decrement(1);
 		return ActionResult.CONSUME;

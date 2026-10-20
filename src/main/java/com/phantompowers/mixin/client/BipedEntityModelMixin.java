@@ -53,6 +53,88 @@ public abstract class BipedEntityModelMixin {
 		if (aim > 0f) phantom$aimPose(aim);
 		float portal = com.phantompowers.client.ClientCutscene.portalTime(entity, age - (int) age);
 		if (portal >= 0f) phantom$portalPose(portal, age);
+		float dark = com.phantompowers.client.ClientCutscene.darkTime(entity, age - (int) age);
+		if (dark >= 0f) phantom$darkPose(dark, age);
+		float origin = com.phantompowers.client.ClientCutscene.originTime(entity, age - (int) age);
+		if (origin >= 0f) phantom$originPose(origin, age);
+		if (com.phantompowers.client.ClientCutscene.spinning(entity)) phantom$spinPose(age);
+	}
+
+	@org.spongepowered.asm.mixin.Unique
+	private static float phantom$ease(float v) {
+		v = MathHelper.clamp(v, 0f, 1f);
+		return v * v * (3 - 2 * v);
+	}
+
+	/**
+	 * The evil transformation: arms folded and head bowed while the aura builds... then the head comes up slowly,
+	 * the arms open wide, palms up, as the power pours in, and at the change everything is flung outward.
+	 */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$darkPose(float t, float age) {
+		float change = com.phantompowers.Cutscenes.DARK_CHANGE;
+		float open = phantom$ease((t - 30f) / 35f);
+		float fling = phantom$ease((t - (change - 3)) / 4f);
+		float bow = 1f - phantom$ease((t - 20f) / 30f);
+		float breathe = MathHelper.sin(age * 0.12f) * 0.03f;
+		head.pitch = 0.55f * bow - 0.25f * fling + breathe;
+		head.yaw = 0f;
+		hat.copyTransform(head);
+		body.pitch = -0.1f * fling;
+		// folded arms -> open, palms up -> flung out wide
+		rightArm.pitch = MathHelper.lerp(open, -1.15f, -0.35f) + breathe;
+		rightArm.yaw = MathHelper.lerp(open, 0.85f, 0f);
+		rightArm.roll = MathHelper.lerp(open, -0.1f, 0.85f) + 0.5f * fling;
+		leftArm.pitch = MathHelper.lerp(open, -1.15f, -0.35f) + breathe;
+		leftArm.yaw = MathHelper.lerp(open, -0.85f, 0f);
+		leftArm.roll = MathHelper.lerp(open, 0.1f, -0.85f) - 0.5f * fling;
+		rightLeg.roll = 0.12f * open;
+		leftLeg.roll = -0.12f * open;
+		rightLeg.pitch = leftLeg.pitch = 0f;
+	}
+
+	/** The portal surge: twisting and shaking as the energy rips through you, then thrown out, dazed. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$originPose(float t, float age) {
+		float blast = com.phantompowers.Cutscenes.ORIGIN_BLAST;
+		if (t < 18f) {
+			head.pitch = -0.2f;
+			head.yaw = MathHelper.sin(t * 0.3f) * 0.4f;   // looking around, confused
+		} else if (t < blast) {
+			float k = phantom$ease((t - 18f) / 6f);
+			float shake = MathHelper.sin(age * 3.1f) * 0.12f * k;
+			body.pitch = -0.25f * k;
+			head.pitch = -0.7f * k + shake;
+			head.yaw = shake;
+			rightArm.pitch = -0.4f * k + shake;
+			rightArm.roll = 1.3f * k;
+			leftArm.pitch = -0.4f * k - shake;
+			leftArm.roll = -1.3f * k;
+			rightLeg.roll = 0.2f * k;
+			leftLeg.roll = -0.2f * k;
+		} else {
+			float k = 1f - phantom$ease((t - blast - 10f) / 25f);
+			body.pitch = 0.25f * k;
+			head.pitch = 0.3f * k;
+			head.roll = MathHelper.sin(age * 0.2f) * 0.15f * k;
+			rightArm.pitch = -0.6f * k;
+			leftArm.pitch = 0.3f * k;
+		}
+		hat.copyTransform(head);
+	}
+
+	/** Flying round in circles: leaning hard into the turn, arms swept back. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$spinPose(float age) {
+		body.roll = 0f;
+		head.pitch = -0.4f;
+		hat.copyTransform(head);
+		rightArm.pitch = 0.5f;
+		rightArm.roll = 0.6f;
+		leftArm.pitch = 0.5f;
+		leftArm.roll = -0.6f;
+		rightLeg.pitch = 0.2f + MathHelper.sin(age * 0.6f) * 0.08f;
+		leftLeg.pitch = 0.25f - MathHelper.sin(age * 0.6f) * 0.08f;
 	}
 
 	/** Aiming the wrist launcher: right arm held straight out where you look, left hand steadying the wrist. */

@@ -72,6 +72,8 @@ public final class ModItems {
 					tooltip.add(net.minecraft.text.Text.literal("Unstable! Blasts whoever's in front of it...").formatted(net.minecraft.util.Formatting.DARK_GRAY));
 				}
 			});
+	public static final Item ACNE_CREAM = Registry.register(Registries.ITEM, PhantomMod.id("ecto_clear_cream"),
+			new AcneCreamItem(new Item.Settings().maxCount(16)));
 	public static final Item SORROW_LOCKET = Registry.register(Registries.ITEM, PhantomMod.id("sorrow_locket"),
 			new SorrowLocketItem(new Item.Settings().maxCount(1).maxDamage(120).rarity(Rarity.EPIC)));
 	public static final Item DOLORA_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("dolora_spawn_egg"),

@@ -33,14 +33,29 @@ public final class SuitTextures {
 	private SuitTextures() {}
 
 	/** The colours a player is wearing (the customizer's live preview wins for yourself while it's open). */
+	private static final Identifier DARK_SUIT = PhantomMod.id("textures/entity/ghost_suit_dark.png");
+	private static final Identifier DARK_GLOW = PhantomMod.id("textures/entity/ghost_suit_dark_glow.png");
+
+	/** The dark half-ghost wears its own evil suit design (black with jagged hot-pink seams), not the customizable one. */
+	public static boolean dark(UUID id) {
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (GhostSuitScreen.previewing && mc.player != null && mc.player.getUuid().equals(id)) return false;
+		return id != null && !GhostFlags.CLIENT_DARK.isEmpty() && GhostFlags.CLIENT_DARK.contains(id);
+	}
+
 	public static int[] colorsOf(UUID id) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (GhostSuitScreen.previewing && mc.player != null && mc.player.getUuid().equals(id)) return GhostSuitScreen.preview;
+		if (dark(id)) return SuitColors.VILLAIN;
 		int[] c = id == null ? null : GhostFlags.CLIENT_SUIT_COLORS.get(id);
 		return c == null ? SuitColors.CLASSIC : c;
 	}
 
 	public static Set of(AbstractClientPlayerEntity p) {
+		if (dark(p.getUuid())) {
+			Set v = get(SuitColors.VILLAIN);
+			return new Set(DARK_SUIT, DARK_GLOW, v.tail(), v.colors());
+		}
 		return get(colorsOf(p.getUuid()));
 	}
 

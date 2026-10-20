@@ -31,9 +31,12 @@ public final class GhostFlags {
 	public static net.minecraft.util.Identifier clientSkinOverride(Entity e) {
 		if (!(e instanceof PlayerEntity)) return null;
 		UUID id = e.getUuid();
-		if (!CLIENT_SUITED.isEmpty() && CLIENT_SUITED.contains(id) && (CLIENT_GHOSTS.isEmpty() || !CLIENT_GHOSTS.contains(id))) return SUIT_SKIN;
+		if (!CLIENT_SUITED.isEmpty() && CLIENT_SUITED.contains(id) && (CLIENT_GHOSTS.isEmpty() || !CLIENT_GHOSTS.contains(id))) return suitSkin.apply((PlayerEntity) e);
 		return null;
 	}
+
+	/** The (possibly repainted) hunter suit skin for a player; the client swaps in a painted version. */
+	public static java.util.function.Function<PlayerEntity, net.minecraft.util.Identifier> suitSkin = p -> SUIT_SKIN;
 
 	/** Players with their Ecto Shield up, as told to this client. */
 	public static final Set<UUID> CLIENT_SHIELDED = java.util.concurrent.ConcurrentHashMap.newKeySet();

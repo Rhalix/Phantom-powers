@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:honey_bottle"
+    },
+    {
+      "item": "minecraft:glow_berries"
+    },
+    {
+      "item": "phantom:ectoplasm"
+    }
+  ],
+  "result": {
+    "id": "phantom:ecto_clear_cream",
+    "count": 2
+  }
+}

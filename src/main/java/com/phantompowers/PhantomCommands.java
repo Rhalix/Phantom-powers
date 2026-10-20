@@ -21,6 +21,17 @@ public final class PhantomCommands {
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
 		dispatcher.register(CommandManager.literal("phantom")
 				.requires(src -> src.hasPermissionLevel(2))
+				.then(CommandManager.literal("acne")
+						.then(CommandManager.literal("cure").executes(ctx -> {
+							DarkPowers.endAcne(ctx.getSource().getPlayerOrThrow(), false);
+							ctx.getSource().sendFeedback(() -> Text.literal("Ecto acne cured."), false);
+							return 1;
+						}))
+						.then(CommandManager.literal("finish").executes(ctx -> {
+							DarkPowers.endAcne(ctx.getSource().getPlayerOrThrow(), true);
+							ctx.getSource().sendFeedback(() -> Text.literal("Ecto acne finished: you're the dark half-ghost now."), false);
+							return 1;
+						})))
 				.then(CommandManager.literal("grant").executes(ctx -> {
 					ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
 					GhostPowers.grantPowers(p);
@@ -284,7 +295,13 @@ public final class PhantomCommands {
 							&& HunterGear.tier(new net.minecraft.item.ItemStack(ModItems.HUNTER_SUIT)) == 0 && m.getStack() != null
 							&& ModItems.PROTOTYPE_PORTAL instanceof net.minecraft.item.BlockItem
 							&& ModBlocks.PROTOTYPE_PORTAL.getDefaultState().contains(PrototypePortalBlock.FACING)
-							&& DarkPowers.portalKnock(DarkPowers.PORTAL_TICKS) > 2.0 && DarkPowers.portalKnock(10) < 0;
+							&& DarkPowers.portalKnock(DarkPowers.PORTAL_TICKS) > 2.0 && DarkPowers.portalKnock(10) < 0
+							&& DarkPowers.spinPos(net.minecraft.util.math.Vec3d.ZERO, 20).length() > 1
+							&& Cutscenes.originForward(Cutscenes.ORIGIN_TICKS) > 2 && Cutscenes.darkLift(40) > 0
+							&& HunterPaint.paint(new net.minecraft.item.ItemStack(ModItems.GHOST_BLASTER)) == -1
+							&& HunterPaint.weaponBoost(new net.minecraft.item.ItemStack(ModItems.GHOST_BLASTER)) == 1f
+							&& !HunterPaint.costText(3).isEmpty() && ModBlocks.HUNTER_WORKBENCH.getDefaultState().contains(HunterWorkbenchBlock.FACING)
+							&& ModItems.ACNE_CREAM != null;
 					if (!ok) {
 						ctx.getSource().sendError(Text.literal("Dark test: FAILED"));
 						return 0;

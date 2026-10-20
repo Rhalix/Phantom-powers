@@ -123,5 +123,8 @@
   "entity.phantom.dolora": "Dolora",
   "item.phantom.dolora_essence": "Dolora's Essence",
   "item.phantom.sorrow_locket": "Sorrow Locket",
-  "item.phantom.dolora_spawn_egg": "Dolora Spawn Egg"
+  "item.phantom.dolora_spawn_egg": "Dolora Spawn Egg",
+  "item.phantom.ecto_clear_cream": "Ecto-Clear Cream",
+  "key.phantom.radar": "Radar (off / ghosts / mobs / both)",
+  "block.phantom.hunter_workbench": "Hunter Workbench"
 }

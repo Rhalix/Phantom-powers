@@ -103,6 +103,8 @@ public final class ControlsHud {
 				if (com.phantompowers.HunterGear.hasCannons(pack)) lines.add(new Line(name(PhantomClient.WAIL), "backpack cannons on/off"));
 			}
 		}
+		if (!itemHelp && (com.phantompowers.GhostFlags.CLIENT_SUITED.contains(mc.player.getUuid()) || ClientGhost.transformed))
+			lines.add(new Line(name(PhantomClient.RADAR), "radar: " + RadarSettings.name()));
 		if (lines.isEmpty()) return;
 
 		// A tidy list on the right edge: key chips on the left, what they do on the right

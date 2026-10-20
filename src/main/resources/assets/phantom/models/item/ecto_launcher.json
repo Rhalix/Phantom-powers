@@ -4,7 +4,8 @@
   "particle": "phantom:item/launcher_body",
   "body": "phantom:item/launcher_body",
   "pink": "phantom:item/launcher_pink",
-  "dark": "phantom:item/launcher_dark"
+  "dark": "phantom:item/launcher_dark",
+  "body_paint": "phantom:item/launcher_body_paint"
  },
  "elements": [
   {
@@ -20,58 +21,64 @@
    ],
    "faces": {
     "north": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "south": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "east": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "west": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "up": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "down": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     }
    }
   },
@@ -88,58 +95,64 @@
    ],
    "faces": {
     "north": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "south": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "east": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "west": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "up": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "down": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     }
    },
    "rotation": {
@@ -1126,58 +1139,64 @@
    ],
    "faces": {
     "north": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "south": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "east": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "west": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "up": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     },
     "down": {
-     "texture": "#body",
+     "texture": "#body_paint",
      "uv": [
       0,
       0,
       16,
       16
-     ]
+     ],
+     "tintindex": 0
     }
    }
   },
