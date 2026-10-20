@@ -117,12 +117,15 @@ public final class Story {
 		d.storyStep = 0;
 		d.storyCount = 0;
 		st.markDirty();
-		BlockPos c = AmityPark.ensure(p.getServer());
+		boolean ready = AmityPark.request(p.getServer());
+		BlockPos c = AmityPark.state(p.getServer()).center;
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
 		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(missionTitle(path, 1).replace(" (Dark Side)", "")).formatted(path == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Head for Amity Park").formatted(Formatting.GRAY)));
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
-		p.sendMessage(Text.literal("Amity Park is at " + c.getX() + ", " + c.getZ() + " in the Overworld. The tracker shows the way, or fast travel there from the Phantom Menu (Story Mode).")
+		if (ready) p.sendMessage(Text.literal("Amity Park is at " + c.getX() + ", " + c.getZ() + " in the Overworld. The tracker shows the way, or fast travel there from the Phantom Menu (Story Mode).")
+				.formatted(Formatting.AQUA), false);
+		else p.sendMessage(Text.literal("Amity Park is being built in the background (you can keep playing). You'll get a message when it's ready.")
 				.formatted(Formatting.AQUA), false);
 		p.sendMessage(Text.literal("Story mode: " + PATHS[path] + " path").formatted(Formatting.GREEN, Formatting.BOLD), false);
 		p.sendMessage(Text.literal(intro(path)).formatted(Formatting.GRAY), false);
@@ -139,7 +142,11 @@ public final class Story {
 
 	/** Fast travel to Amity Park. */
 	public static void fastTravel(ServerPlayerEntity p) {
-		BlockPos c = AmityPark.ensure(p.getServer());
+		if (!AmityPark.request(p.getServer())) {
+			p.sendMessage(Text.literal("Amity Park is still being built (" + AmityPark.progress(p.getServer()) + "%). Try again in a moment!").formatted(Formatting.YELLOW), true);
+			return;
+		}
+		BlockPos c = AmityPark.state(p.getServer()).center;
 		Vec3d at = AmityPark.entrance(c);
 		ServerWorld ow = p.getServer().getOverworld();
 		p.getServerWorld().spawnParticles(GhostPowers.GREEN, p.getX(), p.getY() + 1, p.getZ(), 40, 0.4, 0.8, 0.4, 0.05);
@@ -147,6 +154,19 @@ public final class Story {
 		ow.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 40, 0.4, 0.8, 0.4, 0.05);
 		ow.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1f, 1.2f);
 		p.sendMessage(Text.literal("Welcome to Amity Park!").formatted(Formatting.GREEN), true);
+	}
+
+	/** The town finished building: tell everyone who's on a story path. */
+	public static void townReady(MinecraftServer server, BlockPos c) {
+		GhostState st = GhostState.of(server);
+		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+			GhostData d = st.data(p.getUuid());
+			if (d.storyPath == NONE) continue;
+			p.sendMessage(Text.literal("Amity Park is ready! It's at " + c.getX() + ", " + c.getZ() + " in the Overworld. Follow the tracker, or fast travel from the Phantom Menu (Story Mode).")
+					.formatted(Formatting.GREEN), false);
+			p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), SoundCategory.PLAYERS, 1f, 1.2f);
+			send(p, d, false);
+		}
 	}
 
 	/** "(312 blocks north-east)" toward the Ghost Lab, for the first objective. */
@@ -169,6 +189,10 @@ public final class Story {
 		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 			GhostData d = st.data(p.getUuid());
 			if (d.storyPath == NONE || d.storyMission >= DONE) continue;
+			if (!AmityPark.request(server)) {   // the town is still going up (or this world never started it)
+				if (server.getTicks() % 20 == 0) send(p, d, false);
+				continue;
+			}
 			if (check(p, d)) {
 				d.storyStep++;
 				d.storyCount = 0;
@@ -260,7 +284,8 @@ public final class Story {
 		if (!ServerPlayNetworking.canSend(p, StoryPayload.ID)) return;
 		String[] s = steps(d.storyPath);
 		String obj = objective(d);
-		if (d.storyPath != NONE && d.storyMission < DONE && d.storyStep == 0 && AmityPark.state(p.getServer()).built) obj += direction(p);
+		if (d.storyPath != NONE && d.storyMission < DONE && d.storyStep == 0)
+			obj += AmityPark.ready(p.getServer()) ? direction(p) : " (Amity Park is being built: " + AmityPark.progress(p.getServer()) + "%)";
 		ServerPlayNetworking.send(p, new StoryPayload(openPicker, d.storyPath, missionTitle(d.storyPath, d.storyMission), obj,
 				Math.min(d.storyStep, s.length), s.length));
 	}

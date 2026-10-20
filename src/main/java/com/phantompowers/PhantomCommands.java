@@ -25,7 +25,11 @@ public final class PhantomCommands {
 		ServerPlayerEntity p = src.getPlayerOrThrow();
 		var server = src.getServer();
 		if (place.equals("amity_park") || place.equals("ghost_lab")) {
-			BlockPos c = com.phantompowers.world.AmityPark.ensure(server);
+			if (!com.phantompowers.world.AmityPark.request(server)) {
+				src.sendFeedback(() -> Text.literal("Amity Park is being built (" + com.phantompowers.world.AmityPark.progress(server) + "%). Try again in a moment!"), false);
+				return 0;
+			}
+			BlockPos c = com.phantompowers.world.AmityPark.state(server).center;
 			net.minecraft.util.math.Vec3d at = place.equals("amity_park") ? com.phantompowers.world.AmityPark.entrance(c)
 					: net.minecraft.util.math.Vec3d.ofBottomCenter(com.phantompowers.world.AmityPark.lab(c)).add(0, 0, 2);
 			p.teleport(server.getOverworld(), at.x, at.y, at.z, place.equals("amity_park") ? -90f : 180f, 0f);

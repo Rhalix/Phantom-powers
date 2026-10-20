@@ -31,7 +31,10 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.ChunkPos;
+import java.util.Comparator;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.math.BlockPos;
@@ -82,15 +85,132 @@ public final class AmityPark {
 		return server.getOverworld().getPersistentStateManager().getOrCreate(State.TYPE, "phantom_amity_park");
 	}
 
-	/** Build the town if it isn't there yet; returns its centre (street level). */
+	// ------------------------------------------------------------ building in the background
+
+	private static final ChunkTicketType<ChunkPos> TICKET = ChunkTicketType.create("phantom_amity_park", Comparator.comparingLong(ChunkPos::toLong));
+	private static final int TICKET_RADIUS = 11, NEED_RADIUS = 9;   // chunks within NEED_RADIUS of the centre must be loaded
+	private static Job job;
+
+	/** A town being built a bit at a time: find a site, load the land in the background, then build in small steps. */
+	private static final class Job {
+		int phase;            // 0 = finding a site, 1 = loading the land, 2 = building
+		int ring, k;
+		double bestScore = Double.MAX_VALUE;
+		BlockPos best;
+		BlockPos center;
+		ChunkPos ticket;
+		java.util.List<Runnable> tasks;
+		int next;
+	}
+
+	/** Has the town been built? */
+	public static boolean ready(MinecraftServer server) {
+		return state(server).built;
+	}
+
+	/** Start building the town in the background (if it isn't built or being built). Returns true if it's ready. */
+	public static boolean request(MinecraftServer server) {
+		if (state(server).built) return true;
+		if (job == null) {
+			job = new Job();
+			BlockPos spawn = server.getOverworld().getSpawnPos();
+			job.best = new BlockPos(spawn.getX() + 320, 0, spawn.getZ() + 320);
+		}
+		return false;
+	}
+
+	/** How far along the town is, 0..100 (100 = ready). */
+	public static int progress(MinecraftServer server) {
+		if (state(server).built) return 100;
+		if (job == null) return 0;
+		return switch (job.phase) {
+			case 0 -> Math.min(5, (job.ring * 12 + job.k) * 5 / 48);
+			case 1 -> 5 + loadedPercent(server.getOverworld(), job.ticket) * 25 / 100;
+			default -> 30 + job.next * 70 / Math.max(1, job.tasks.size());
+		};
+	}
+
+	private static int loadedPercent(ServerWorld w, ChunkPos c) {
+		int ok = 0, all = 0;
+		for (int dx = -NEED_RADIUS; dx <= NEED_RADIUS; dx++) for (int dz = -NEED_RADIUS; dz <= NEED_RADIUS; dz++) {
+			all++;
+			if (w.isChunkLoaded(ChunkPos.toLong(c.x + dx, c.z + dz))) ok++;
+		}
+		return ok * 100 / all;
+	}
+
+	/** Called every server tick: does a few milliseconds of work on the town, so the game never freezes. */
+	public static void tick(MinecraftServer server) {
+		if (job == null) return;
+		State st = state(server);
+		ServerWorld w = server.getOverworld();
+		if (st.built) {
+			finish(w);
+			return;
+		}
+		long until = System.nanoTime() + 12_000_000L;   // about a quarter of a tick
+		switch (job.phase) {
+			case 0 -> {
+				ChunkGenerator gen = w.getChunkManager().getChunkGenerator();
+				NoiseConfig noise = w.getChunkManager().getNoiseConfig();
+				do {
+					double[] r = candidate(w, gen, noise, job.ring, job.k);
+					if (r != null && r[0] < job.bestScore) {
+						job.bestScore = r[0];
+						job.best = new BlockPos((int) r[1], 0, (int) r[2]);
+					}
+					if (++job.k == 12) {
+						job.k = 0;
+						job.ring++;
+						if (job.bestScore < 18 || job.ring >= 4) {
+							job.ticket = new ChunkPos(job.best);
+							w.getChunkManager().addTicket(TICKET, job.ticket, TICKET_RADIUS, job.ticket);
+							job.phase = 1;
+							return;
+						}
+					}
+				} while (System.nanoTime() < until);
+			}
+			case 1 -> {
+				if (server.getTicks() % 10 != 0 || loadedPercent(w, job.ticket) < 100) return;
+				int g = groundLevel(w, job.best);
+				job.center = new BlockPos(job.best.getX(), g, job.best.getZ());
+				job.tasks = new Builder(w, job.center).plan();
+				job.phase = 2;
+			}
+			default -> {
+				do {
+					job.tasks.get(job.next++).run();
+				} while (job.next < job.tasks.size() && System.nanoTime() < until);
+				if (job.next >= job.tasks.size()) {
+					st.built = true;
+					st.center = job.center;
+					st.markDirty();
+					finish(w);
+					com.phantompowers.Story.townReady(server, st.center);
+				}
+			}
+		}
+	}
+
+	/** Forget a half-built town (the server is shutting down; it starts again from scratch next time). */
+	public static void reset() {
+		job = null;
+	}
+
+	private static void finish(ServerWorld w) {
+		if (job != null && job.ticket != null) w.getChunkManager().removeTicket(TICKET, job.ticket, TICKET_RADIUS, job.ticket);
+		job = null;
+	}
+
+	/** Build the town right now if it isn't there yet (the game waits); returns its centre (street level). */
 	public static BlockPos ensure(MinecraftServer server) {
 		State st = state(server);
 		if (st.built) return st.center;
 		ServerWorld w = server.getOverworld();
+		finish(w);
 		BlockPos site = findSite(w);
-		// generate every chunk the town touches plus a ring around it first, so later world generation can't drop
-		// trees or anything else into the finished town
-		int r = R + BLEND + 32;
+		int r = R + BLEND + 16;
 		for (int cx = (site.getX() - r) >> 4; cx <= (site.getX() + r) >> 4; cx++)
 			for (int cz = (site.getZ() - r) >> 4; cz <= (site.getZ() + r) >> 4; cz++) w.getChunk(cx, cz);
 		int g = groundLevel(w, site);
@@ -107,42 +227,43 @@ public final class AmityPark {
 		ChunkGenerator gen = w.getChunkManager().getChunkGenerator();
 		NoiseConfig noise = w.getChunkManager().getNoiseConfig();
 		BlockPos spawn = w.getSpawnPos();
-		int sea = w.getSeaLevel();
 		BlockPos best = new BlockPos(spawn.getX() + 320, 0, spawn.getZ() + 320);
 		double bestScore = Double.MAX_VALUE;
 		for (int ring = 0; ring < 4; ring++) {
-			int dist = 300 + ring * 180;
 			for (int k = 0; k < 12; k++) {
-				double a = k * Math.PI * 2 / 12 + ring * 0.4;
-				int cx = spawn.getX() + (int) (Math.cos(a) * dist), cz = spawn.getZ() + (int) (Math.sin(a) * dist);
-				double sum = 0, sum2 = 0;
-				int n = 0;
-				boolean wet = false;
-				for (int dx = -R; dx <= R && !wet; dx += 26) {
-					for (int dz = -R; dz <= R; dz += 26) {
-						int x = cx + dx, z = cz + dz;
-						int h = gen.getHeight(x, z, Heightmap.Type.OCEAN_FLOOR_WG, w, noise);
-						RegistryEntry<Biome> b = gen.getBiomeSource().getBiome(x >> 2, sea >> 2, z >> 2, noise.getMultiNoiseSampler());
-						if (h < sea || b.isIn(BiomeTags.IS_OCEAN) || b.isIn(BiomeTags.IS_RIVER) || b.isIn(BiomeTags.IS_DEEP_OCEAN)) {
-							wet = true;
-							break;
-						}
-						sum += h;
-						sum2 += (double) h * h;
-						n++;
-					}
-				}
-				if (wet || n == 0) continue;
-				double mean = sum / n, var = sum2 / n - mean * mean;
-				double score = var + Math.max(0, mean - (sea + 30)) * 4 + ring * 6;
-				if (score < bestScore) {
-					bestScore = score;
-					best = new BlockPos(cx, 0, cz);
+				double[] r = candidate(w, gen, noise, ring, k);
+				if (r != null && r[0] < bestScore) {
+					bestScore = r[0];
+					best = new BlockPos((int) r[1], 0, (int) r[2]);
 				}
 			}
 			if (bestScore < 18) break;
 		}
 		return best;
+	}
+
+	/** How good a spot candidate (ring, k) is: {score (lower is flatter), x, z}, or null if it's in water. */
+	private static double[] candidate(ServerWorld w, ChunkGenerator gen, NoiseConfig noise, int ring, int k) {
+		BlockPos spawn = w.getSpawnPos();
+		int sea = w.getSeaLevel();
+		int dist = 300 + ring * 180;
+		double a = k * Math.PI * 2 / 12 + ring * 0.4;
+		int cx = spawn.getX() + (int) (Math.cos(a) * dist), cz = spawn.getZ() + (int) (Math.sin(a) * dist);
+		double sum = 0, sum2 = 0;
+		int n = 0;
+		for (int dx = -R; dx <= R; dx += 26) {
+			for (int dz = -R; dz <= R; dz += 26) {
+				int x = cx + dx, z = cz + dz;
+				int h = gen.getHeight(x, z, Heightmap.Type.OCEAN_FLOOR_WG, w, noise);
+				RegistryEntry<Biome> b = gen.getBiomeSource().getBiome(x >> 2, sea >> 2, z >> 2, noise.getMultiNoiseSampler());
+				if (h < sea || b.isIn(BiomeTags.IS_OCEAN) || b.isIn(BiomeTags.IS_RIVER) || b.isIn(BiomeTags.IS_DEEP_OCEAN)) return null;
+				sum += h;
+				sum2 += (double) h * h;
+				n++;
+			}
+		}
+		double mean = sum / n, var = sum2 / n - mean * mean;
+		return new double[]{var + Math.max(0, mean - (sea + 30)) * 4 + ring * 6, cx, cz};
 	}
 
 	/** Street level: the middle height of the real ground across the town. */
@@ -281,34 +402,48 @@ public final class AmityPark {
 		// --------------------------------------------------------- the town
 
 		void build() {
-			terrain();
-			roads();
-			labHouse(LAB_X, LAB_Z);
-			library(62, -44);
-			school(-98, -98);
-			field(-50, -98);
-			diner(-48, -30);
-			store(-24, -28);
-			townHall(-98, -42);
-			apartments(-48, 12);
-			house(-96, 14, 0, false);
-			park(8, 8);
-			int style = 1;
+			for (Runnable r : plan()) r.run();
+		}
+
+		/** The town as a list of small jobs, so it can be built a little at a time without freezing the game. */
+		java.util.List<Runnable> plan() {
+			java.util.List<Runnable> t = new java.util.ArrayList<>();
+			t.add(this::pickLawn);
+			int outer = R + BLEND;
+			for (int x = -outer; x <= outer; x += 3) {
+				final int a = x, b = Math.min(x + 2, outer);
+				t.add(() -> terrain(a, b));
+			}
+			t.add(this::roads);
+			t.add(() -> labHouse(LAB_X, LAB_Z));
+			t.add(() -> library(62, -44));
+			t.add(() -> school(-98, -98));
+			t.add(() -> field(-50, -98));
+			t.add(() -> diner(-48, -30));
+			t.add(() -> store(-24, -28));
+			t.add(() -> townHall(-98, -42));
+			t.add(() -> apartments(-48, 12));
+			t.add(() -> house(-96, 14, 0, false));
+			t.add(() -> park(8, 8));
+			int[] style = {1};
 			for (int lot : new int[]{8, 58}) {
-				house(lot + 3, -74, style++, true);
-				house(lot + 24, -74, style++, true);
+				int s1 = style[0]++, s2 = style[0]++;
+				t.add(() -> house(lot + 3, -74, s1, true));
+				t.add(() -> house(lot + 24, -74, s2, true));
 			}
 			for (int lot : new int[]{8, 58, -50, -100}) {
-				house(lot + 3, 60, style++, false);
-				house(lot + 24, 60, style++, false);
+				int s1 = style[0]++, s2 = style[0]++;
+				t.add(() -> house(lot + 3, 60, s1, false));
+				t.add(() -> house(lot + 24, 60, s2, false));
 			}
-			welcome();
-			lamps();
+			t.add(this::welcome);
+			t.add(this::lamps);
+			return t;
 		}
 
 		/** Level the town, and slope the edges smoothly into the land around it. */
-		void terrain() {
-			// the local ground: grass, sand, snow... whatever this biome has on top
+		/** Use whatever the local ground is (grass, sand, snow...) for lawns. */
+		void pickLawn() {
 			BlockState top = w.getBlockState(new BlockPos(c.getX(), surface(w, c.getX(), c.getZ()) - 1, c.getZ()));
 			if (top.isOf(Blocks.SAND) || top.isOf(Blocks.RED_SAND)) {
 				lawn = top;
@@ -316,8 +451,12 @@ public final class AmityPark {
 			} else if (top.isOf(Blocks.PODZOL) || top.isOf(Blocks.MYCELIUM) || top.isOf(Blocks.SNOW_BLOCK) || top.isOf(Blocks.COARSE_DIRT)) {
 				lawn = top;
 			}
+		}
+
+		/** Level rows x0..x1 of the town (and its sloping edge). */
+		void terrain(int x0, int x1) {
 			int outer = R + BLEND;
-			for (int x = -outer; x <= outer; x++) {
+			for (int x = x0; x <= x1; x++) {
 				for (int z = -outer; z <= outer; z++) {
 					int ax = c.getX() + x, az = c.getZ() + z;
 					double out = Math.max(Math.abs(x), Math.abs(z)) - R;          // > 0 in the blend ring

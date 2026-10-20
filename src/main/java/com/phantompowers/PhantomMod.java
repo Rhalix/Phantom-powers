@@ -130,6 +130,9 @@ public class PhantomMod implements ModInitializer {
 			return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
 		});
 
+		// a half-built town doesn't carry over into a different world
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> com.phantompowers.world.AmityPark.reset());
+
 		// Ticking
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			PortalLogic.tick(server);
@@ -143,6 +146,7 @@ public class PhantomMod implements ModInitializer {
 			CloningPodBlock.tick(server);
 			ShieldDomes.tick(server);
 			Story.tick(server);
+			com.phantompowers.world.AmityPark.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor
