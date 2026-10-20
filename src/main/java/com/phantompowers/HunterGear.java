@@ -74,7 +74,7 @@ public final class HunterGear {
 			case "cannons" -> {
 				if (n.getBoolean("BackpackCannons")) return false;
 				n.putBoolean("BackpackCannons", true);
-				GhostPowers.bar(p, "Backpack cannons installed! With the suit on, press your Wail key (B) to deploy them.", Formatting.AQUA);
+				GhostPowers.bar(p, "Backpack cannons installed! With the suit on, press your Cannon key (,) to deploy them (. switches auto / manual).", Formatting.AQUA);
 			}
 			default -> {
 				return false;
@@ -174,6 +174,52 @@ public final class HunterGear {
 		GhostPowers.broadcastStates(p.getServer());
 	}
 
+	/** The cannon key: deploy the cannons; in manual mode, fire where you look; in auto mode, stow them again. */
+	public static void cannonKey(ServerPlayerEntity p, GhostData d) {
+		if (!d.suitOn) {
+			GhostPowers.bar(p, "Put your Ghost Hunter Suit on first (U).", Formatting.GRAY);
+			return;
+		}
+		if (!d.cannons) {
+			toggleCannons(p, d);
+			if (d.cannons) GhostPowers.bar(p, d.cannonManual ? "Cannons out (MANUAL): press your Cannon key (,) to fire where you look. Sneak + , stows them."
+					: "Cannons out (AUTO): they lock onto ghosts and monsters. Press , to stow.", Formatting.AQUA);
+			return;
+		}
+		if (d.cannonManual) manualFire(p, d);
+		else toggleCannons(p, d);
+	}
+
+	public static void toggleCannonMode(ServerPlayerEntity p, GhostData d) {
+		d.cannonManual = !d.cannonManual;
+		GhostPowers.bar(p, "Backpack cannons: " + (d.cannonManual ? "MANUAL (press , to fire)" : "AUTO (they aim and fire themselves)"), Formatting.AQUA);
+		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.6f, 1.6f);
+	}
+
+	private static void manualFire(ServerPlayerEntity p, GhostData d) {
+		if (d.cannonCooldown > 0) return;
+		int t = tier(p.getEquippedStack(EquipmentSlot.CHEST));
+		d.cannonCooldown = 8 - t;
+		ServerWorld w = p.getServerWorld();
+		Vec3d eye = p.getEyePos(), look = p.getRotationVec(1f), end = eye.add(look.multiply(48));
+		net.minecraft.util.hit.BlockHitResult bh = w.raycast(new net.minecraft.world.RaycastContext(eye, end,
+				net.minecraft.world.RaycastContext.ShapeType.COLLIDER, net.minecraft.world.RaycastContext.FluidHandling.NONE, p));
+		if (bh.getType() != net.minecraft.util.hit.HitResult.Type.MISS) end = bh.getPos();
+		net.minecraft.util.hit.EntityHitResult eh = net.minecraft.entity.projectile.ProjectileUtil.raycast(p, eye, end,
+				new net.minecraft.util.math.Box(eye, end).expand(1.0), e -> e != p && !e.isSpectator() && e.canHit(), eye.squaredDistanceTo(end));
+		if (eh != null) {
+			end = eh.getPos();
+			eh.getEntity().damage(w.getDamageSources().indirectMagic(p, p), (6f + t * 1.5f) * HunterSuit.ghostBonus(eh.getEntity()));
+		}
+		float yaw = (float) Math.toRadians(p.bodyYaw);
+		for (int s = -1; s <= 1; s += 2) {
+			Vec3d from = p.getPos().add(Math.cos(yaw) * 0.45 * s, 2.05, Math.sin(yaw) * 0.45 * s);
+			BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) end.x, (float) end.y, (float) end.z, 0xFF55CC);
+			for (ServerPlayerEntity v : PlayerLookup.around(w, from, 96)) if (ServerPlayNetworking.canSend(v, BeamPayload.ID)) ServerPlayNetworking.send(v, beam);
+		}
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.PLAYERS, 0.8f, 1.5f);
+	}
+
 	public static void tick(ServerPlayerEntity p, GhostData d) {
 		if (d.missileCooldown > 0) d.missileCooldown--;
 		if (d.missileAim && (!d.suitOn || d.transformed || !hasMissiles(p.getEquippedStack(EquipmentSlot.CHEST)))) {
@@ -184,7 +230,8 @@ public final class HunterGear {
 			d.cannons = false;
 			GhostPowers.broadcastStates(p.getServer());
 		}
-		if (!d.cannons || --d.cannonCooldown > 0) return;
+		if (d.cannonCooldown > 0 && d.cannonManual) d.cannonCooldown--;
+		if (!d.cannons || d.cannonManual || --d.cannonCooldown > 0) return;
 		int t = tier(p.getEquippedStack(EquipmentSlot.CHEST));
 		d.cannonCooldown = 26 - t * 4;
 		ServerWorld w = p.getServerWorld();

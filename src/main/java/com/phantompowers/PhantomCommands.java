@@ -18,9 +18,63 @@ import net.minecraft.util.math.BlockPos;
 public final class PhantomCommands {
 	private PhantomCommands() {}
 
+	public static final String[] PLACES = {"amity_park", "ghost_lab", "ghost_prison", "crate_keep", "concert_stage", "wish_palace", "ghost_highway", "gloom_manor"};
+
+	/** Teleport to one of the mod's structures (building it first if it isn't there yet). */
+	static int teleport(ServerCommandSource src, String place) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ServerPlayerEntity p = src.getPlayerOrThrow();
+		var server = src.getServer();
+		if (place.equals("amity_park") || place.equals("ghost_lab")) {
+			BlockPos c = com.phantompowers.world.AmityPark.ensure(server);
+			net.minecraft.util.math.Vec3d at = place.equals("amity_park") ? com.phantompowers.world.AmityPark.entrance(c)
+					: net.minecraft.util.math.Vec3d.ofBottomCenter(com.phantompowers.world.AmityPark.lab(c)).add(0, 0, 2);
+			p.teleport(server.getOverworld(), at.x, at.y, at.z, place.equals("amity_park") ? -90f : 180f, 0f);
+			src.sendFeedback(() -> Text.literal("Teleported to " + (place.equals("amity_park") ? "Amity Park" : "the Ghost Lab")), false);
+			return 1;
+		}
+		ServerWorld zone = server.getWorld(PortalLogic.GHOST_ZONE);
+		if (zone == null) return 0;
+		BlockPos near = p.getWorld() == zone ? p.getBlockPos() : BlockPos.ORIGIN;
+		BlockPos at;
+		switch (place) {
+			case "ghost_prison" -> { at = GhostZoneLife.nearestPrison(zone, near); GhostZoneLife.ensurePrison(zone, at); }
+			case "crate_keep" -> { at = GhostZoneLife.nearestCrateKeep(zone, near); GhostZoneLife.ensureCrateKeep(zone, at); }
+			case "concert_stage" -> { at = GhostZoneLife.nearestStage(zone, near); GhostZoneLife.ensureStage(zone, at); }
+			case "wish_palace" -> { at = GhostZoneLife.nearestPalace(zone, near); GhostZoneLife.ensurePalace(zone, at); }
+			case "ghost_highway" -> { at = GhostZoneLife.nearestRoad(zone, near); GhostZoneLife.ensureRoad(zone, at); }
+			case "gloom_manor" -> { at = GhostZoneLife.nearestManor(zone, near); GhostZoneLife.ensureManor(zone, at); }
+			default -> {
+				src.sendError(Text.literal("Unknown place. Try: " + String.join(", ", PLACES)));
+				return 0;
+			}
+		}
+		// land on top of whatever is there
+		BlockPos.Mutable m = new BlockPos.Mutable(at.getX(), Math.min(zone.getTopY() - 2, at.getY() + 40), at.getZ());
+		while (m.getY() > at.getY() - 20 && zone.getBlockState(m).isAir()) m.move(0, -1, 0);
+		double y = zone.getBlockState(m).isAir() ? at.getY() + 2 : m.getY() + 1;
+		p.teleport(zone, at.getX() + 0.5, y, at.getZ() + 0.5, p.getYaw(), 0f);
+		p.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.SLOW_FALLING, 100, 0, false, false));
+		String nice = place.replace('_', ' ');
+		src.sendFeedback(() -> Text.literal("Teleported to the " + nice + " (" + at.getX() + ", " + at.getZ() + ")"), false);
+		return 1;
+	}
+
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+		dispatcher.register(CommandManager.literal("story")
+				.executes(ctx -> {
+					Story.open(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				})
+				.then(CommandManager.literal("restart").executes(ctx -> {
+					Story.restart(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				})));
 		dispatcher.register(CommandManager.literal("phantom")
 				.requires(src -> src.hasPermissionLevel(2))
+				.then(CommandManager.literal("tp")
+						.then(CommandManager.argument("place", com.mojang.brigadier.arguments.StringArgumentType.word())
+								.suggests((ctx, b) -> net.minecraft.command.CommandSource.suggestMatching(PLACES, b))
+								.executes(ctx -> teleport(ctx.getSource(), com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "place")))))
 				.then(CommandManager.literal("acne")
 						.then(CommandManager.literal("cure").executes(ctx -> {
 							DarkPowers.endAcne(ctx.getSource().getPlayerOrThrow(), false);
@@ -346,8 +400,20 @@ public final class PhantomCommands {
 					int lairs = com.phantompowers.world.GhostZoneLife.lairSignals(zone, o).size();
 					int lab = 0;
 					for (int i = 1; i <= PortalLogic.LAB_W; i++) for (int j = 1; j <= PortalLogic.LAB_H; j++) if (PortalLogic.labOpening(i, j)) lab++;
-					String detail = "dome=" + domeOk + " pushed=" + pushed + " off=" + off + " skimmer=" + skOk + " lairs=" + lairs + " lab=" + lab;
-					if (!(domeOk && pushed && off && skOk && lairs == 6 && lab == 16)) {
+					BlockPos town = com.phantompowers.world.AmityPark.ensure(server);
+					ServerWorld ow = server.getOverworld();
+					BlockPos labFloor = com.phantompowers.world.AmityPark.lab(town);
+					boolean amity = ow.getBlockState(labFloor.down()).isOf(net.minecraft.block.Blocks.SMOOTH_STONE)
+							|| ow.getBlockState(labFloor.down()).isOf(net.minecraft.block.Blocks.LIME_CONCRETE);
+					boolean frame = false;
+					for (BlockPos q : BlockPos.iterate(labFloor.add(-8, 0, -8), labFloor.add(8, 7, 8))) {
+						if (ow.getBlockState(q).isOf(ModBlocks.PORTAL_FRAME)) { frame = true; break; }
+					}
+					boolean story = Story.missionTitle(Story.HUNTER, 1).contains("Ghost Must Die") && Story.missionTitle(Story.HERO, 1).contains("Molecules");
+					boolean sword = ModItems.ECTO_SWORD != null && !EctoSwordItem.lit(new net.minecraft.item.ItemStack(ModItems.ECTO_SWORD));
+					String detail = "dome=" + domeOk + " pushed=" + pushed + " off=" + off + " skimmer=" + skOk + " lairs=" + lairs + " lab=" + lab
+							+ " amity=" + amity + " frame=" + frame + " story=" + story + " sword=" + sword;
+					if (!(domeOk && pushed && off && skOk && lairs == 6 && lab == 16 && amity && frame && story && sword)) {
 						ctx.getSource().sendError(Text.literal("Gear test: FAILED " + detail));
 						return 0;
 					}

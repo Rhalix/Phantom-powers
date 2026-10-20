@@ -26,11 +26,11 @@ public final class HunterPaint {
 
 	public static boolean paintable(ItemStack s) {
 		return s.isOf(ModItems.GHOST_BLASTER) || s.isOf(ModItems.ECTO_LAUNCHER) || s.isOf(ModItems.THERMOS)
-				|| s.isOf(ModItems.HUNTER_SUIT) || s.isOf(ModItems.HOVER_GLIDER);
+				|| s.isOf(ModItems.HUNTER_SUIT) || s.isOf(ModItems.HOVER_GLIDER) || s.isOf(ModItems.ECTO_SWORD);
 	}
 
 	public static boolean upgradable(ItemStack s) {
-		return s.isOf(ModItems.GHOST_BLASTER) || s.isOf(ModItems.ECTO_LAUNCHER) || s.isOf(ModItems.HUNTER_SUIT) || s.isOf(ModItems.HOVER_GLIDER);
+		return s.isOf(ModItems.GHOST_BLASTER) || s.isOf(ModItems.ECTO_LAUNCHER) || s.isOf(ModItems.HUNTER_SUIT) || s.isOf(ModItems.HOVER_GLIDER) || s.isOf(ModItems.ECTO_SWORD);
 	}
 
 	private static NbtCompound data(ItemStack s) {

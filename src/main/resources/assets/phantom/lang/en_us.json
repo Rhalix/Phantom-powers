@@ -125,7 +125,7 @@
   "item.phantom.sorrow_locket": "Sorrow Locket",
   "item.phantom.dolora_spawn_egg": "Dolora Spawn Egg",
   "item.phantom.ecto_clear_cream": "Ecto-Clear Cream",
-  "key.phantom.radar": "Radar (off / ghosts / mobs / both)",
+  "key.phantom.radar": "Hunter Radar, suit on (off / ghosts / mobs / both)",
   "block.phantom.hunter_workbench": "Hunter Workbench",
   "block.phantom.shield_emitter": "Ecto-Shield Emitter",
   "item.phantom.shield_remote": "Shield Remote",
@@ -136,5 +136,8 @@
   "item.phantom.skimmer_ecto_shield": "Skimmer Upgrade: Ecto-Shield",
   "item.phantom.skimmer_deep_scanner": "Skimmer Upgrade: Deep Scanner",
   "item.phantom.skimmer_phase_drive": "Skimmer Upgrade: Phase Drive",
-  "item.phantom.ghost_portal_kit": "Ghost Portal Kit"
+  "item.phantom.ghost_portal_kit": "Ghost Portal Kit",
+  "key.phantom.cannon": "Backpack Cannons (deploy / fire in manual / sneak: stow)",
+  "key.phantom.cannon_mode": "Backpack Cannons: Auto / Manual",
+  "item.phantom.ecto_sword": "Hunter Ecto Sword"
 }

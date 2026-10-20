@@ -34,9 +34,9 @@ public final class SuitTrackerHud {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		PlayerEntity me = mc.player;
 		if (me == null || mc.world == null || mc.options.hudHidden || mc.currentScreen != null || ClientGhost.cutscene > 0) return;
-		// hunters in their suit, and half-ghosts in ghost form, get the radar (M switches it off / ghosts / mobs / both)
+		// only ghost hunters wearing their suit get the radar (M switches it off / ghosts / mobs / both)
 		if (RadarSettings.mode() == RadarSettings.OFF) return;
-		if (!GhostFlags.CLIENT_SUITED.contains(me.getUuid()) && !GhostFlags.CLIENT_GHOSTS.contains(me.getUuid())) return;
+		if (!GhostFlags.CLIENT_SUITED.contains(me.getUuid())) return;
 		float partial = counter.getTickDelta(true);
 
 		List<LivingEntity> found = new ArrayList<>();

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " E ",
+    " E ",
+    "IDI"
+  ],
+  "key": {
+    "E": {
+      "item": "phantom:ectoplasm"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "phantom:ecto_sword",
+    "count": 1
+  }
+}

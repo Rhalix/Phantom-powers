@@ -72,6 +72,10 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.DomeHitPayload.ID, com.phantompowers.network.DomeHitPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.SkimmerRadarPayload.ID, com.phantompowers.network.SkimmerRadarPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.SparkPayload.ID, com.phantompowers.network.SparkPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.StoryPayload.ID, com.phantompowers.network.StoryPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.StoryChoicePayload.ID, com.phantompowers.network.StoryChoicePayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.StoryChoicePayload.ID,
+				(payload, context) -> context.server().execute(() -> Story.choose(context.player(), payload.path())));
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,
@@ -133,6 +137,7 @@ public class PhantomMod implements ModInitializer {
 			ThermosPrison.tick(server);
 			CloningPodBlock.tick(server);
 			ShieldDomes.tick(server);
+			Story.tick(server);
 		});
 
 		// Intangible ghosts can't be hurt; possessed hosts can't be hit by their possessor
@@ -145,6 +150,7 @@ public class PhantomMod implements ModInitializer {
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (entity instanceof ServerPlayerEntity p) GhostPowers.onDeath(p);
 			GhostPowers.onAnyDeath(entity);
+			Story.onDeath(entity, source);
 		});
 
 		// Hits by players who ate ghost essences
@@ -161,8 +167,14 @@ public class PhantomMod implements ModInitializer {
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) ->
 				GhostPowers.onRespawn(newPlayer));
 
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
-				GhostPowers.onJoin(handler.player));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			GhostPowers.onJoin(handler.player);
+			server.execute(() -> {
+				GhostData sd = GhostState.of(server).data(handler.player.getUuid());
+				if (sd.storyPath != Story.NONE) Story.send(handler.player, sd, false);
+				else handler.player.sendMessage(net.minecraft.text.Text.literal("Type /story to start Story Mode!").formatted(net.minecraft.util.Formatting.GREEN), false);
+			});
+		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
 				GhostPowers.onLeave(handler.player));
 

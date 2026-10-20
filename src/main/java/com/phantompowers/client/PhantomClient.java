@@ -57,6 +57,8 @@ public class PhantomClient implements ClientModInitializer {
 	public static KeyBinding STINGER;
 	public static KeyBinding ABSORB;
 	public static KeyBinding RADAR;
+	public static KeyBinding CANNON;
+	public static KeyBinding CANNON_MODE;
 
 	/** Key bound to each skill, in skill order (used by the HUD and skills screen). */
 	public static KeyBinding[] skillKeys() {
@@ -94,6 +96,8 @@ public class PhantomClient implements ClientModInitializer {
 		STINGER = key("stinger", GLFW.GLFW_KEY_P);
 		ABSORB = key("absorb", GLFW.GLFW_KEY_SEMICOLON);
 		RADAR = key("radar", GLFW.GLFW_KEY_M);
+		CANNON = key("cannon", GLFW.GLFW_KEY_COMMA);
+		CANNON_MODE = key("cannon_mode", GLFW.GLFW_KEY_PERIOD);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			ClientBeams.tick(client);
@@ -102,6 +106,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientTornado.tick(client);
 			ClientDomes.tick(client);
 			ClientSparks.tick(client);
+			StoryHud.tick();
 			SkimmerHud.tick(client);
 			ClientShield.tick(client);
 			GhostTrail.tick(client);
@@ -188,6 +193,8 @@ public class PhantomClient implements ClientModInitializer {
 			while (STINGER.wasPressed()) send(GhostPowers.A_STINGER);
 			while (ABSORB.wasPressed()) send(GhostPowers.A_ABSORB);
 			while (RADAR.wasPressed()) RadarSettings.cycle();
+			while (CANNON.wasPressed()) send(client.player.isSneaking() ? GhostPowers.A_CANNON_STOW : GhostPowers.A_CANNON);
+			while (CANNON_MODE.wasPressed()) send(GhostPowers.A_CANNON_MODE);
 			boolean shieldNow = SHIELD.isPressed();
 			if (shieldHeld && !shieldNow) send(GhostPowers.A_SHIELD_RELEASE);
 			shieldHeld = shieldNow;
@@ -229,6 +236,7 @@ public class PhantomClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShieldHitPayload.ID, (payload, context) -> ClientShield.hit(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SkimmerRadarPayload.ID, (payload, context) -> SkimmerHud.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SparkPayload.ID, (payload, context) -> ClientSparks.handle(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.StoryPayload.ID, (payload, context) -> StoryHud.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.DomePayload.ID, (payload, context) -> ClientDomes.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.DomeHitPayload.ID, (payload, context) -> ClientDomes.hit(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.TornadoPayload.ID, (payload, context) -> ClientTornado.update(payload));
@@ -278,6 +286,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.PLAYER_CLONE, PlayerCloneRenderer::new);
 		com.phantompowers.HunterWorkbenchBlock.openScreen = pos -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new WorkbenchScreen(pos));
 		PaintTextures.init();
+		net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry.INSTANCE.register(com.phantompowers.ModItems.ECTO_SWORD, new EctoSwordRenderer());
 		// painted hunter gear: the paintable parts of each model are tinted with the item's paint colour
 		net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register((stack, tint) -> tint != 0 ? -1
 				: 0xFF000000 | (com.phantompowers.HunterPaint.paint(stack) >= 0 ? com.phantompowers.HunterPaint.paint(stack)
@@ -347,6 +356,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientTornado.clear();
 			ClientDomes.clear();
 			ClientSparks.clear();
+			StoryHud.clear();
 			GhostFlags.CLIENT_FISTS.clear();
 			GhostFlags.CLIENT_SHIELDED.clear();
 			GhostFlags.CLIENT_SUIT_COLORS.clear();
@@ -398,6 +408,7 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(BlasterScope::render);
 		HudRenderCallback.EVENT.register(MissileSight::render);
 		HudRenderCallback.EVENT.register(SkimmerHud::render);
+		HudRenderCallback.EVENT.register(StoryHud::render);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}

@@ -110,6 +110,9 @@ public final class ModItems {
 	public static final Item GHOST_PORTAL_KIT = Registry.register(Registries.ITEM, PhantomMod.id("ghost_portal_kit"),
 			new GhostPortalKitItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
 
+	public static final Item ECTO_SWORD = Registry.register(Registries.ITEM, PhantomMod.id("ecto_sword"),
+			new EctoSwordItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof()));
+
 	public static final Item HOVER_GLIDER = Registry.register(Registries.ITEM, PhantomMod.id("hover_glider"),
 			new HoverGliderItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
@@ -195,6 +198,7 @@ public final class ModItems {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
 			e.add(HUNTER_SUIT);
 			e.add(GHOST_BLASTER);
+			e.add(ECTO_SWORD);
 			e.add(GHOST_NET);
 			e.add(THUNDER_GUITAR);
 			e.add(PANDORAS_BOX);
