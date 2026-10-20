@@ -45,7 +45,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> MEAT = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> DAZED = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> POSE = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Chef Ghoulash").formatted(Formatting.GREEN),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Chef Ghoulash (stage 1)").formatted(Formatting.GREEN),
 			BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
 	private int throwCooldown = 30, barrageCooldown = 160, smackCooldown = 20, helperCooldown = 120, slamCooldown = 140, repath, tauntCooldown;
 	private int throwAnim, smackAnim;
@@ -96,7 +96,10 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	@Override
 	public void onTrackedDataSet(TrackedData<?> data) {
 		super.onTrackedDataSet(data);
-		if (MEAT.equals(data)) calculateDimensions();
+		if (MEAT.equals(data)) {
+			calculateDimensions();
+			if (meat() && !isWalker()) makeWalker();   // the Meat Monster stomps around on its ham-hock legs
+		}
 	}
 
 	@Override
@@ -178,7 +181,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 			Vec3d away = getPos().subtract(target.getPos()).multiply(1, 0, 1);
 			away = away.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : away.normalize();
 			away = away.rotateY((float) ((random.nextDouble() - 0.5) * 1.4));
-			Vec3d spot = clampToHome(target.getPos().add(away.multiply(close ? 2.0 : 7.0)).add(0, close ? 0.2 : 1.5, 0));
+			Vec3d spot = clampToHome(target.getPos().add(away.multiply(close ? 2.0 : 7.0)).add(0, meat() ? 0 : close ? 0.2 : 1.5, 0));
 			getMoveControl().moveTo(spot.x, spot.y, spot.z, close ? 1.1 : 0.9);
 		}
 		if (--smackCooldown <= 0 && dist2 < (meat() ? 4.5 * 4.5 : 3.3 * 3.3)) {
@@ -283,9 +286,24 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 
 	/** Stage two. */
 	private void meatMonster(ServerWorld w) {
+		// every scrap of food in the cafeteria comes flying in and piles onto him
+		Vec3d mid = getPos().add(0, 1.2, 0);
+		for (int i = 0; i < 40; i++) {
+			double a = random.nextDouble() * Math.PI * 2, r = 4 + random.nextDouble() * 6;
+			Vec3d from = mid.add(Math.cos(a) * r, random.nextDouble() * 3 - 1, Math.sin(a) * r);
+			Vec3d v = mid.subtract(from).multiply(0.12);
+			w.spawnParticles(new net.minecraft.particle.ItemStackParticleEffect(ParticleTypes.ITEM, new net.minecraft.item.ItemStack(
+					i % 3 == 0 ? net.minecraft.item.Items.COOKED_BEEF : i % 3 == 1 ? net.minecraft.item.Items.COOKED_PORKCHOP : net.minecraft.item.Items.COOKED_CHICKEN)),
+					from.x, from.y, from.z, 0, v.x, v.y, v.z, 1.0);
+		}
 		dataTracker.set(MEAT, true);
 		heal(getMaxHealth() * 0.1f);
-		bossBar.setName(Text.literal("Chef Ghoulash: MEAT MONSTER").formatted(Formatting.RED, Formatting.BOLD));
+		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
+			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket(5, 50, 15));
+			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(Text.literal("STAGE 2").formatted(Formatting.RED, Formatting.BOLD)));
+			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(Text.literal("The Meat Monster").formatted(Formatting.GOLD)));
+		}
+		bossBar.setName(Text.literal("Meat Monster (Chef Ghoulash, stage 2)").formatted(Formatting.RED, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		w.spawnParticles(ParticleTypes.EXPLOSION, getX(), getY() + 1.5, getZ(), 6, 1, 1, 1, 0);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.HOSTILE, 2f, 0.8f);
