@@ -42,7 +42,7 @@ public final class LookTransition {
 		T t = switch (style) {
 			case 0 -> new T(HUMAN, GHOST, duration, false);
 			case 3, 4 -> new T(GHOST, HUMAN, duration, false);
-			case 1 -> new T(HUMAN, SUIT, duration, true);
+			case 1, 6 -> new T(HUMAN, SUIT, duration, true);
 			case 5 -> new T(SUIT, HUMAN, duration, true);
 			default -> null;
 		};

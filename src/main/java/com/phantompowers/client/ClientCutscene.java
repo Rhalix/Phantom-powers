@@ -84,6 +84,16 @@ public final class ClientCutscene {
 			pl.fallDistance = 0;
 			return;
 		}
+		if (ClientGhost.cutsceneKind == 7 || ClientGhost.cutsceneKind == 8) {
+			boolean hero = ClientGhost.cutsceneKind == 7;
+			int el = Math.max(0, (hero ? com.phantompowers.Cutscenes.HERO_TICKS : com.phantompowers.Cutscenes.SUIT_TICKS) - ClientGhost.cutscene);
+			var want = hero ? anchor.add(0, com.phantompowers.Cutscenes.heroLift(el), 0) : anchor;
+			var next = pl.getPos().lerp(want, 0.5);
+			pl.setVelocity(0, 0, 0);
+			pl.setPosition(next.x, next.y, next.z);
+			pl.fallDistance = 0;
+			return;
+		}
 		if (ClientGhost.cutsceneKind == 5 || ClientGhost.cutsceneKind == 6) {
 			boolean dark = ClientGhost.cutsceneKind == 5;
 			int total = dark ? com.phantompowers.Cutscenes.DARK_TICKS : com.phantompowers.Cutscenes.ORIGIN_TICKS;
@@ -126,6 +136,8 @@ public final class ClientCutscene {
 		if (ClientGhost.cutsceneKind == 4) return spinShot(mc, e, t, partial);
 		if (ClientGhost.cutsceneKind == 5) return darkShot(mc, e, t, partial);
 		if (ClientGhost.cutsceneKind == 6) return originShot(mc, e, t, partial);
+		if (ClientGhost.cutsceneKind == 7) return heroShot(mc, e, t, partial);
+		if (ClientGhost.cutsceneKind == 8) return suitShot(mc, e, t, partial);
 		boolean wail = ClientGhost.cutsceneKind == 2;
 		// Start facing you, then drift around to a three-quarter angle
 		double orbit = Math.toRadians(baseYaw + (wail ? 25 : 35) * Math.sin(t * 0.035) - 20);
@@ -198,6 +210,43 @@ public final class ClientCutscene {
 		float shake = t > blast - 30 && t < blast + 12 ? (t < blast ? 0.05f : 0.2f * Math.max(0f, 1f - (t - blast) / 12f)) : 0f;
 		from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.3) * shake, Math.sin(t * 5.1) * shake);
 		return aim(mc, e, from, target);
+	}
+
+	/** The hero's transformation: starts low at your feet looking up, slowly rises and circles round to face you. */
+	private static float[] heroShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial) {
+		var pos = e.getLerpedPos(partial);
+		float change = com.phantompowers.Cutscenes.HERO_CHANGE;
+		double ang = Math.toRadians(baseYaw + 140 - 140 * smooth(Math.min(1f, t / change)) + 18 * Math.sin(t * 0.03));
+		double dist = 4.2 - 1.2 * smooth(Math.min(1f, t / change)) + 1.2 * smooth(clamp01((t - change) / 10f));
+		double camY = pos.y + 0.2 + 1.3 * smooth(Math.min(1f, t / change));
+		var target = pos.add(0, 1.1, 0);
+		var from = new net.minecraft.util.math.Vec3d(target.x - Math.sin(ang) * dist, camY, target.z + Math.cos(ang) * dist);
+		float shake = t > change && t < change + 8 ? 0.1f : 0f;
+		from = from.add(Math.sin(t * 3.7) * shake, Math.cos(t * 4.1) * shake, 0);
+		return aim(mc, e, from, target);
+	}
+
+	/** Suiting up: behind you watching the pack come alive, then sweeping round to the front as the plates lock on. */
+	private static float[] suitShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial) {
+		var pos = e.getLerpedPos(partial);
+		float plates = com.phantompowers.Cutscenes.SUIT_PLATES, done = com.phantompowers.Cutscenes.SUIT_DONE;
+		float k = smooth(clamp01((t - plates) / (done - plates)));
+		double ang = Math.toRadians(baseYaw + 180 * k);        // 0 = behind you, 180 = in front
+		double dist = 2.6 + 0.9 * k;
+		var target = pos.add(0, 1.2 - 0.3 * (1 - k), 0);
+		double camY = pos.y + 1.5 - 0.3 * k + 0.4 * smooth(clamp01((t - done) / 10f));
+		var from = new net.minecraft.util.math.Vec3d(target.x + Math.sin(ang) * dist, camY, target.z - Math.cos(ang) * dist);
+		return aim(mc, e, from, target);
+	}
+
+	public static float heroTime(net.minecraft.entity.Entity e, float partial) {
+		if (!active || ClientGhost.cutsceneKind != 7 || e != MinecraftClient.getInstance().player) return -1f;
+		return com.phantompowers.Cutscenes.HERO_TICKS - ClientGhost.cutscene + partial;
+	}
+
+	public static float suitTime(net.minecraft.entity.Entity e, float partial) {
+		if (!active || ClientGhost.cutsceneKind != 8 || e != MinecraftClient.getInstance().player) return -1f;
+		return com.phantompowers.Cutscenes.SUIT_TICKS - ClientGhost.cutscene + partial;
 	}
 
 	/** Elapsed ticks of the evil transformation / origin cutscene for this player (yourself only), or -1. */
@@ -283,6 +332,72 @@ public final class ClientCutscene {
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 
 		if (ClientGhost.cutsceneKind == 4) return;   // the tornado: no captions, just the action
+		if (ClientGhost.cutsceneKind == 7) {
+			float el = com.phantompowers.Cutscenes.HERO_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float change = com.phantompowers.Cutscenes.HERO_CHANGE;
+			// a soft green glow building at the edges of the screen
+			int a = (int) (Math.min(1f, el / change) * 70);
+			ctx.fillGradient(0, bar, w, h / 3, (a << 24) | 0x33FF77, 0);
+			ctx.fillGradient(0, h * 2 / 3, w, h - bar, 0, (a << 24) | 0x33FF77);
+			String line;
+			int color = 0xFFFFFFFF;
+			float size;
+			if (el < 30) {
+				line = "Okay... deep breath.";
+				size = 1.5f;
+			} else if (el < change - 4) {
+				line = "Time to go to work.";
+				size = 1.7f;
+				color = 0xFFCFFFE0;
+			} else {
+				line = "I'M GOING GHOST!";
+				size = 2.8f;
+				color = 0xFF66FF99;
+				if (el >= change) {
+					int fl = (int) (220 * Math.max(0f, 1f - (el - change) / 8f));
+					if (fl > 0) ctx.fill(0, 0, w, h, (fl << 24) | 0xE8FFF0);
+				}
+			}
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f, h - bar / 2f - 6, 0);
+			ctx.getMatrices().scale(size, size, 1f);
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+			ctx.getMatrices().pop();
+			return;
+		}
+		if (ClientGhost.cutsceneKind == 8) {
+			float el = com.phantompowers.Cutscenes.SUIT_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float plates = com.phantompowers.Cutscenes.SUIT_PLATES, done = com.phantompowers.Cutscenes.SUIT_DONE;
+			// a cyan visor HUD booting up: scan line, corner brackets, status text
+			int cyan = 0x66E0FF;
+			int sweepY = bar + (int) (((el * 6) % (h - 2 * bar)));
+			ctx.fill(0, sweepY, w, sweepY + 1, 0x4066E0FF);
+			int bw = 24;
+			for (int[] c : new int[][]{{8, bar + 8, 1, 1}, {w - 8, bar + 8, -1, 1}, {8, h - bar - 8, 1, -1}, {w - 8, h - bar - 8, -1, -1}}) {
+				ctx.fill(Math.min(c[0], c[0] + c[2] * bw), c[1], Math.max(c[0], c[0] + c[2] * bw), c[1] + c[3], 0xA0000000 | cyan);
+				ctx.fill(c[0], Math.min(c[1], c[1] + c[3] * bw), c[0] + c[2], Math.max(c[1], c[1] + c[3] * bw), 0xA0000000 | cyan);
+			}
+			String line;
+			int color = 0xFF9FEFFF;
+			float size = 1.5f;
+			if (el < plates) line = "Suit pack online...";
+			else if (el < done) {
+				int pct = (int) (100 * (el - plates) / (done - plates));
+				line = "Deploying armour  " + Math.min(100, pct) + "%";
+			} else {
+				line = "SUIT UP!";
+				size = 2.6f;
+				color = 0xFF66E8FF;
+				int fl = (int) (180 * Math.max(0f, 1f - (el - done) / 6f));
+				if (fl > 0) ctx.fill(0, 0, w, h, (fl << 24) | 0xC8F4FF);
+			}
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f, h - bar / 2f - 6, 0);
+			ctx.getMatrices().scale(size, size, 1f);
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+			ctx.getMatrices().pop();
+			return;
+		}
 		if (ClientGhost.cutsceneKind == 5) {
 			float el = com.phantompowers.Cutscenes.DARK_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
 			float change = com.phantompowers.Cutscenes.DARK_CHANGE;

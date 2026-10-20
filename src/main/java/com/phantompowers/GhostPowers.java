@@ -683,6 +683,11 @@ public final class GhostPowers {
 		if (!d.transformed && d.suitOn) HunterSuit.toggle(p, d, false);
 		// the dark half-ghost gets its own, much more sinister transformation
 		if (!d.transformed && Cutscenes.startDark(p, d)) return;
+		// ...and the hero gets an aura-farming one of his own
+		if (!d.transformed) {
+			Cutscenes.startHero(p, d);
+			return;
+		}
 		d.cutscene = CUTSCENE_TICKS;
 		d.cutsceneKind = 0;
 		d.cutsceneToGhost = !d.transformed;
@@ -747,6 +752,10 @@ public final class GhostPowers {
 	private static void startSuitCutscene(ServerPlayerEntity p, GhostData d) {
 		if (d.cutscene > 0) return;
 		if (!d.suitOn && !HunterSuit.canDeploy(p, d)) return;
+		if (!d.suitOn) {
+			Cutscenes.startSuit(p, d);
+			return;
+		}
 		d.cutscene = CUTSCENE_TICKS;
 		d.cutsceneKind = 1;
 		d.cutsceneToGhost = !d.suitOn;
@@ -774,6 +783,14 @@ public final class GhostPowers {
 		}
 		if (d.cutsceneKind == 6) {
 			Cutscenes.tickOrigin(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 7) {
+			Cutscenes.tickHero(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 8) {
+			Cutscenes.tickSuit(p, d);
 			return;
 		}
 		d.cutscene--;

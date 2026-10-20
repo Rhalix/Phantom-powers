@@ -122,6 +122,117 @@ public final class Cutscenes {
 		w.spawnEntity(bolt);
 	}
 
+	// ---------------------------------------------------------------- hero transformation
+
+	public static final int HERO_TICKS = 80, HERO_CHANGE = 64;
+	private static final DustParticleEffect ECTO = new DustParticleEffect(new Vector3f(0.3f, 1f, 0.5f), 1.6f);
+	private static final DustParticleEffect WHITE = new DustParticleEffect(new Vector3f(0.9f, 1f, 0.95f), 1.3f);
+
+	public static double heroLift(int e) {
+		return e < HERO_CHANGE ? Math.min(0.9, e * 0.016) : 0.9 * Math.max(0, 1 - (e - HERO_CHANGE) / 14.0);
+	}
+
+	/** The hero's own transformation: a calm, building aura, then "I'M GOING GHOST!" and the rings. */
+	public static void startHero(ServerPlayerEntity p, GhostData d) {
+		d.cutscene = HERO_TICKS;
+		d.cutsceneKind = 7;
+		d.cutsceneToGhost = true;
+		d.cutsceneAnchor = p.getPos();
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_AMBIENT, SoundCategory.PLAYERS, 1.5f, 0.7f);
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.PLAYERS, 1.0f, 0.8f);
+		GhostPowers.syncNow(p);
+	}
+
+	public static void tickHero(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = HERO_TICKS - d.cutscene;
+		ServerWorld w = p.getServerWorld();
+		Vec3d a = d.cutsceneAnchor == null ? p.getPos() : d.cutsceneAnchor;
+		Vec3d want = a.add(0, heroLift(e), 0);
+		if (p.getPos().squaredDistanceTo(want) > 4) p.requestTeleport(want.x, want.y, want.z);
+		p.fallDistance = 0;
+		if (e < HERO_CHANGE) {
+			// green energy wells up from the ground and swirls up around you, the wind picking up
+			float k = e / (float) HERO_CHANGE;
+			for (int i = 0; i < 2 + (int) (k * 4); i++) {
+				double ang = -e * 0.3 + i * Math.PI * 2 / 3;
+				double r = 1.3 - k * 0.5;
+				double y = (e * 0.08 + i * 0.5) % 2.4;
+				w.spawnParticles(i % 3 == 0 ? WHITE : ECTO, p.getX() + Math.cos(ang) * r, p.getY() + y, p.getZ() + Math.sin(ang) * r, 1, 0, 0, 0, 0);
+			}
+			if (e % 3 == 0) w.spawnParticles(ParticleTypes.END_ROD, p.getX(), a.y + 0.1, p.getZ(), 2, 0.8, 0.05, 0.8, 0.04);
+			if (e % 5 == 0) w.spawnParticles(ParticleTypes.CLOUD, p.getX(), a.y + 0.1, p.getZ(), 4, 1.0, 0.02, 1.0, 0.03);
+			if (e % 16 == 0) BossMoves.warn(w, a, 1.5 + k * 3, 14, 0x55FF88);
+			if (e == 30) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 1.4f, 1.0f);
+			if (e == HERO_CHANGE - 10) {
+				GhostPowers.sendRings(p, 18, 0);
+				w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, SoundCategory.PLAYERS, 1.2f, 1.2f);
+			}
+		}
+		if (e == HERO_CHANGE) {
+			GhostPowers.forceTransform(p, d);
+			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1, p.getZ(), 1, 0, 0, 0, 0);
+			w.spawnParticles(ECTO, p.getX(), p.getY() + 1, p.getZ(), 140, 2.2, 1.2, 2.2, 0.2);
+			w.spawnParticles(ParticleTypes.END_ROD, p.getX(), p.getY() + 1, p.getZ(), 40, 0.6, 1, 0.6, 0.3);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, SoundCategory.PLAYERS, 1.4f, 1.0f);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_TRIDENT_THUNDER.value(), SoundCategory.PLAYERS, 0.7f, 1.4f);
+		}
+		if (d.cutscene <= 0) {
+			d.cutscene = 0;
+			d.cutsceneAnchor = null;
+			GhostPowers.syncNow(p);
+		}
+	}
+
+	// ---------------------------------------------------------------- suit up
+
+	public static final int SUIT_TICKS = 84, SUIT_PLATES = 14, SUIT_DONE = 70;
+
+	/** Suiting up: the pack hums to life on your back, then armour plates unfold out of it and lock on around you. */
+	public static void startSuit(ServerPlayerEntity p, GhostData d) {
+		d.cutscene = SUIT_TICKS;
+		d.cutsceneKind = 8;
+		d.cutsceneToGhost = true;
+		d.cutsceneAnchor = p.getPos();
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 1.0f, 1.6f);
+		GhostPowers.syncNow(p);
+	}
+
+	public static void tickSuit(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = SUIT_TICKS - d.cutscene;
+		ServerWorld w = p.getServerWorld();
+		Vec3d a = d.cutsceneAnchor == null ? p.getPos() : d.cutsceneAnchor;
+		if (p.getPos().squaredDistanceTo(a) > 4) p.requestTeleport(a.x, a.y, a.z);
+		p.fallDistance = 0;
+		Vec3d back = p.getPos().add(Vec3d.fromPolar(0, p.getBodyYaw()).multiply(-0.35)).add(0, 1.2, 0);
+		if (e < SUIT_PLATES) {
+			// the pack powers up: whirring, sparks and cyan light
+			if (e % 2 == 0) w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, back.x, back.y, back.z, 3, 0.15, 0.2, 0.15, 0.05);
+			if (e == 2) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.PLAYERS, 1.0f, 1.4f);
+			if (e == 8) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_CONDUIT_ACTIVATE, SoundCategory.PLAYERS, 0.8f, 1.6f);
+		}
+		if (e == SUIT_PLATES) GhostPowers.sendRings(p, SUIT_DONE - SUIT_PLATES, 6);
+		if (e > SUIT_PLATES && e < SUIT_DONE && e % 4 == 0) {
+			// clank... clank... each plate locking into place
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), SoundCategory.PLAYERS, 0.7f, 0.8f + (e % 12) * 0.05f);
+			w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, p.getX(), p.getY() + 0.3 + (e - SUIT_PLATES) / 30.0, p.getZ(), 3, 0.3, 0.1, 0.3, 0.05);
+		}
+		if (e == SUIT_DONE) {
+			if (!d.suitOn) HunterSuit.toggle(p, d, false);
+			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1.6, p.getZ(), 1, 0, 0, 0, 0);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1.0f, 1.8f);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE.value(), SoundCategory.PLAYERS, 1.2f, 0.7f);
+		}
+		if (d.cutscene <= 0) {
+			d.cutscene = 0;
+			d.cutsceneAnchor = null;
+			GhostPowers.syncNow(p);
+		}
+	}
+
 	// ---------------------------------------------------------------- origin story
 
 	/** Standing in the portal when it switches on: it surges through you... and you come out half ghost. */

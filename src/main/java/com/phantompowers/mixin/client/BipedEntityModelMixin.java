@@ -58,6 +58,54 @@ public abstract class BipedEntityModelMixin {
 		float origin = com.phantompowers.client.ClientCutscene.originTime(entity, age - (int) age);
 		if (origin >= 0f) phantom$originPose(origin, age);
 		if (com.phantompowers.client.ClientCutscene.spinning(entity)) phantom$spinPose(age);
+		float heroT = com.phantompowers.client.ClientCutscene.heroTime(entity, age - (int) age);
+		if (heroT >= 0f && heroT < com.phantompowers.Cutscenes.HERO_CHANGE - 10) phantom$auraPose(heroT, age);
+		float suitT = com.phantompowers.client.ClientCutscene.suitTime(entity, age - (int) age);
+		if (suitT >= 0f) phantom$suitUpPose(suitT, age);
+	}
+
+	/**
+	 * The hero's aura farm: feet set wide, fists clenched at the sides and head down while the energy builds...
+	 * then the chin comes up, the fists draw back to the hips, ready (the rings and the sky punch take it from there).
+	 */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$auraPose(float t, float age) {
+		float set = phantom$ease(t / 10f);
+		float rise = phantom$ease((t - 28f) / 18f);
+		float breathe = MathHelper.sin(age * 0.15f) * 0.03f;
+		float tremble = MathHelper.sin(age * 2.5f) * 0.015f * rise;
+		head.pitch = 0.5f * set * (1 - rise) - 0.12f * rise + breathe;
+		head.yaw = 0f;
+		hat.copyTransform(head);
+		body.pitch = 0.08f * set * (1 - rise);
+		rightLeg.roll = 0.2f * set;
+		leftLeg.roll = -0.2f * set;
+		rightLeg.pitch = leftLeg.pitch = 0f;
+		// clenched fists held a little out from the sides, drawing back to the hips
+		rightArm.pitch = MathHelper.lerp(rise, 0.05f, 0.35f) + tremble;
+		rightArm.yaw = 0f;
+		rightArm.roll = MathHelper.lerp(rise, 0.32f, 0.55f) + breathe;
+		leftArm.pitch = MathHelper.lerp(rise, 0.05f, 0.35f) - tremble;
+		leftArm.yaw = 0f;
+		leftArm.roll = MathHelper.lerp(rise, -0.32f, -0.55f) - breathe;
+	}
+
+	/** Suiting up: arms out wide while the plates fly round you, then the fists clench and come down as it locks on. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$suitUpPose(float t, float age) {
+		float plates = com.phantompowers.Cutscenes.SUIT_PLATES, done = com.phantompowers.Cutscenes.SUIT_DONE;
+		float out = phantom$ease((t - 4f) / 10f) * (1 - phantom$ease((t - done + 6f) / 8f));
+		float lock = phantom$ease((t - done + 6f) / 8f);
+		head.pitch = -0.1f * out + 0.15f * lock;
+		head.yaw = MathHelper.sin(t * 0.05f) * 0.2f * out;   // glancing at the plates as they come
+		hat.copyTransform(head);
+		rightArm.pitch = -0.1f * out - 0.5f * lock;
+		rightArm.roll = 1.25f * out + 0.15f * lock;
+		leftArm.pitch = -0.1f * out - 0.5f * lock;
+		leftArm.roll = -1.25f * out - 0.15f * lock;
+		rightArm.yaw = leftArm.yaw = 0f;
+		rightLeg.roll = 0.1f * (out + lock);
+		leftLeg.roll = -0.1f * (out + lock);
 	}
 
 	@org.spongepowered.asm.mixin.Unique

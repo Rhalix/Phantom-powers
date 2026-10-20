@@ -301,7 +301,7 @@ public final class PhantomCommands {
 							&& HunterPaint.paint(new net.minecraft.item.ItemStack(ModItems.GHOST_BLASTER)) == -1
 							&& HunterPaint.weaponBoost(new net.minecraft.item.ItemStack(ModItems.GHOST_BLASTER)) == 1f
 							&& !HunterPaint.costText(3).isEmpty() && ModBlocks.HUNTER_WORKBENCH.getDefaultState().contains(HunterWorkbenchBlock.FACING)
-							&& ModItems.ACNE_CREAM != null;
+							&& ModItems.ACNE_CREAM != null && Cutscenes.heroLift(30) > 0 && Cutscenes.SUIT_DONE < Cutscenes.SUIT_TICKS;
 					if (!ok) {
 						ctx.getSource().sendError(Text.literal("Dark test: FAILED"));
 						return 0;
