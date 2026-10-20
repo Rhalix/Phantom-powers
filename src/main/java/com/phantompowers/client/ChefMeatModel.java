@@ -16,7 +16,7 @@ import net.minecraft.util.math.MathHelper;
 
 /**
  * Chef Ghoulash's second stage, the Meat Monster: a hulking mound of roast meat dripping with gravy, with sausage-link
- * arms, ham-hock legs, bones poking out, his ghostly face snarling out of the top and his chef's hat still on.
+ * arms, ham-hock legs, bones poking out, her ghostly face snarling out of the top and her chef's hat still on.
  */
 @SuppressWarnings("unused")
 public class ChefMeatModel extends SinglePartEntityModel<ChefGhoulashEntity> {
@@ -54,7 +54,8 @@ public class ChefMeatModel extends SinglePartEntityModel<ChefGhoulashEntity> {
 		ModelPartData p_head = p_body.addChild("head", ModelPartBuilder.create()
 				.uv(0, 48).cuboid(-4f, -7f, -5.5f, 8f, 8f, 8f)
 				.uv(64, 30).cuboid(-6f, -9f, -3f, 12f, 9f, 8f)
-				.uv(102, 94).cuboid(-3.5f, -2.2f, -6.2f, 7f, 1f, 1f)
+				.uv(102, 94).cuboid(-4.6f, -3f, -3f, 1f, 1f, 1f)
+				.uv(106, 94).cuboid(3.6f, -3f, -3f, 1f, 1f, 1f)
 				.uv(64, 79).cuboid(-4.5f, -11f, -3.5f, 9f, 2f, 8f)
 				.uv(0, 64).cuboid(-5f, -17f, -4f, 10f, 6f, 9f),
 				ModelTransform.of(0f, -7f, -1f, 0f, 0f, 0f));

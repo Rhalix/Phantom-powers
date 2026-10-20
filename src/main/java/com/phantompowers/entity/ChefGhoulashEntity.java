@@ -34,11 +34,11 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Chef Ghoulash: the ghost of a school cook who can't stand anyone changing his menu. He hurls school lunches
- * (meatloaf, drumsticks, pies; they splat and slow you down with gravy), smacks you with his giant ladle and
- * calls up kitchen spirits to help. At half health he pulls the whole cafeteria's meat around himself and
+ * Chef Ghoulash: the ghost of a school cook who can't stand anyone changing her menu. She hurls school lunches
+ * (meatloaf, drumsticks, pies; they splat and slow you down with gravy), smacks you with her giant ladle and
+ * calls up kitchen spirits to help. At half health she pulls the whole cafeteria's meat around herself and
  * becomes a hulking Meat Monster: bigger, tougher, throwing food in barrages and slamming the floor.
- * In story mode he can't be killed: beat him down until he's dazed, then trap him in a Thermos.
+ * In story mode she can't be killed: beat her down until she's dazed, then trap her in a Thermos.
  */
 public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	public static final String STORY_TAG = "phantom_story_chef";
@@ -133,7 +133,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	public boolean damage(DamageSource source, float amount) {
 		if (dazed() && !source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)) return false;
 		if (storyMode() && !source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)) {
-			// he can't be destroyed in the story: knocked down far enough, he gets dazed instead
+			// she can't be destroyed in the story: knocked down far enough, she gets dazed instead
 			float floor = getMaxHealth() * 0.15f;
 			if (getHealth() - amount <= floor) {
 				boolean hit = super.damage(source, Math.max(0, getHealth() - floor));
@@ -149,7 +149,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 		if (dazed()) return;
 		dataTracker.set(DAZED, true);
 		setTarget(null);
-		bossBar.setName(Text.literal("Chef Ghoulash: DAZED (trap him with a Thermos!)").formatted(Formatting.YELLOW, Formatting.BOLD));
+		bossBar.setName(Text.literal("Chef Ghoulash: DAZED (trap her with a Thermos!)").formatted(Formatting.YELLOW, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.YELLOW);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.HOSTILE, 1.5f, 0.6f);
 		say(w, "Ooogh... my soufflé... it's fallen...", Formatting.YELLOW, false);
@@ -174,7 +174,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 		getLookControl().lookAt(target, 30f, 30f);
 		float speed = meat() ? 0.65f : 1f;
 		double dist2 = squaredDistanceTo(target);
-		// waddle around his "kitchen": close in for ladle smacks, back off to throw
+		// float around her "kitchen": close in for ladle smacks, back off to throw
 		if (--repath <= 0) {
 			repath = 25;
 			boolean close = random.nextInt(3) == 0 || meat();
@@ -286,7 +286,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 
 	/** Stage two. */
 	private void meatMonster(ServerWorld w) {
-		// every scrap of food in the cafeteria comes flying in and piles onto him
+		// every scrap of food in the cafeteria comes flying in and piles onto her
 		Vec3d mid = getPos().add(0, 1.2, 0);
 		for (int i = 0; i < 40; i++) {
 			double a = random.nextDouble() * Math.PI * 2, r = 4 + random.nextDouble() * 6;

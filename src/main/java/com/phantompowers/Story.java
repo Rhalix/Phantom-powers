@@ -55,20 +55,20 @@ public final class Story {
 					"Head to Amity High (your new powers keep glitching!)",
 					"Get a Thermos (there's one in the Ghost Lab gear locker)",
 					"Check out the new healthy menu in the school cafeteria",
-					"Chef Ghoulash hates the new menu! Fight him until he's dazed",
-					"Trap Chef Ghoulash in the Thermos (right-click him with it)"};
+					"Chef Ghoulash hates the new menu! Fight her until she's dazed",
+					"Trap Chef Ghoulash in the Thermos (right-click her with it)"};
 			case EVIL -> new String[]{
 					"Head to Amity High (your dark powers keep glitching!)",
 					"Get a Thermos (there's one in the Ghost Lab gear locker)",
 					"Somebody's haunting YOUR school cafeteria. Go and see",
-					"Show Chef Ghoulash who's in charge: beat him until he's dazed",
-					"Trap him in the Thermos. He works for you now"};
+					"Show Chef Ghoulash who's in charge: beat her until she's dazed",
+					"Trap her in the Thermos. She works for you now"};
 			case HUNTER -> new String[]{
 					"Ghost activity at Amity High! Suit up and head there",
 					"Get a Thermos (there's one in the Ghost Lab gear locker)",
 					"Find the ghost in the school cafeteria",
 					"Fight Chef Ghoulash until he's dazed",
-					"Trap Chef Ghoulash in the Thermos (right-click him with it)"};
+					"Trap Chef Ghoulash in the Thermos (right-click her with it)"};
 			default -> new String[0];
 		};
 		return switch (path) {
@@ -375,7 +375,7 @@ public final class Story {
 		if (d.storyStep == 3 && d.storyCount == 0 && w.getServer().getTicks() % 40 == 0) spawnChef(p, false);
 	}
 
-	/** Chef Ghoulash bursts out of the cafeteria kitchen (unless he's already around). */
+	/** Chef Ghoulash bursts out of the cafeteria kitchen (unless she's already around). */
 	private static void spawnChef(ServerPlayerEntity p, boolean announce) {
 		ServerWorld w = p.getServerWorld();
 		if (w != p.getServer().getOverworld()) return;
@@ -400,7 +400,7 @@ public final class Story {
 		}
 	}
 
-	/** Something got sucked into a Thermos: if it was the story's Chef Ghoulash, everyone fighting him moves on. */
+	/** Something got sucked into a Thermos: if it was the story's Chef Ghoulash, everyone fighting her moves on. */
 	public static void onTrapped(ServerWorld w, ServerPlayerEntity by, Entity ghost) {
 		if (!(ghost instanceof ChefGhoulashEntity chef) || !chef.storyMode()) return;
 		GhostState st = GhostState.of(w.getServer());
@@ -411,7 +411,7 @@ public final class Story {
 			d.storyCount = 1;
 			st.markDirty();
 		}
-		// his kitchen spirits fade away with him
+		// her kitchen spirits fade away with her
 		for (var g : w.getEntitiesByClass(com.phantompowers.entity.HostileGhostEntity.class, ghost.getBoundingBox().expand(40),
 				e -> e.getCommandTags().contains("phantom_kitchen"))) {
 			w.spawnParticles(net.minecraft.particle.ParticleTypes.SOUL, g.getX(), g.getY() + 1, g.getZ(), 12, 0.3, 0.5, 0.3, 0.03);

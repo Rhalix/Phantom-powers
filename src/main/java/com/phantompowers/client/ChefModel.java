@@ -14,17 +14,18 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.util.math.MathHelper;
 
-/** Chef Ghoulash: a plump ghost cook with a tall hat and a giant ladle, floating on a wispy tail. */
+/** Chef Ghoulash: a ghost cook with a tall chef's hat, a long braid and a giant ladle, floating on a wispy tail. */
 @SuppressWarnings("unused")
 public class ChefModel extends SinglePartEntityModel<ChefGhoulashEntity> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(PhantomMod.id("chef_ghoulash"), "main");
-	private final ModelPart root, body, head, tail, tail2, tail3, rightArm, leftArm, ladle;
+	private final ModelPart root, body, head, braid, tail, tail2, tail3, rightArm, leftArm, ladle;
 
 	public ChefModel(ModelPart root) {
 		super(RenderLayer::getEntityTranslucent);
 		this.root = root;
 		this.body = root.getChild("body");
 		this.head = body.getChild("head");
+		this.braid = head.getChild("braid");
 		this.tail = body.getChild("tail");
 		this.tail2 = tail.getChild("tail2");
 		this.tail3 = tail2.getChild("tail3");
@@ -37,44 +38,54 @@ public class ChefModel extends SinglePartEntityModel<ChefGhoulashEntity> {
 		ModelData data = new ModelData();
 		ModelPartData r = data.getRoot();
 		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
-				.uv(72, 0).cuboid(-4.5f, 0f, -2.5f, 9f, 10f, 5f)
-				.uv(0, 31).cuboid(-4f, 3f, -3.5f, 8f, 7f, 1f)
-				.uv(56, 16).cuboid(-5f, 6f, -3f, 10f, 4f, 6f, new Dilation(0.2f)),
+				.uv(100, 0).cuboid(-4f, 0f, -2.5f, 8f, 7f, 5f)
+				.uv(0, 28).cuboid(-3.5f, 3f, -3.4f, 7f, 7f, 1f)
+				.uv(64, 16).cuboid(-5f, 6f, -3f, 10f, 4f, 6f, new Dilation(0.2f))
+				.uv(0, 36).cuboid(-4.5f, 1.25f, -3f, 9f, 3f, 1f, new Dilation(0f, -0.25f, 0f)),
 				ModelTransform.of(0f, 4f, 0f, 0f, 0f, 0f));
 		ModelPartData p_tail = p_body.addChild("tail", ModelPartBuilder.create()
-				.uv(88, 16).cuboid(-4f, 0f, -2.5f, 8f, 4f, 5f),
+				.uv(96, 16).cuboid(-4.5f, 0f, -3f, 9f, 4f, 6f),
 				ModelTransform.of(0f, 10f, 0f, 0.15f, 0f, 0f));
 		ModelPartData p_tail2 = p_tail.addChild("tail2", ModelPartBuilder.create()
-				.uv(18, 31).cuboid(-3f, 0f, -2f, 6f, 4f, 4f),
+				.uv(16, 28).cuboid(-3f, 0f, -2f, 6f, 4f, 4f),
 				ModelTransform.of(0f, 4f, 0f, 0.2f, 0f, 0f));
 		ModelPartData p_tail3 = p_tail2.addChild("tail3", ModelPartBuilder.create()
-				.uv(38, 31).cuboid(-1.5f, 0f, -1.25f, 3f, 4f, 3f, new Dilation(0f, 0f, -0.25f)),
+				.uv(36, 28).cuboid(-1.5f, 0f, -1.25f, 3f, 4f, 3f, new Dilation(0f, 0f, -0.25f)),
 				ModelTransform.of(0f, 4f, 0f, 0.25f, 0f, 0f));
 		ModelPartData p_head = p_body.addChild("head", ModelPartBuilder.create()
 				.uv(0, 0).cuboid(-4f, -8f, -4f, 8f, 8f, 8f)
-				.uv(20, 39).cuboid(-3.5f, -3.2f, -4.7f, 7f, 1f, 1f)
-				.uv(108, 31).cuboid(-1f, -4.6f, -5f, 2f, 2f, 1f)
-				.uv(114, 31).cuboid(-3f, -1.25f, -3.2f, 6f, 2f, 1f, new Dilation(0f, -0.25f, 0f))
-				.uv(20, 16).cuboid(-4.5f, -9.5f, -4.5f, 9f, 2f, 9f)
+				.uv(82, 36).cuboid(-0.5f, -4.4f, -4.6f, 1f, 1f, 1f)
+				.uv(48, 36).cuboid(-3f, -1.25f, -3.2f, 6f, 2f, 1f, new Dilation(0f, -0.25f, 0f))
+				.uv(28, 16).cuboid(-4.5f, -9.5f, -4.5f, 9f, 2f, 9f)
 				.uv(32, 0).cuboid(-5f, -15.5f, -5f, 10f, 6f, 10f)
-				.uv(92, 31).cuboid(1.5f, -1.5f, -4.6f, 1f, 3f, 1f)
-				.uv(50, 31).cuboid(-4.6f, -6f, 1f, 1f, 2f, 4f),
+				.uv(86, 36).cuboid(-4.6f, -5f, -2f, 1f, 1f, 1f)
+				.uv(90, 36).cuboid(3.6f, -5f, -2f, 1f, 1f, 1f)
+				.uv(0, 16).cuboid(-4.4f, -8f, -3.5f, 1f, 6f, 6f)
+				.uv(14, 16).cuboid(3.4f, -8f, -3.5f, 1f, 6f, 6f)
+				.uv(20, 36).cuboid(1.5f, -1.5f, -4.6f, 1f, 3f, 1f)
+				.uv(72, 28).cuboid(-4.6f, -6f, 1f, 1f, 2f, 4f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_braid = p_head.addChild("braid", ModelPartBuilder.create()
+				.uv(48, 28).cuboid(-1.5f, 0f, -0.5f, 3f, 4f, 3f)
+				.uv(60, 28).cuboid(-1.5f, 4f, -0.5f, 3f, 4f, 3f, new Dilation(-0.25f, 0f, -0.25f))
+				.uv(24, 36).cuboid(-1.5f, 7.5f, -0.5f, 3f, 1f, 3f)
+				.uv(82, 28).cuboid(-1f, 8.5f, 0f, 2f, 3f, 2f),
+				ModelTransform.of(0f, -3f, 4f, 0.25f, 0f, 0f));
 		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
-				.uv(100, 0).cuboid(-3f, -2f, -2f, 4f, 11f, 4f),
-				ModelTransform.of(-5.5f, 6f, 0f, 0f, 0f, 0f));
+				.uv(72, 0).cuboid(-3f, -2f, -1.5f, 3f, 11f, 3f),
+				ModelTransform.of(-5f, 6f, 0f, 0f, 0f, 0f));
 		ModelPartData p_ladle = p_right_arm.addChild("ladle", ModelPartBuilder.create()
-				.uv(16, 16).cuboid(-0.5f, -2f, -0.5f, 1f, 13f, 1f)
-				.uv(60, 31).cuboid(-2f, 10.5f, -2f, 4f, 1f, 4f)
-				.uv(0, 39).cuboid(-2f, 8.5f, -2.2f, 4f, 2f, 1f, new Dilation(0f, 0f, -0.2f))
-				.uv(10, 39).cuboid(-2f, 8.5f, 1.2f, 4f, 2f, 1f, new Dilation(0f, 0f, -0.2f))
-				.uv(76, 31).cuboid(-2.2f, 8.5f, -1.5f, 1f, 2f, 3f, new Dilation(-0.2f, 0f, -0.1f))
-				.uv(84, 31).cuboid(1.2f, 8.5f, -1.5f, 1f, 2f, 3f, new Dilation(-0.2f, 0f, -0.1f))
-				.uv(96, 31).cuboid(-1.5f, 8.9f, -1.5f, 3f, 1f, 3f, new Dilation(-0.1f, -0.3f, -0.1f)),
-				ModelTransform.of(-1f, 8f, -1f, 1.2f, 0f, 0f));
+				.uv(84, 0).cuboid(-0.5f, -2f, -0.5f, 1f, 13f, 1f)
+				.uv(90, 28).cuboid(-2f, 10.5f, -2f, 4f, 1f, 4f)
+				.uv(62, 36).cuboid(-2f, 8.5f, -2.2f, 4f, 2f, 1f, new Dilation(0f, 0f, -0.2f))
+				.uv(72, 36).cuboid(-2f, 8.5f, 1.2f, 4f, 2f, 1f, new Dilation(0f, 0f, -0.2f))
+				.uv(106, 28).cuboid(-2.2f, 8.5f, -1.5f, 1f, 2f, 3f, new Dilation(-0.2f, 0f, -0.1f))
+				.uv(114, 28).cuboid(1.2f, 8.5f, -1.5f, 1f, 2f, 3f, new Dilation(-0.2f, 0f, -0.1f))
+				.uv(36, 36).cuboid(-1.5f, 8.9f, -1.5f, 3f, 1f, 3f, new Dilation(-0.1f, -0.3f, -0.1f)),
+				ModelTransform.of(-1.5f, 8f, -0.5f, 1.2f, 0f, 0f));
 		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
-				.uv(0, 16).cuboid(-1f, -2f, -2f, 4f, 11f, 4f),
-				ModelTransform.of(5.5f, 6f, 0f, 0f, 0f, 0f));
+				.uv(88, 0).cuboid(0f, -2f, -1.5f, 3f, 11f, 3f),
+				ModelTransform.of(5f, 6f, 0f, 0f, 0f, 0f));
 		return TexturedModelData.of(data, 128, 64);
 	}
 
@@ -95,7 +106,9 @@ public class ChefModel extends SinglePartEntityModel<ChefGhoulashEntity> {
 		head.roll = 0;
 		body.pitch = 0;
 		body.roll = 0;
-		// the tail swishes like smoke
+		// her braid swings, the tail swishes like smoke
+		braid.pitch = 0.25f - headPitch * MathHelper.RADIANS_PER_DEGREE * 0.5f + limbDistance * 0.5f + MathHelper.sin(age * 0.09f) * 0.06f;
+		braid.roll = MathHelper.sin(age * 0.07f) * 0.12f;
 		tail.yaw = MathHelper.sin(age * 0.1f) * 0.15f;
 		tail.pitch = 0.15f + limbDistance * 0.4f;
 		tail2.pitch = 0.2f + MathHelper.sin(age * 0.12f + 1f) * 0.1f + limbDistance * 0.3f;
