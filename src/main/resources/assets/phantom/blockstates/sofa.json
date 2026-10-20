@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "phantom:block/sofa"
+  },
+  "facing=east": {
+   "model": "phantom:block/sofa",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "phantom:block/sofa",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "phantom:block/sofa",
+   "y": 270
+  }
+ }
+}

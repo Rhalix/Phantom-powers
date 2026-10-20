@@ -1,0 +1,78 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "front": "phantom:block/fridge_front",
+  "side": "minecraft:block/white_concrete",
+  "particle": "phantom:block/fridge_front"
+ },
+ "elements": [
+  {
+   "from": [
+    1,
+    0,
+    1
+   ],
+   "to": [
+    15,
+    16,
+    15
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1,
+      0,
+      15,
+      16
+     ],
+     "texture": "#front"
+    },
+    "south": {
+     "uv": [
+      1,
+      0,
+      15,
+      16
+     ],
+     "texture": "#side"
+    },
+    "east": {
+     "uv": [
+      1,
+      0,
+      15,
+      16
+     ],
+     "texture": "#side"
+    },
+    "west": {
+     "uv": [
+      1,
+      0,
+      15,
+      16
+     ],
+     "texture": "#side"
+    },
+    "up": {
+     "uv": [
+      1,
+      1,
+      15,
+      15
+     ],
+     "texture": "#side"
+    },
+    "down": {
+     "uv": [
+      1,
+      1,
+      15,
+      15
+     ],
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}

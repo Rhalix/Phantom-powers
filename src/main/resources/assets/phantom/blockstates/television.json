@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "phantom:block/television"
+  },
+  "facing=east": {
+   "model": "phantom:block/television",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "phantom:block/television",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "phantom:block/television",
+   "y": 270
+  }
+ }
+}

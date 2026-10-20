@@ -111,6 +111,11 @@ public final class ModEntities {
 			EntityType.Builder.<com.phantompowers.entity.SkimmerEntity>create(com.phantompowers.entity.SkimmerEntity::new, SpawnGroup.MISC)
 					.dimensions(2.6f, 2.2f).maxTrackingRange(12).build("ecto_skimmer"));
 
+	public static final EntityType<com.phantompowers.entity.SeatEntity> SEAT = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("seat"),
+			EntityType.Builder.<com.phantompowers.entity.SeatEntity>create(com.phantompowers.entity.SeatEntity::new, SpawnGroup.MISC)
+					.dimensions(0.1f, 0.1f).maxTrackingRange(8).disableSaving().build("seat"));
+
 	public static final EntityType<CrateKingEntity> CRATE_KING = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("crate_king"),
 			EntityType.Builder.create(CrateKingEntity::new, SpawnGroup.MONSTER)

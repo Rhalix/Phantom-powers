@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "phantom:block/school_desk"
+  },
+  "facing=east": {
+   "model": "phantom:block/school_desk",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "phantom:block/school_desk",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "phantom:block/school_desk",
+   "y": 270
+  }
+ }
+}

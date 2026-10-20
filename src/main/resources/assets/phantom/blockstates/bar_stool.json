@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "phantom:block/bar_stool"
+  },
+  "facing=east": {
+   "model": "phantom:block/bar_stool",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "phantom:block/bar_stool",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "phantom:block/bar_stool",
+   "y": 270
+  }
+ }
+}

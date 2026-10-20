@@ -147,5 +147,19 @@
   "key.phantom.slot2": "Power Slot 2",
   "key.phantom.slot3": "Power Slot 3",
   "key.phantom.slot4": "Power Slot 4",
-  "key.phantom.menu": "Phantom Menu (story, party, slots)"
+  "key.phantom.menu": "Phantom Menu (story, party, slots)",
+  "block.phantom.oak_chair": "Chair",
+  "block.phantom.bar_stool": "Bar Stool",
+  "block.phantom.sofa": "Sofa",
+  "block.phantom.dining_table": "Table",
+  "block.phantom.coffee_table": "Coffee Table",
+  "block.phantom.floor_lamp": "Floor Lamp",
+  "block.phantom.television": "Television",
+  "block.phantom.kitchen_counter": "Kitchen Counter",
+  "block.phantom.fridge": "Fridge",
+  "block.phantom.school_desk": "School Desk",
+  "block.phantom.locker": "Locker",
+  "block.phantom.lab_console": "Lab Console",
+  "block.phantom.bookcase": "Bookcase",
+  "block.phantom.potted_plant": "Potted Plant"
 }

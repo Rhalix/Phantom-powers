@@ -420,7 +420,7 @@ public final class PhantomCommands {
 					boolean amity = ow.getBlockState(labFloor.down()).isOf(net.minecraft.block.Blocks.SMOOTH_STONE)
 							|| ow.getBlockState(labFloor.down()).isOf(net.minecraft.block.Blocks.LIME_CONCRETE);
 					boolean frame = false;
-					for (BlockPos q : BlockPos.iterate(labFloor.add(-8, 0, -8), labFloor.add(8, 7, 8))) {
+					for (BlockPos q : BlockPos.iterate(labFloor.add(-12, 0, -12), labFloor.add(12, 7, 12))) {
 						if (ow.getBlockState(q).isOf(ModBlocks.PORTAL_FRAME)) { frame = true; break; }
 					}
 					boolean story = Story.missionTitle(Story.HUNTER, 1).contains("Ghost Must Die") && Story.missionTitle(Story.HERO, 1).contains("Molecules");

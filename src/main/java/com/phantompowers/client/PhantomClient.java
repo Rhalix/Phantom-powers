@@ -348,6 +348,7 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(GliderModel.LAYER, GliderModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(SkimmerModel.LAYER, SkimmerModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.SKIMMER, SkimmerRenderer::new);
+		EntityRendererRegistry.register(ModEntities.SEAT, net.minecraft.client.render.entity.EmptyEntityRenderer::new);
 		com.phantompowers.entity.SkimmerEntity.sendAction = PhantomClient::send;
 		EntityRendererRegistry.register(ModEntities.GLIDER, GliderRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(CrateKingModel.LAYER, CrateKingModel::getTexturedModelData);
@@ -510,6 +511,7 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(SkimmerHud::render);
 		HudRenderCallback.EVENT.register(StoryHud::render);
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
+		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutout(), ModBlocks.COFFEE_TABLE, ModBlocks.POTTED_PLANT);
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());
 	}
 
