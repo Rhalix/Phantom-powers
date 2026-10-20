@@ -272,6 +272,11 @@ public final class GhostPowers {
 
 	// -------------------------------------------------------------- transform
 
+	/** Change back to human right now (used by the bigger cutscenes). */
+	public static void forceHuman(ServerPlayerEntity p, GhostData d) {
+		if (d.transformed) toggleTransform(p, d, false);
+	}
+
 	/** Change into ghost form right now (used by the bigger cutscenes). */
 	public static void forceTransform(ServerPlayerEntity p, GhostData d) {
 		if (!d.transformed) toggleTransform(p, d, false);
@@ -688,6 +693,14 @@ public final class GhostPowers {
 			Cutscenes.startHero(p, d);
 			return;
 		}
+		// going back to human: each form has its own way of letting go
+		if (d.dark && d.darkMode) Cutscenes.startDarkOff(p, d);
+		else Cutscenes.startHeroOff(p, d);
+		return;
+	}
+
+	@SuppressWarnings("unused")
+	private static void oldCutscene(ServerPlayerEntity p, GhostData d) {
 		d.cutscene = CUTSCENE_TICKS;
 		d.cutsceneKind = 0;
 		d.cutsceneToGhost = !d.transformed;
@@ -756,6 +769,10 @@ public final class GhostPowers {
 			Cutscenes.startSuit(p, d);
 			return;
 		}
+		if (d.suitOn) {
+			Cutscenes.startSuitOff(p, d);
+			return;
+		}
 		d.cutscene = CUTSCENE_TICKS;
 		d.cutsceneKind = 1;
 		d.cutsceneToGhost = !d.suitOn;
@@ -791,6 +808,18 @@ public final class GhostPowers {
 		}
 		if (d.cutsceneKind == 8) {
 			Cutscenes.tickSuit(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 9) {
+			Cutscenes.tickHeroOff(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 10) {
+			Cutscenes.tickDarkOff(p, d);
+			return;
+		}
+		if (d.cutsceneKind == 11) {
+			Cutscenes.tickSuitOff(p, d);
 			return;
 		}
 		d.cutscene--;

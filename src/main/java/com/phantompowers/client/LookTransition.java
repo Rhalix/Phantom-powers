@@ -43,7 +43,7 @@ public final class LookTransition {
 			case 0 -> new T(HUMAN, GHOST, duration, false);
 			case 3, 4 -> new T(GHOST, HUMAN, duration, false);
 			case 1, 6 -> new T(HUMAN, SUIT, duration, true);
-			case 5 -> new T(SUIT, HUMAN, duration, true);
+			case 5, 7 -> new T(SUIT, HUMAN, duration, true);
 			default -> null;
 		};
 		if (t != null) ACTIVE.put(entityId, t);

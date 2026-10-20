@@ -103,8 +103,8 @@ public final class ClientRings {
 			float h = e.getHeight();
 			float t = Math.min(1f, (r.age + partial) / r.duration);
 			if (r.style == 2) continue; // wail finale: a pose, not rings
-			if (r.style == 6) {
-				suitForm(consumers, m, e, pos, t, r.age + partial, partial);
+			if (r.style == 6 || r.style == 7) {
+				suitForm(consumers, m, e, pos, r.style == 7 ? 1f - t : t, r.age + partial, partial, r.style == 7);
 				vc = consumers.getBuffer(RenderLayer.getLightning());
 				continue;
 			}
@@ -185,7 +185,7 @@ public final class ClientRings {
 	 * Suiting up: armour plates unfold out of the backpack one after another, swing round the body on curving paths
 	 * trailing cyan light, and lock into place from the boots up to the helmet.
 	 */
-	private static void suitForm(VertexConsumerProvider consumers, Matrix4f m, Entity e, Vec3d pos, float t, float time, float partial) {
+	private static void suitForm(VertexConsumerProvider consumers, Matrix4f m, Entity e, Vec3d pos, float t, float time, float partial, boolean off) {
 		float yaw = e instanceof net.minecraft.entity.LivingEntity le ? MathHelper.lerp(partial, le.prevBodyYaw, le.bodyYaw) : e.getYaw();
 		double rad = Math.toRadians(-yaw);
 		double cos = Math.cos(rad), sin = Math.sin(rad);
@@ -226,7 +226,7 @@ public final class ClientRings {
 						Vec3d prev = toWorld.apply(new double[]{pack[0] + (pl[0] - pack[0]) * ke * 0.7, pack[1] + (pl[1] - pack[1]) * ke * 0.7 + 0.2, pack[2]});
 						Vec3d d = c.subtract(prev);
 						edge(vc, m, prev.add(d.multiply(0.5)), d.multiply(0.5), 0.015, 150, 240, 255, a / 2);
-					} else {
+					} else if (!off) {
 						// lock-on flash
 						int fa = (int) (200 * fade);
 						plate(vc, m, c, right.multiply(1.3), up.multiply(1.3), 120, 230, 255, fa / 2);

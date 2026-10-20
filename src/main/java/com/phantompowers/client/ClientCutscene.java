@@ -84,6 +84,17 @@ public final class ClientCutscene {
 			pl.fallDistance = 0;
 			return;
 		}
+		int kk = ClientGhost.cutsceneKind;
+		if (kk == 9 || kk == 10 || kk == 11) {
+			int total = kk == 9 ? com.phantompowers.Cutscenes.HERO_OFF_TICKS : kk == 10 ? com.phantompowers.Cutscenes.DARK_OFF_TICKS : com.phantompowers.Cutscenes.SUIT_OFF_TICKS;
+			int el = Math.max(0, total - ClientGhost.cutscene);
+			double lift = kk == 9 ? com.phantompowers.Cutscenes.heroOffLift(el) : kk == 10 ? com.phantompowers.Cutscenes.darkOffLift(el) : 0;
+			var next = pl.getPos().lerp(anchor.add(0, lift, 0), 0.5);
+			pl.setVelocity(0, 0, 0);
+			pl.setPosition(next.x, next.y, next.z);
+			pl.fallDistance = 0;
+			return;
+		}
 		if (ClientGhost.cutsceneKind == 7 || ClientGhost.cutsceneKind == 8) {
 			boolean hero = ClientGhost.cutsceneKind == 7;
 			int el = Math.max(0, (hero ? com.phantompowers.Cutscenes.HERO_TICKS : com.phantompowers.Cutscenes.SUIT_TICKS) - ClientGhost.cutscene);
@@ -138,6 +149,9 @@ public final class ClientCutscene {
 		if (ClientGhost.cutsceneKind == 6) return originShot(mc, e, t, partial);
 		if (ClientGhost.cutsceneKind == 7) return heroShot(mc, e, t, partial);
 		if (ClientGhost.cutsceneKind == 8) return suitShot(mc, e, t, partial);
+		if (ClientGhost.cutsceneKind == 9) return offShot(mc, e, t, partial, 160, 3.2, 0.9, 1.4);
+		if (ClientGhost.cutsceneKind == 10) return offShot(mc, e, t, partial, 200, 2.4, 0.0, 2.2);
+		if (ClientGhost.cutsceneKind == 11) return offShot(mc, e, t, partial, 120, 2.8, 1.0, 0.9);
 		boolean wail = ClientGhost.cutsceneKind == 2;
 		// Start facing you, then drift around to a three-quarter angle
 		double orbit = Math.toRadians(baseYaw + (wail ? 25 : 35) * Math.sin(t * 0.035) - 20);
@@ -239,6 +253,28 @@ public final class ClientCutscene {
 		return aim(mc, e, from, target);
 	}
 
+	/** Changing back: a slow arc from one side round to the front, easing out as you settle. */
+	private static float[] offShot(MinecraftClient mc, net.minecraft.entity.Entity e, float t, float partial, double startDeg, double dist, double height, double pullOut) {
+		var pos = e.getLerpedPos(partial);
+		float k = smooth(Math.min(1f, t / 60f));
+		double ang = Math.toRadians(baseYaw + startDeg * (1 - k) + 25 * Math.sin(t * 0.02));
+		double d = dist + pullOut * k;
+		var target = pos.add(0, 1.15, 0);
+		var from = new net.minecraft.util.math.Vec3d(target.x - Math.sin(ang) * d, pos.y + 0.6 + height * k + (ClientGhost.cutsceneKind == 10 ? 0.2 : 0.4), target.z + Math.cos(ang) * d);
+		if (ClientGhost.cutsceneKind == 10) {
+			float el = t;
+			float sh = el > com.phantompowers.Cutscenes.DARK_OFF_CHANGE - 4 && el < com.phantompowers.Cutscenes.DARK_OFF_CHANGE + 8 ? 0.14f : 0.02f;
+			from = from.add(Math.sin(t * 3.7) * sh, Math.cos(t * 4.3) * sh, Math.sin(t * 5.1) * sh);
+		}
+		return aim(mc, e, from, target);
+	}
+
+	public static float offTime(net.minecraft.entity.Entity e, float partial, int kind) {
+		if (!active || ClientGhost.cutsceneKind != kind || e != MinecraftClient.getInstance().player) return -1f;
+		int total = kind == 9 ? com.phantompowers.Cutscenes.HERO_OFF_TICKS : kind == 10 ? com.phantompowers.Cutscenes.DARK_OFF_TICKS : com.phantompowers.Cutscenes.SUIT_OFF_TICKS;
+		return total - ClientGhost.cutscene + partial;
+	}
+
 	public static float heroTime(net.minecraft.entity.Entity e, float partial) {
 		if (!active || ClientGhost.cutsceneKind != 7 || e != MinecraftClient.getInstance().player) return -1f;
 		return com.phantompowers.Cutscenes.HERO_TICKS - ClientGhost.cutscene + partial;
@@ -316,6 +352,14 @@ public final class ClientCutscene {
 		return v * v * (3 - 2 * v);
 	}
 
+	private static void caption(DrawContext ctx, MinecraftClient mc, int w, int h, int bar, String line, int color, float size, float jitter) {
+		ctx.getMatrices().push();
+		ctx.getMatrices().translate(w / 2f + jitter, h - bar / 2f - 6, 0);
+		ctx.getMatrices().scale(size, size, 1f);
+		ctx.drawCenteredTextWithShadow(mc.textRenderer, line, 0, 0, color);
+		ctx.getMatrices().pop();
+	}
+
 	/** True while any cutscene is playing (the normal HUD is hidden so the captions are clear). */
 	public static boolean active() {
 		return active;
@@ -332,6 +376,46 @@ public final class ClientCutscene {
 		ctx.fill(0, h - bar, w, h, 0xFF000000);
 
 		if (ClientGhost.cutsceneKind == 4) return;   // the tornado: no captions, just the action
+		if (ClientGhost.cutsceneKind == 9) {
+			float el = com.phantompowers.Cutscenes.HERO_OFF_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float change = com.phantompowers.Cutscenes.HERO_OFF_CHANGE;
+			int a = (int) (60 * Math.max(0f, 1f - el / change));
+			ctx.fillGradient(0, bar, w, h / 3, (a << 24) | 0x33FF77, 0);
+			String line = el < 20 ? "Phew..." : el < change ? "Okay, ghost time's over." : "Back to normal. Mostly.";
+			caption(ctx, mc, w, h, bar, line, el >= change ? 0xFFE8FFF0 : 0xFFCFFFE0, el >= change ? 1.9f : 1.5f, 0f);
+			return;
+		}
+		if (ClientGhost.cutsceneKind == 10) {
+			float el = com.phantompowers.Cutscenes.DARK_OFF_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float change = com.phantompowers.Cutscenes.DARK_OFF_CHANGE;
+			// the green tint fights back in flickers, then drains away
+			float beat = (float) Math.pow(Math.abs(Math.sin(el * 0.26)), 6);
+			int a = el < change ? (int) (40 + 70 * beat) : (int) (110 * Math.max(0f, 1f - (el - change) / 12f));
+			ctx.fillGradient(0, bar, w, h / 3, (a << 24) | 0x0F6A1E, 0);
+			ctx.fillGradient(0, h * 2 / 3, w, h - bar, 0, (a << 24) | 0x0F6A1E);
+			if (el < change && ((int) el % 17 == 0)) ctx.fill(0, bar, w, h - bar, 0x30FF4FC8);
+			String line = el < 24 ? "No... not yet..." : el < change ? "Fine. The darkness can wait." : "...This isn't over.";
+			caption(ctx, mc, w, h, bar, line, el < change ? 0xFFFF7FD8 : 0xFF7DDC8A, el >= change ? 1.9f : 1.6f, el < change ? (float) Math.sin(shown * 2.9) * 1.5f : 0f);
+			return;
+		}
+		if (ClientGhost.cutsceneKind == 11) {
+			float el = com.phantompowers.Cutscenes.SUIT_OFF_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
+			float done = com.phantompowers.Cutscenes.SUIT_OFF_DONE;
+			// the visor HUD shutting down: brackets shrink in, the scan line slows and dims, then a blink out
+			float k = Math.min(1f, el / done);
+			int alpha = (int) (160 * (1 - k));
+			int bw = (int) (24 * (1 - k)) + 2;
+			for (int[] c : new int[][]{{8, bar + 8, 1, 1}, {w - 8, bar + 8, -1, 1}, {8, h - bar - 8, 1, -1}, {w - 8, h - bar - 8, -1, -1}}) {
+				ctx.fill(Math.min(c[0], c[0] + c[2] * bw), c[1], Math.max(c[0], c[0] + c[2] * bw), c[1] + c[3], (alpha << 24) | 0x66E0FF);
+				ctx.fill(c[0], Math.min(c[1], c[1] + c[3] * bw), c[0] + c[2], Math.max(c[1], c[1] + c[3] * bw), (alpha << 24) | 0x66E0FF);
+			}
+			int sweepY = bar + (int) ((el * 3 * (1 - k * 0.7)) % (h - 2 * bar));
+			ctx.fill(0, sweepY, w, sweepY + 1, ((alpha / 2) << 24) | 0x66E0FF);
+			String line = el < done ? "Suit powering down...  " + (int) (100 * (1 - k)) + "%" : "Suit stowed.";
+			if (el >= done && el < done + 3) ctx.fill(0, h / 2 - 1, w, h / 2 + 1, 0xC0FFFFFF);   // old-TV blink out
+			caption(ctx, mc, w, h, bar, line, 0xFF9FEFFF, el >= done ? 1.8f : 1.4f, 0f);
+			return;
+		}
 		if (ClientGhost.cutsceneKind == 7) {
 			float el = com.phantompowers.Cutscenes.HERO_TICKS - ClientGhost.cutscene + tickCounter.getTickDelta(true);
 			float change = com.phantompowers.Cutscenes.HERO_CHANGE;

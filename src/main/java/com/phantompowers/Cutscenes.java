@@ -233,6 +233,135 @@ public final class Cutscenes {
 		}
 	}
 
+	// ---------------------------------------------------------------- changing back (hold V / hold U)
+
+	public static final int HERO_OFF_TICKS = 60, HERO_OFF_CHANGE = 44;
+	public static final int DARK_OFF_TICKS = 70, DARK_OFF_CHANGE = 54;
+	public static final int SUIT_OFF_TICKS = 70, SUIT_OFF_DONE = 58;
+
+	/** Hero going human: floating gently down while the ghost energy drains out into the ground. */
+	public static double heroOffLift(int e) {
+		return e < HERO_OFF_CHANGE ? 0.6 * (1 - e / (double) HERO_OFF_CHANGE) : 0;
+	}
+
+	/** Dark form letting go: hangs in the air fighting it, then drops. */
+	public static double darkOffLift(int e) {
+		if (e < 20) return Math.min(0.8, e * 0.04);
+		if (e < DARK_OFF_CHANGE) return 0.8;
+		return 0.8 * Math.max(0, 1 - (e - DARK_OFF_CHANGE) / 5.0);
+	}
+
+	private static void begin(ServerPlayerEntity p, GhostData d, int ticks, int kind) {
+		d.cutscene = ticks;
+		d.cutsceneKind = kind;
+		d.cutsceneToGhost = false;
+		d.cutsceneAnchor = p.getPos();
+		GhostPowers.syncNow(p);
+	}
+
+	private static void hold(ServerPlayerEntity p, GhostData d, double lift) {
+		Vec3d a = d.cutsceneAnchor == null ? p.getPos() : d.cutsceneAnchor;
+		Vec3d want = a.add(0, lift, 0);
+		if (p.getPos().squaredDistanceTo(want) > 4) p.requestTeleport(want.x, want.y, want.z);
+		p.fallDistance = 0;
+	}
+
+	private static void finish(ServerPlayerEntity p, GhostData d) {
+		if (d.cutscene <= 0) {
+			d.cutscene = 0;
+			d.cutsceneAnchor = null;
+			GhostPowers.syncNow(p);
+		}
+	}
+
+	public static void startHeroOff(ServerPlayerEntity p, GhostData d) {
+		begin(p, d, HERO_OFF_TICKS, 9);
+		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 1.2f);
+	}
+
+	public static void tickHeroOff(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = HERO_OFF_TICKS - d.cutscene;
+		ServerWorld w = p.getServerWorld();
+		hold(p, d, heroOffLift(e));
+		if (e < HERO_OFF_CHANGE) {
+			// the glow drains down out of you and soaks into the ground
+			for (int i = 0; i < 3; i++) {
+				double ang = e * 0.25 + i * Math.PI * 2 / 3;
+				double y = 2.0 - (e * 0.06 + i * 0.6) % 2.0;
+				w.spawnParticles(ECTO, p.getX() + Math.cos(ang) * 0.7, p.getY() + y, p.getZ() + Math.sin(ang) * 0.7, 0, 0, -0.08, 0, 1);
+			}
+			if (e % 4 == 0) w.spawnParticles(ParticleTypes.END_ROD, p.getX(), p.getY() + 0.05, p.getZ(), 3, 0.6, 0.02, 0.6, 0.02);
+			if (e == HERO_OFF_CHANGE - 18) GhostPowers.sendRings(p, 18, 4);
+		}
+		if (e == HERO_OFF_CHANGE) {
+			GhostPowers.forceHuman(p, d);
+			w.spawnParticles(WHITE, p.getX(), p.getY() + 1, p.getZ(), 40, 0.5, 0.9, 0.5, 0.02);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM, SoundCategory.PLAYERS, 0.8f, 0.6f);
+		}
+		finish(p, d);
+	}
+
+	public static void startDarkOff(ServerPlayerEntity p, GhostData d) {
+		begin(p, d, DARK_OFF_TICKS, 10);
+		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_HEARTBEAT, SoundCategory.PLAYERS, 1.5f, 0.6f);
+	}
+
+	public static void tickDarkOff(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = DARK_OFF_TICKS - d.cutscene;
+		ServerWorld w = p.getServerWorld();
+		hold(p, d, darkOffLift(e));
+		if (e < DARK_OFF_CHANGE) {
+			// the darkness fights to stay: smoke and pink flame tearing off you, a heartbeat, flickers
+			float k = e / (float) DARK_OFF_CHANGE;
+			w.spawnParticles(BLACK, p.getX(), p.getY() + 1, p.getZ(), 3, 0.4, 0.8, 0.4, 0.04);
+			w.spawnParticles(PINK, p.getX(), p.getY() + 1.2, p.getZ(), 2 + (int) (k * 4), 0.3 + k, 0.6, 0.3 + k, 0.08);
+			if (e % 3 == 0) w.spawnParticles(ParticleTypes.LARGE_SMOKE, p.getX(), p.getY() + 1.6, p.getZ(), 2, 0.3, 0.3, 0.3, 0.05);
+			if (e % 12 == 0) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WARDEN_HEARTBEAT, SoundCategory.PLAYERS, 1.4f, 0.6f + k * 0.4f);
+			if (e == 30) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WITHER_HURT, SoundCategory.PLAYERS, 0.7f, 0.6f);
+			if (e == DARK_OFF_CHANGE - 16) GhostPowers.sendRings(p, 16, 4);
+		}
+		if (e == DARK_OFF_CHANGE) {
+			// it lets go all at once: the dark aura bursts off you and scatters
+			GhostPowers.forceHuman(p, d);
+			w.spawnParticles(PINK, p.getX(), p.getY() + 1, p.getZ(), 90, 1.5, 1, 1.5, 0.2);
+			w.spawnParticles(ParticleTypes.LARGE_SMOKE, p.getX(), p.getY() + 1, p.getZ(), 40, 1, 1, 1, 0.08);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WITHER_SHOOT, SoundCategory.PLAYERS, 0.8f, 0.5f);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(), SoundCategory.PLAYERS, 1.0f, 0.8f);
+		}
+		finish(p, d);
+	}
+
+	public static void startSuitOff(ServerPlayerEntity p, GhostData d) {
+		begin(p, d, SUIT_OFF_TICKS, 11);
+		ServerWorld w = p.getServerWorld();
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 0.9f, 1.6f);
+		GhostPowers.sendRings(p, SUIT_OFF_DONE - 6, 7);
+	}
+
+	public static void tickSuitOff(ServerPlayerEntity p, GhostData d) {
+		d.cutscene--;
+		int e = SUIT_OFF_TICKS - d.cutscene;
+		ServerWorld w = p.getServerWorld();
+		hold(p, d, 0);
+		Vec3d back = p.getPos().add(Vec3d.fromPolar(0, p.getBodyYaw()).multiply(-0.35)).add(0, 1.2, 0);
+		if (e < SUIT_OFF_DONE && e % 4 == 2) {
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), SoundCategory.PLAYERS, 0.6f, 1.4f - (e % 12) * 0.04f);
+		}
+		if (e > SUIT_OFF_DONE - 14 && e < SUIT_OFF_DONE + 8 && e % 2 == 0) {
+			// the pack vents steam as it folds everything away
+			w.spawnParticles(ParticleTypes.CLOUD, back.x, back.y + 0.2, back.z, 2, 0.1, 0.05, 0.1, 0.03);
+			w.spawnParticles(ParticleTypes.WHITE_SMOKE, back.x, back.y, back.z, 2, 0.12, 0.05, 0.12, 0.02);
+		}
+		if (e == SUIT_OFF_DONE) {
+			if (d.suitOn) HunterSuit.toggle(p, d, false);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.PLAYERS, 1.0f, 1.2f);
+			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.PLAYERS, 0.6f, 1.6f);
+		}
+		finish(p, d);
+	}
+
 	// ---------------------------------------------------------------- origin story
 
 	/** Standing in the portal when it switches on: it surges through you... and you come out half ghost. */

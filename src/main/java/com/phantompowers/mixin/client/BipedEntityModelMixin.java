@@ -62,6 +62,71 @@ public abstract class BipedEntityModelMixin {
 		if (heroT >= 0f && heroT < com.phantompowers.Cutscenes.HERO_CHANGE - 10) phantom$auraPose(heroT, age);
 		float suitT = com.phantompowers.client.ClientCutscene.suitTime(entity, age - (int) age);
 		if (suitT >= 0f) phantom$suitUpPose(suitT, age);
+		float heroOff = com.phantompowers.client.ClientCutscene.offTime(entity, age - (int) age, 9);
+		if (heroOff >= 0f) phantom$heroOffPose(heroOff, age);
+		float darkOff = com.phantompowers.client.ClientCutscene.offTime(entity, age - (int) age, 10);
+		if (darkOff >= 0f) phantom$darkOffPose(darkOff, age);
+		float suitOff = com.phantompowers.client.ClientCutscene.offTime(entity, age - (int) age, 11);
+		if (suitOff >= 0f) phantom$suitOffPose(suitOff, age);
+	}
+
+	/** Hero powering down: a big exhale, shoulders drop, then a relaxed stretch with one arm and a casual stance. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$heroOffPose(float t, float age) {
+		float change = com.phantompowers.Cutscenes.HERO_OFF_CHANGE;
+		float sigh = phantom$ease(t / 14f) * (1 - phantom$ease((t - 22f) / 10f));
+		float stretch = phantom$ease((t - change + 2f) / 10f);
+		head.pitch = 0.3f * sigh - 0.25f * stretch;
+		head.yaw = 0f;
+		hat.copyTransform(head);
+		body.pitch = 0.12f * sigh;
+		rightArm.pitch = 0.1f * sigh - 2.6f * stretch;
+		rightArm.roll = 0.1f + 0.3f * stretch;
+		rightArm.yaw = 0f;
+		leftArm.pitch = 0.1f * sigh + 0.15f * stretch;
+		leftArm.roll = -0.15f - 0.35f * stretch;   // hand on hip
+		leftArm.yaw = 0.3f * stretch;
+		rightLeg.roll = 0.08f;
+		leftLeg.roll = -0.08f;
+	}
+
+	/** The dark form fighting to stay: doubled over clutching your head, shaking, then thrown back as it bursts free. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$darkOffPose(float t, float age) {
+		float change = com.phantompowers.Cutscenes.DARK_OFF_CHANGE;
+		float clutch = phantom$ease((t - 6f) / 10f) * (1 - phantom$ease((t - change + 2f) / 4f));
+		float burst = phantom$ease((t - change + 2f) / 4f) * (1 - phantom$ease((t - change - 6f) / 10f));
+		float shake = MathHelper.sin(age * 3.3f) * 0.07f * clutch;
+		body.pitch = 0.35f * clutch - 0.2f * burst;
+		head.pitch = 0.5f * clutch - 0.6f * burst + shake;
+		head.yaw = shake;
+		hat.copyTransform(head);
+		// hands up to the head
+		rightArm.pitch = -2.6f * clutch + 0.3f * burst + shake;
+		rightArm.roll = 0.6f * clutch + 0.9f * burst;
+		rightArm.yaw = -0.4f * clutch;
+		leftArm.pitch = -2.6f * clutch + 0.3f * burst - shake;
+		leftArm.roll = -0.6f * clutch - 0.9f * burst;
+		leftArm.yaw = 0.4f * clutch;
+		rightLeg.pitch = 0.2f * clutch;
+		leftLeg.pitch = -0.15f * clutch;
+	}
+
+	/** Suit coming off: arms held out as the plates pull away, then a shoulder roll and a shake of the hands. */
+	@org.spongepowered.asm.mixin.Unique
+	private void phantom$suitOffPose(float t, float age) {
+		float done = com.phantompowers.Cutscenes.SUIT_OFF_DONE;
+		float out = phantom$ease(t / 8f) * (1 - phantom$ease((t - done + 8f) / 8f));
+		float roll = phantom$ease((t - done + 4f) / 6f);
+		float shakeHands = MathHelper.sin(age * 1.8f) * 0.15f * roll * (1 - phantom$ease((t - done - 8f) / 6f));
+		head.pitch = 0.1f * out - 0.05f * roll;
+		head.roll = MathHelper.sin(t * 0.2f) * 0.12f * roll;
+		hat.copyTransform(head);
+		rightArm.pitch = -0.2f * out + shakeHands;
+		rightArm.roll = 1.0f * out + 0.15f;
+		leftArm.pitch = -0.2f * out - shakeHands;
+		leftArm.roll = -1.0f * out - 0.15f;
+		rightArm.yaw = leftArm.yaw = 0f;
 	}
 
 	/**
