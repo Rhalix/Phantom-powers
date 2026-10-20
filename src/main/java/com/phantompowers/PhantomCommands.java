@@ -427,7 +427,32 @@ public final class PhantomCommands {
 					for (BlockPos q : BlockPos.iterate(labFloor.add(-12, 0, -12), labFloor.add(12, 7, 12))) {
 						if (ow.getBlockState(q).isOf(ModBlocks.PORTAL_FRAME)) { frame = true; break; }
 					}
-					boolean story = Story.missionTitle(Story.HUNTER, 1).contains("Ghost Must Die") && Story.missionTitle(Story.HERO, 1).contains("Molecules");
+					boolean story = Story.missionTitle(Story.HUNTER, 1).contains("Ghost Must Die") && Story.missionTitle(Story.HERO, 1).contains("Molecules")
+							&& Story.missionTitle(Story.EVIL, 2).contains("Lunch Rush");
+					// Chef Ghoulash (mission 2's ghost): every move, the Meat Monster form, and the story daze
+					boolean chef = false;
+					{
+						var ch = ModEntities.CHEF_GHOULASH.create(ow);
+						var stand = net.minecraft.entity.EntityType.ARMOR_STAND.create(ow);
+						if (ch != null && stand != null) {
+							net.minecraft.util.math.Vec3d cafe = com.phantompowers.world.AmityPark.cafeteria(town);
+							ch.refreshPositionAndAngles(cafe.x, cafe.y + 1, cafe.z, 0, 0);
+							stand.refreshPositionAndAngles(cafe.x + 3, cafe.y, cafe.z, 0, 0);
+							ch.addCommandTag(com.phantompowers.entity.ChefGhoulashEntity.STORY_TAG);
+							ow.spawnEntity(ch);
+							ow.spawnEntity(stand);
+							ch.testMoves(ow, stand);
+							boolean big = ch.meat() && ch.getWidth() > 1.2f;
+							ch.damage(ow.getDamageSources().magic(), 9999f);
+							boolean dazedAlive = ch.isAlive() && ch.dazed() && ThermosItem.canTrap(ch);
+							chef = big && dazedAlive;
+							for (var e : ow.getOtherEntities(null, ch.getBoundingBox().expand(30), e -> e instanceof com.phantompowers.entity.FoodProjectileEntity
+									|| e.getCommandTags().contains("phantom_kitchen"))) e.discard();
+							ch.discard();
+							stand.discard();
+						}
+					}
+					story = story && chef;
 					boolean sword = ModItems.ECTO_SWORD != null && !EctoSwordItem.lit(new net.minecraft.item.ItemStack(ModItems.ECTO_SWORD))
 							&& HunterPaint.cost(3)[0][0] == ModItems.PHANTOM_HEART && HunterPaint.gadgetCost(1).length == 4
 							&& !Party.allies(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()) && Slots.GADGETS.length == 4;

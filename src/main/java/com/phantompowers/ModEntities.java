@@ -121,6 +121,16 @@ public final class ModEntities {
 			EntityType.Builder.create(CrateKingEntity::new, SpawnGroup.MONSTER)
 					.dimensions(1.4f, 3.6f).maxTrackingRange(12).makeFireImmune().build("crate_king"));
 
+	public static final EntityType<com.phantompowers.entity.ChefGhoulashEntity> CHEF_GHOULASH = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("chef_ghoulash"),
+			EntityType.Builder.create(com.phantompowers.entity.ChefGhoulashEntity::new, SpawnGroup.MONSTER)
+					.dimensions(0.9f, 2.2f).maxTrackingRange(12).makeFireImmune().build("chef_ghoulash"));
+
+	public static final EntityType<com.phantompowers.entity.FoodProjectileEntity> FOOD_PROJECTILE = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("food_projectile"),
+			EntityType.Builder.<com.phantompowers.entity.FoodProjectileEntity>create(com.phantompowers.entity.FoodProjectileEntity::new, SpawnGroup.MISC)
+					.dimensions(0.4f, 0.4f).maxTrackingRange(6).trackingTickInterval(10).build("food_projectile"));
+
 	public static final EntityType<CrateProjectileEntity> CRATE_PROJECTILE = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("crate_projectile"),
 			EntityType.Builder.<CrateProjectileEntity>create(CrateProjectileEntity::new, SpawnGroup.MISC)
@@ -157,6 +167,7 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(REV, com.phantompowers.entity.RevEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(GHOST_CLONE, com.phantompowers.entity.GhostCloneEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROXY, com.phantompowers.entity.RoxyEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(CHEF_GHOULASH, com.phantompowers.entity.ChefGhoulashEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(SHADE, com.phantompowers.entity.ShadeEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROOM_GHOST, RoomGhostEntity.createAttributes());

@@ -78,6 +78,7 @@ public class ThermosItem extends Item {
 		if (e instanceof com.phantompowers.entity.WishkeeperEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.RevEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.RoxyEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
+		if (e instanceof com.phantompowers.entity.ChefGhoulashEntity k) return k.dazed() || k.getHealth() < k.getMaxHealth() * 0.25f;
 		if (e instanceof com.phantompowers.entity.ShadeEntity s) return !s.isBoss() || s.getHealth() < s.getMaxHealth() * 0.25f;
 		return e instanceof AbstractGhostEntity || e instanceof VexEntity || e instanceof PhantomEntity;
 	}
@@ -255,6 +256,7 @@ public class ThermosItem extends Item {
 		if (t instanceof MobEntity m) m.setAiDisabled(c.prevAi);
 		NbtCompound saved = new NbtCompound();
 		if (!t.saveNbt(saved)) return;
+		Story.onTrapped(w, p, t);
 		NbtCompound data = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
 		NbtList list = data.getList(KEY, NbtElement.COMPOUND_TYPE);
 		list.add(saved);

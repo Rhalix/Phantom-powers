@@ -414,6 +414,9 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(AcneFeature.LAYER, AcneFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(WristGadgetFeature.LAYER, WristGadgetFeature::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.CRATE_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.6f, false));
+		EntityRendererRegistry.register(ModEntities.FOOD_PROJECTILE, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.2f, false));
+		EntityModelLayerRegistry.registerModelLayer(ChefModel.LAYER, ChefModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.CHEF_GHOULASH, ChefRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostTail.LAYER, GhostTail::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(FistGlowFeature.WIDE, () -> FistGlowFeature.layer(false));

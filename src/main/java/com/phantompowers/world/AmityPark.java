@@ -303,6 +303,21 @@ public final class AmityPark {
 		return Vec3d.ofBottomCenter(c.add(Builder.LAB_X + 5, -9 + 3, Builder.LAB_Z + 2)).add(0.5, 0, 0);
 	}
 
+	/** Just outside Amity High's front doors. */
+	public static Vec3d schoolDoor(BlockPos c) {
+		return new Vec3d(c.getX() - 78, c.getY(), c.getZ() - 66.5);
+	}
+
+	/** The middle of Amity High's cafeteria (ground floor). */
+	public static Vec3d cafeteria(BlockPos c) {
+		return new Vec3d(c.getX() - 85.5, c.getY(), c.getZ() - 74.5);
+	}
+
+	/** Inside the cafeteria kitchen, behind the serving counter. */
+	public static Vec3d cafeteriaKitchen(BlockPos c) {
+		return new Vec3d(c.getX() - 68.5, c.getY(), c.getZ() - 74.5);
+	}
+
 	/** Just outside the Ghost Lab house's front door. */
 	public static Vec3d labHouseDoor(BlockPos c) {
 		return new Vec3d(c.getX() + Builder.LAB_X + 14.5, c.getY(), c.getZ() + Builder.LAB_Z + 22.5);

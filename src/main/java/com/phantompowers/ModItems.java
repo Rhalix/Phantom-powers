@@ -48,6 +48,8 @@ public final class ModItems {
 			new EctoLauncherItem(new Item.Settings().maxDamage(300).rarity(Rarity.RARE)));
 	public static final Item REV_EGG = Registry.register(Registries.ITEM, PhantomMod.id("rev_spawn_egg"),
 			new net.minecraft.item.SpawnEggItem(ModEntities.REV, 0x1C1C22, 0xC8CCD6, new Item.Settings()));
+	public static final Item CHEF_GHOULASH_EGG = Registry.register(Registries.ITEM, PhantomMod.id("chef_ghoulash_spawn_egg"),
+			new net.minecraft.item.SpawnEggItem(ModEntities.CHEF_GHOULASH, 0xEEF4F0, 0x8E3A34, new Item.Settings()));
 	public static final Item ROXY_EGG = Registry.register(Registries.ITEM, PhantomMod.id("roxy_spawn_egg"),
 			new net.minecraft.item.SpawnEggItem(ModEntities.ROXY, 0x1C9696, 0xFF50B4, new Item.Settings()));
 	public static final Item BIKER_COUPLE_EGG = Registry.register(Registries.ITEM, PhantomMod.id("biker_couple_spawn_egg"),
@@ -216,6 +218,7 @@ public final class ModItems {
 			e.add(CRATE_KING_EGG);
 			e.add(VOLTAGE_EGG);
 			e.add(WISHKEEPER_EGG);
+			e.add(CHEF_GHOULASH_EGG);
 		});
 	}
 }
