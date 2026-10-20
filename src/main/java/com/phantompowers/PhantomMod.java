@@ -71,6 +71,7 @@ public class PhantomMod implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.DomePayload.ID, com.phantompowers.network.DomePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.DomeHitPayload.ID, com.phantompowers.network.DomeHitPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.SkimmerRadarPayload.ID, com.phantompowers.network.SkimmerRadarPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(com.phantompowers.network.SparkPayload.ID, com.phantompowers.network.SparkPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SkillPayload.ID, SkillPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(com.phantompowers.network.SuitColorsPayload.ID, com.phantompowers.network.SuitColorsPayload.CODEC);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SuitColorsPayload.ID,

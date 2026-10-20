@@ -79,7 +79,7 @@ public final class ModItems {
 	public static final Item DOLORA_SPAWN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("dolora_spawn_egg"),
 			new SpawnEggItem(ModEntities.DOLORA, 0x2E8080, 0x8A50E0, new Item.Settings()));
 	public static final Item DNA_SAMPLER = Registry.register(Registries.ITEM, PhantomMod.id("dna_sampler"),
-			new DnaSamplerItem(false, new Item.Settings().maxCount(16)));
+			new DnaSamplerItem(false, new Item.Settings().maxDamage(48)));
 	public static final Item DNA_SAMPLE = Registry.register(Registries.ITEM, PhantomMod.id("dna_sample"),
 			new DnaSamplerItem(true, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
 	public static final Item SUIT_UPGRADE = Registry.register(Registries.ITEM, PhantomMod.id("suit_upgrade_module"),

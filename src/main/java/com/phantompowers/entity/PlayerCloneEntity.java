@@ -50,6 +50,7 @@ public class PlayerCloneEntity extends PathAwareEntity {
 	private static final TrackedData<Optional<UUID>> OWNER = DataTracker.registerData(PlayerCloneEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
 	private static final TrackedData<Boolean> FEMALE = DataTracker.registerData(PlayerCloneEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> GHOST = DataTracker.registerData(PlayerCloneEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	private static final TrackedData<Boolean> DARK = DataTracker.registerData(PlayerCloneEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> STAYING = DataTracker.registerData(PlayerCloneEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final String[] LINES = {"Ready when you are!", "I've got your back.", "Weird... I remember things I never did.",
 			"Going ghost? Me too!", "Do you think I'm the original?", "Race you!"};
@@ -76,12 +77,23 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		builder.add(FEMALE, false);
 		builder.add(GHOST, false);
 		builder.add(STAYING, false);
+		builder.add(DARK, false);
 	}
 
 	public void setup(UUID owner, String name, boolean female) {
+		setup(owner, name, female, false);
+	}
+
+	/** Grown from ghost DNA: the clone always comes out in ghost form (evil ghost form for evil half-ghost DNA). */
+	public void setup(UUID owner, String name, boolean female, boolean dark) {
 		dataTracker.set(OWNER, Optional.of(owner));
 		dataTracker.set(FEMALE, female);
-		setCustomName(Text.literal(name + "'s Clone"));
+		dataTracker.set(DARK, dark);
+		setCustomName(Text.literal(name + "'s " + (dark ? "Evil " : "") + "Clone"));
+	}
+
+	public boolean isDark() {
+		return dataTracker.get(DARK);
 	}
 
 	public UUID ownerId() {
@@ -153,7 +165,7 @@ public class PlayerCloneEntity extends PathAwareEntity {
 				blastCooldown = 35;
 				Vec3d from = getEyePos().add(getRotationVector().multiply(0.5));
 				Vec3d to = t.getBoundingBox().getCenter();
-				BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) to.x, (float) to.y, (float) to.z, 0x33FF77);
+				BeamPayload beam = new BeamPayload((float) from.x, (float) from.y, (float) from.z, (float) to.x, (float) to.y, (float) to.z, isDark() ? 0xFF4FC8 : 0x33FF77);
 				for (ServerPlayerEntity v : PlayerLookup.around(w, from, 64)) {
 					if (ServerPlayNetworking.canSend(v, BeamPayload.ID)) ServerPlayNetworking.send(v, beam);
 				}
@@ -202,6 +214,7 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		if (ownerId() != null) nbt.putUuid("CloneOwner", ownerId());
 		nbt.putBoolean("Female", isFemale());
 		nbt.putBoolean("Staying", isStaying());
+		nbt.putBoolean("DarkClone", isDark());
 	}
 
 	@Override
@@ -210,6 +223,7 @@ public class PlayerCloneEntity extends PathAwareEntity {
 		if (nbt.containsUuid("CloneOwner")) dataTracker.set(OWNER, Optional.of(nbt.getUuid("CloneOwner")));
 		dataTracker.set(FEMALE, nbt.getBoolean("Female"));
 		dataTracker.set(STAYING, nbt.getBoolean("Staying"));
+		dataTracker.set(DARK, nbt.getBoolean("DarkClone"));
 	}
 
 	// ---------------------------------------------------------------- goals

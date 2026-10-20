@@ -81,7 +81,7 @@ public final class ModEntities {
 			EntityType.Builder.create(com.phantompowers.entity.GhostYetiEntity::new, SpawnGroup.CREATURE).dimensions(1.4f, 2.4f).maxTrackingRange(10).build("ghost_yeti"));
 
 	public static final EntityType<com.phantompowers.entity.PlayerCloneEntity> PLAYER_CLONE = Registry.register(Registries.ENTITY_TYPE, PhantomMod.id("player_clone"),
-			EntityType.Builder.create(com.phantompowers.entity.PlayerCloneEntity::new, SpawnGroup.MISC).dimensions(0.6f, 1.8f).maxTrackingRange(10).build("player_clone"));
+			EntityType.Builder.create(com.phantompowers.entity.PlayerCloneEntity::new, SpawnGroup.MISC).dimensions(0.5f, 1.45f).maxTrackingRange(10).build("player_clone"));
 
 	public static final EntityType<com.phantompowers.entity.DoloraEntity> DOLORA = Registry.register(Registries.ENTITY_TYPE, PhantomMod.id("dolora"),
 			EntityType.Builder.create(com.phantompowers.entity.DoloraEntity::new, SpawnGroup.MONSTER).dimensions(0.7f, 2.0f).maxTrackingRange(12).makeFireImmune().build("dolora"));

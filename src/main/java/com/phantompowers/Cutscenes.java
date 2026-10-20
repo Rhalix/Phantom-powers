@@ -29,6 +29,23 @@ import org.joml.Vector3f;
 public final class Cutscenes {
 	public static final int DARK_TICKS = 90, DARK_CHANGE = 80;
 	public static final int ORIGIN_TICKS = 110, ORIGIN_BLAST = 58;
+	/** 3D tumbling sparks spiralling round the player (drawn by the client). */
+	static void sparkSwirl(ServerPlayerEntity p, float band, int color, int count) {
+		sendSparks(p.getServerWorld(), p.getPos(), new com.phantompowers.network.SparkPayload(1, p.getId(), 0, 0, 0, color, count, band));
+	}
+
+	/** A burst of 3D shards flying out from a point. */
+	static void sparkBurst(ServerWorld w, double x, double y, double z, int color, int count) {
+		sendSparks(w, new net.minecraft.util.math.Vec3d(x, y, z), new com.phantompowers.network.SparkPayload(0, -1, (float) x, (float) y, (float) z, color, count, 0));
+	}
+
+	private static void sendSparks(ServerWorld w, net.minecraft.util.math.Vec3d at, com.phantompowers.network.SparkPayload pl) {
+		for (ServerPlayerEntity v : net.fabricmc.fabric.api.networking.v1.PlayerLookup.around(w, at, 96)) {
+			if (net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(v, com.phantompowers.network.SparkPayload.ID))
+				net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(v, pl);
+		}
+	}
+
 	private static final DustParticleEffect PINK = new DustParticleEffect(new Vector3f(1f, 0.31f, 0.78f), 1.6f);
 	private static final DustParticleEffect BLACK = new DustParticleEffect(new Vector3f(0.08f, 0.02f, 0.1f), 2.0f);
 
@@ -79,11 +96,10 @@ public final class Cutscenes {
 		if (e < DARK_CHANGE) {
 			// a dark aura winds up around you: black smoke and pink flames spiralling skyward
 			float k = e / (float) DARK_CHANGE;
-			for (int i = 0; i < 2 + (int) (k * 4); i++) {
-				double ang = e * 0.35 + i * Math.PI * 2 / 3;
-				double r = 1.4 - k * 0.6;
-				double y = (e * 0.07 + i * 0.4) % 2.4;
-				w.spawnParticles(i % 2 == 0 ? PINK : BLACK, p.getX() + Math.cos(ang) * r, p.getY() + y, p.getZ() + Math.sin(ang) * r, 1, 0, 0, 0, 0);
+			sparkSwirl(p, (e * 0.045f) % 1f, DarkPowers.PINK, 1 + (int) (k * 3));
+			if (e % 2 == 0) {
+				double ang = e * 0.35;
+				w.spawnParticles(BLACK, p.getX() + Math.cos(ang) * 1.2, p.getY() + (e * 0.07) % 2.4, p.getZ() + Math.sin(ang) * 1.2, 1, 0, 0, 0, 0);
 			}
 			if (e % 3 == 0) w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, p.getX(), p.getY() + 0.1, p.getZ(), 4, 0.6, 0.05, 0.6, 0.03);
 			if (e % 4 == 0) w.spawnParticles(ParticleTypes.LARGE_SMOKE, p.getX(), a.y + 0.1, p.getZ(), 6, 1.2, 0.05, 1.2, 0.02);
@@ -97,7 +113,8 @@ public final class Cutscenes {
 			// the change: a pink blast rolls outward and you're in your dark form
 			GhostPowers.forceTransform(p, d);
 			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1, p.getZ(), 1, 0, 0, 0, 0);
-			w.spawnParticles(PINK, p.getX(), p.getY() + 1, p.getZ(), 150, 2.5, 1.2, 2.5, 0.2);
+			w.spawnParticles(PINK, p.getX(), p.getY() + 1, p.getZ(), 50, 2.5, 1.2, 2.5, 0.2);
+			sparkBurst(w, p.getX(), p.getY() + 1, p.getZ(), DarkPowers.PINK, 70);
 			w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, p.getX(), p.getY() + 1, p.getZ(), 60, 1.5, 1, 1.5, 0.15);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.9f, 1.3f);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.PLAYERS, 0.8f, 0.8f);
@@ -155,12 +172,7 @@ public final class Cutscenes {
 		if (e < HERO_CHANGE) {
 			// green energy wells up from the ground and swirls up around you, the wind picking up
 			float k = e / (float) HERO_CHANGE;
-			for (int i = 0; i < 2 + (int) (k * 4); i++) {
-				double ang = -e * 0.3 + i * Math.PI * 2 / 3;
-				double r = 1.3 - k * 0.5;
-				double y = (e * 0.08 + i * 0.5) % 2.4;
-				w.spawnParticles(i % 3 == 0 ? WHITE : ECTO, p.getX() + Math.cos(ang) * r, p.getY() + y, p.getZ() + Math.sin(ang) * r, 1, 0, 0, 0, 0);
-			}
+			sparkSwirl(p, (e * 0.05f) % 1f, 0x5AFF96, 1 + (int) (k * 3));
 			if (e % 3 == 0) w.spawnParticles(ParticleTypes.END_ROD, p.getX(), a.y + 0.1, p.getZ(), 2, 0.8, 0.05, 0.8, 0.04);
 			if (e % 5 == 0) w.spawnParticles(ParticleTypes.CLOUD, p.getX(), a.y + 0.1, p.getZ(), 4, 1.0, 0.02, 1.0, 0.03);
 			if (e % 16 == 0) BossMoves.warn(w, a, 1.5 + k * 3, 14, 0x55FF88);
@@ -173,7 +185,8 @@ public final class Cutscenes {
 		if (e == HERO_CHANGE) {
 			GhostPowers.forceTransform(p, d);
 			w.spawnParticles(ParticleTypes.FLASH, p.getX(), p.getY() + 1, p.getZ(), 1, 0, 0, 0, 0);
-			w.spawnParticles(ECTO, p.getX(), p.getY() + 1, p.getZ(), 140, 2.2, 1.2, 2.2, 0.2);
+			w.spawnParticles(ECTO, p.getX(), p.getY() + 1, p.getZ(), 45, 2.2, 1.2, 2.2, 0.2);
+			sparkBurst(w, p.getX(), p.getY() + 1, p.getZ(), 0x5AFF96, 70);
 			w.spawnParticles(ParticleTypes.END_ROD, p.getX(), p.getY() + 1, p.getZ(), 40, 0.6, 1, 0.6, 0.3);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, SoundCategory.PLAYERS, 1.4f, 1.0f);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_TRIDENT_THUNDER.value(), SoundCategory.PLAYERS, 0.7f, 1.4f);
@@ -286,17 +299,14 @@ public final class Cutscenes {
 		hold(p, d, heroOffLift(e));
 		if (e < HERO_OFF_CHANGE) {
 			// the glow drains down out of you and soaks into the ground
-			for (int i = 0; i < 3; i++) {
-				double ang = e * 0.25 + i * Math.PI * 2 / 3;
-				double y = 2.0 - (e * 0.06 + i * 0.6) % 2.0;
-				w.spawnParticles(ECTO, p.getX() + Math.cos(ang) * 0.7, p.getY() + y, p.getZ() + Math.sin(ang) * 0.7, 0, 0, -0.08, 0, 1);
-			}
+			if (e % 2 == 0) sparkSwirl(p, 1f - (e * 0.04f) % 1f, 0x5AFF96, 2);
 			if (e % 4 == 0) w.spawnParticles(ParticleTypes.END_ROD, p.getX(), p.getY() + 0.05, p.getZ(), 3, 0.6, 0.02, 0.6, 0.02);
 			if (e == HERO_OFF_CHANGE - 18) GhostPowers.sendRings(p, 18, 4);
 		}
 		if (e == HERO_OFF_CHANGE) {
 			GhostPowers.forceHuman(p, d);
-			w.spawnParticles(WHITE, p.getX(), p.getY() + 1, p.getZ(), 40, 0.5, 0.9, 0.5, 0.02);
+			w.spawnParticles(WHITE, p.getX(), p.getY() + 1, p.getZ(), 15, 0.5, 0.9, 0.5, 0.02);
+			sparkBurst(w, p.getX(), p.getY() + 1, p.getZ(), 0xE8FFF0, 30);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM, SoundCategory.PLAYERS, 0.8f, 0.6f);
 		}
 		finish(p, d);
@@ -325,7 +335,8 @@ public final class Cutscenes {
 		if (e == DARK_OFF_CHANGE) {
 			// it lets go all at once: the dark aura bursts off you and scatters
 			GhostPowers.forceHuman(p, d);
-			w.spawnParticles(PINK, p.getX(), p.getY() + 1, p.getZ(), 90, 1.5, 1, 1.5, 0.2);
+			w.spawnParticles(PINK, p.getX(), p.getY() + 1, p.getZ(), 30, 1.5, 1, 1.5, 0.2);
+			sparkBurst(w, p.getX(), p.getY() + 1, p.getZ(), DarkPowers.PINK, 50);
 			w.spawnParticles(ParticleTypes.LARGE_SMOKE, p.getX(), p.getY() + 1, p.getZ(), 40, 1, 1, 1, 0.08);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_WITHER_SHOOT, SoundCategory.PLAYERS, 0.8f, 0.5f);
 			w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(), SoundCategory.PLAYERS, 1.0f, 0.8f);
@@ -411,7 +422,8 @@ public final class Cutscenes {
 			if (e == 22) w.playSound(null, mid.x, mid.y, mid.z, SoundEvents.ENTITY_PLAYER_HURT_ON_FIRE, SoundCategory.PLAYERS, 1.4f, 0.8f);
 		} else if (e == ORIGIN_BLAST) {
 			w.spawnParticles(ParticleTypes.FLASH, mid.x, mid.y, mid.z, 1, 0, 0, 0, 0);
-			w.spawnParticles(GhostPowers.GREEN, mid.x, mid.y, mid.z, 150, 1.2, 1.5, 1.2, 0.3);
+			w.spawnParticles(GhostPowers.GREEN, mid.x, mid.y, mid.z, 50, 1.2, 1.5, 1.2, 0.3);
+			sparkBurst(w, mid.x, mid.y, mid.z, 0x5AFF96, 80);
 			w.playSound(null, mid.x, mid.y, mid.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 1.2f, 1.4f);
 			w.playSound(null, mid.x, mid.y, mid.z, SoundEvents.ENTITY_LIGHTNING_BOLT_IMPACT, SoundCategory.PLAYERS, 1.2f, 1.0f);
 			strike(w, a);

@@ -101,6 +101,7 @@ public class PhantomClient implements ClientModInitializer {
 			LookTransition.tick();
 			ClientTornado.tick(client);
 			ClientDomes.tick(client);
+			ClientSparks.tick(client);
 			SkimmerHud.tick(client);
 			ClientShield.tick(client);
 			GhostTrail.tick(client);
@@ -227,6 +228,7 @@ public class PhantomClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(RingPayload.ID, (payload, context) -> ClientRings.add(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.ShieldHitPayload.ID, (payload, context) -> ClientShield.hit(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SkimmerRadarPayload.ID, (payload, context) -> SkimmerHud.update(payload));
+		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.SparkPayload.ID, (payload, context) -> ClientSparks.handle(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.DomePayload.ID, (payload, context) -> ClientDomes.update(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.DomeHitPayload.ID, (payload, context) -> ClientDomes.hit(payload));
 		ClientPlayNetworking.registerGlobalReceiver(com.phantompowers.network.TornadoPayload.ID, (payload, context) -> ClientTornado.update(payload));
@@ -267,7 +269,8 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(DoloraModel.MISERY, DoloraModel::miseryModel);
 		EntityModelLayerRegistry.registerModelLayer(DoloraModel.QUEEN, DoloraModel::queenModel);
 		EntityRendererRegistry.register(ModEntities.DOLORA, DoloraRenderer::new);
-		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.PONYTAIL, PlayerCloneRenderer::ponytailModel);
+		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.HAIR_F, PlayerCloneRenderer::hairFemale);
+		EntityModelLayerRegistry.registerModelLayer(PlayerCloneRenderer.HAIR_M, PlayerCloneRenderer::hairMale);
 		EntityRendererRegistry.register(ModEntities.PLAYER_CLONE, PlayerCloneRenderer::new);
 		com.phantompowers.HunterWorkbenchBlock.openScreen = pos -> net.minecraft.client.MinecraftClient.getInstance().setScreen(new WorkbenchScreen(pos));
 		PaintTextures.init();
@@ -339,6 +342,7 @@ public class PhantomClient implements ClientModInitializer {
 			LookTransition.clear();
 			ClientTornado.clear();
 			ClientDomes.clear();
+			ClientSparks.clear();
 			GhostFlags.CLIENT_FISTS.clear();
 			GhostFlags.CLIENT_SHIELDED.clear();
 			GhostFlags.CLIENT_SUIT_COLORS.clear();
@@ -375,6 +379,7 @@ public class PhantomClient implements ClientModInitializer {
 			ClientRings.render(ctx);
 			ClientTornado.render(ctx);
 			ClientDomes.render(ctx);
+			ClientSparks.render(ctx);
 			ClientShield.render(ctx);
 			GhostTrail.render(ctx);
 			ClientGhostSense.render(ctx);

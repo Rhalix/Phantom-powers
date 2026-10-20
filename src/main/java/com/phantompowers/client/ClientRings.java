@@ -69,6 +69,25 @@ public final class ClientRings {
 
 	public static void tick() {
 		ACTIVE.removeIf(r -> ++r.age > r.duration + (hero(r) ? HERO_RELEASE : 0));
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (mc.world == null) return;
+		for (Rings r : ACTIVE) {
+			if (r.style == 2 || r.age > r.duration) continue;
+			Entity e = mc.world.getEntityById(r.entityId);
+			if (e == null) continue;
+			boolean dark = !com.phantompowers.GhostFlags.CLIENT_DARK.isEmpty() && com.phantompowers.GhostFlags.CLIENT_DARK.contains(e.getUuid());
+			boolean suit = r.style == 1 || r.style == 5 || r.style == 6 || r.style == 7;
+			int color = dark ? 0xFF4FC8 : suit ? 0x5AE1FF : 0x5AFF96;
+			float t = Math.min(1f, r.age / (float) r.duration);
+			float ease = t * t * (3 - 2 * t);
+			if (suit) {
+				ClientSparks.swirl(e, ease, color, 2);
+			} else {
+				ClientSparks.swirl(e, 0.5f + 0.5f * ease, color, 2);
+				ClientSparks.swirl(e, 0.5f - 0.5f * ease, color, 2);
+			}
+			if (r.age == r.duration) ClientSparks.burst(e.getPos().add(0, e.getHeight() * 0.55, 0), color, 36);
+		}
 	}
 
 	/** 0 while the transformation pose is held, rising to 1 as it relaxes back to normal afterwards. */
@@ -109,6 +128,7 @@ public final class ClientRings {
 				continue;
 			}
 			if (r.style == 1 || r.style == 5) {
+				wrapColor = suitPlateColor(e, 0x16181E);
 				suitWrap(consumers, m, pos, h, t, r.age + partial);
 				vc = consumers.getBuffer(RenderLayer.getLightning());
 				continue;
@@ -135,6 +155,17 @@ public final class ClientRings {
 	 * Ghost Hunter Suit deploying: dark armor bands with glowing cyan edges spiral up around the body,
 	 * each one tightening onto you as it passes.
 	 */
+	/** The plates take on the suit's paint job (darkened a little, like the painted armour), or the factory gunmetal. */
+	private static int suitPlateColor(Entity e, int fallback) {
+		if (!(e instanceof net.minecraft.entity.player.PlayerEntity p)) return fallback;
+		int paint = com.phantompowers.HunterPaint.paint(p.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST));
+		if (paint < 0) return fallback;
+		int r = (int) (((paint >> 16) & 255) * 0.75f), g = (int) (((paint >> 8) & 255) * 0.75f), b = (int) ((paint & 255) * 0.75f);
+		return (r << 16) | (g << 8) | b;
+	}
+
+	private static int wrapColor = 0x16181E;
+
 	private static void suitWrap(VertexConsumerProvider consumers, Matrix4f m, Vec3d pos, float h, float t, float time) {
 		// Two passes, one per render layer: switching layers mid-draw isn't allowed.
 		for (int pass = 0; pass < 2; pass++) {
@@ -155,7 +186,7 @@ public final class ClientRings {
 					float x = (float) pos.x, z = (float) pos.z, yb = (float) y - 0.09f, yt = (float) y + 0.09f;
 					if (pass == 0) {
 						quad(vc, m, x + c1 * radius, yb, z + s1 * radius, x + c1 * radius, yt, z + s1 * radius,
-								x + c2 * radius, yt, z + s2 * radius, x + c2 * radius, yb, z + s2 * radius, 22, 24, 30, a);
+								x + c2 * radius, yt, z + s2 * radius, x + c2 * radius, yb, z + s2 * radius, (wrapColor >> 16) & 255, (wrapColor >> 8) & 255, wrapColor & 255, a);
 					} else {
 						float r2 = radius + 0.012f;
 						quad(vc, m, x + c1 * r2, yt, z + s1 * r2, x + c1 * r2, yt + 0.025f, z + s1 * r2,
@@ -192,6 +223,7 @@ public final class ClientRings {
 		// local -> world (local -z is in front of the player, +z behind)
 		java.util.function.Function<double[], Vec3d> toWorld = l -> new Vec3d(pos.x + l[0] * cos - l[2] * sin, pos.y + l[1], pos.z - l[0] * sin - l[2] * cos);
 		double[] pack = {0, 1.25, 0.34};
+		int plateColor = suitPlateColor(e, 0x2C303A);
 		int n = PLATES.length;
 		for (int pass = 0; pass < 2; pass++) {
 			VertexConsumer vc = consumers.getBuffer(pass == 0 ? RenderLayer.getDebugQuads() : RenderLayer.getLightning());
@@ -216,7 +248,7 @@ public final class ClientRings {
 				right = right.rotateY((float) spin);
 				int a = (int) (230 * fade);
 				if (pass == 0) {
-					plate(vc, m, c, right, up, 44, 48, 58, a);
+					plate(vc, m, c, right, up, (plateColor >> 16) & 255, (plateColor >> 8) & 255, plateColor & 255, a);
 				} else {
 					Vec3d r2 = right.multiply(1.08), u2 = up.multiply(1.12);
 					edge(vc, m, c.add(u2), r2, 0.02, 90, 225, 255, a);

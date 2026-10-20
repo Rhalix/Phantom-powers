@@ -66,7 +66,9 @@ public class BackpackFeature extends FeatureRenderer<AbstractClientPlayerEntity,
 		matrices.push();
 		getContextModel().body.rotate(matrices);
 		ModelPart p = pack.getChild("pack");
-		p.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE)), light, OverlayTexture.DEFAULT_UV);
+		int paint = com.phantompowers.HunterPaint.paint(player.getEquippedStack(EquipmentSlot.CHEST));
+		Identifier tex = paint >= 0 ? PaintTextures.painted(TEXTURE, paint) : TEXTURE;
+		p.render(matrices, consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(tex)), light, OverlayTexture.DEFAULT_UV);
 		p.render(matrices, consumers.getBuffer(RenderLayer.getEyes(GLOW)), 0xF000F0, OverlayTexture.DEFAULT_UV);
 		matrices.pop();
 	}

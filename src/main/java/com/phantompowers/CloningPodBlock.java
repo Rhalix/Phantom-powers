@@ -47,7 +47,7 @@ public class CloningPodBlock extends HorizontalFacingBlock {
 	/** Set by the client: opens the "female or male?" screen for a pod. */
 	public static Consumer<BlockPos> openChoice = pos -> {};
 
-	private record Job(ServerWorld world, UUID owner, String name, boolean female, int[] ticks) {}
+	private record Job(ServerWorld world, UUID owner, String name, boolean female, boolean dark, int[] ticks) {}
 
 	private static final Map<BlockPos, Job> JOBS = new HashMap<>();
 
@@ -80,7 +80,7 @@ public class CloningPodBlock extends HorizontalFacingBlock {
 
 	@Override
 	protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-		ItemStack held = player.getMainHandStack();
+		ItemStack held = sampleIn(player);
 		if (world.isClient) {
 			if (held.isOf(ModItems.DNA_SAMPLE) && !state.get(ACTIVE)) openChoice.accept(pos);
 			return ActionResult.SUCCESS;
@@ -93,13 +93,20 @@ public class CloningPodBlock extends HorizontalFacingBlock {
 		return ActionResult.CONSUME;
 	}
 
+	/** A DNA sample in either hand (main hand first). */
+	private static ItemStack sampleIn(PlayerEntity p) {
+		ItemStack main = p.getMainHandStack();
+		return main.isOf(ModItems.DNA_SAMPLE) ? main : p.getOffHandStack();
+	}
+
 	/** Called when the player picks female or male on the screen. */
 	public static void start(ServerPlayerEntity p, BlockPos pos, boolean female) {
 		ServerWorld w = p.getServerWorld();
 		BlockState state = w.getBlockState(pos);
 		if (!(state.getBlock() instanceof CloningPodBlock) || state.get(ACTIVE) || p.squaredDistanceTo(Vec3d.ofCenter(pos)) > 64) return;
-		ItemStack held = p.getMainHandStack();
+		ItemStack held = sampleIn(p);
 		if (!held.isOf(ModItems.DNA_SAMPLE)) return;
+		boolean dark = DnaSamplerItem.darkDna(held);
 		UUID owner = DnaSamplerItem.owner(held);
 		if (owner == null) owner = p.getUuid();
 		String name = DnaSamplerItem.ownerName(held);
@@ -112,10 +119,10 @@ public class CloningPodBlock extends HorizontalFacingBlock {
 		}
 		held.decrementUnlessCreative(1, p);
 		w.setBlockState(pos, state.with(ACTIVE, true));
-		JOBS.put(pos.toImmutable(), new Job(w, owner, name, female, new int[]{0}));
+		JOBS.put(pos.toImmutable(), new Job(w, owner, name, female, dark, new int[]{0}));
 		w.playSound(null, pos, SoundEvents.BLOCK_BREWING_STAND_BREW, SoundCategory.BLOCKS, 1.2f, 0.6f);
 		w.playSound(null, pos, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.BLOCKS, 1.0f, 1.2f);
-		p.sendMessage(Text.literal("The pod fills with ecto-fluid... your " + (female ? "female" : "male") + " clone is growing!").formatted(Formatting.GREEN), false);
+		p.sendMessage(Text.literal("The pod fills with ecto-fluid... your " + (dark ? "evil " : "") + (female ? "female" : "male") + " ghost clone is growing!").formatted(Formatting.GREEN), false);
 	}
 
 	public static void tick(MinecraftServer server) {
@@ -144,7 +151,7 @@ public class CloningPodBlock extends HorizontalFacingBlock {
 				Vec3d out = c.add(f.getOffsetX() * 1.1, 0, f.getOffsetZ() * 1.1);
 				PlayerCloneEntity clone = com.phantompowers.ModEntities.PLAYER_CLONE.create(w);
 				if (clone == null) continue;
-				clone.setup(job.owner(), job.name(), job.female());
+				clone.setup(job.owner(), job.name(), job.female(), job.dark());
 				clone.refreshPositionAndAngles(out.x, out.y, out.z, f.asRotation(), 0);
 				w.spawnEntity(clone);
 				w.spawnParticles(ParticleTypes.CLOUD, c.x, c.y + 1, c.z, 30, 0.4, 0.8, 0.4, 0.05);

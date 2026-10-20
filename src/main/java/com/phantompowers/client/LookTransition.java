@@ -82,7 +82,7 @@ public final class LookTransition {
 				Identifier g = GhostSkins.skin(own);
 				yield g != null ? g : own;
 			}
-			case SUIT -> GhostFlags.SUIT_SKIN;
+			case SUIT -> GhostFlags.suitSkin.apply(player);
 			default -> own;
 		};
 	}
