@@ -1,9 +1,9 @@
 {
  "parent": "block/block",
  "textures": {
-  "front": "phantom:block/fridge_front",
+  "front": "phantom:block/fridge_front_upper",
   "side": "minecraft:block/white_concrete",
-  "particle": "phantom:block/fridge_front"
+  "particle": "phantom:block/fridge_front_upper"
  },
  "elements": [
   {

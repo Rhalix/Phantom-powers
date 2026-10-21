@@ -1,18 +1,63 @@
 {
  "variants": {
-  "facing=north": {
+  "facing=north,shape=single": {
    "model": "phantom:block/sofa"
   },
-  "facing=east": {
+  "facing=east,shape=single": {
    "model": "phantom:block/sofa",
    "y": 90
   },
-  "facing=south": {
+  "facing=south,shape=single": {
    "model": "phantom:block/sofa",
    "y": 180
   },
-  "facing=west": {
+  "facing=west,shape=single": {
    "model": "phantom:block/sofa",
+   "y": 270
+  },
+  "facing=north,shape=left": {
+   "model": "phantom:block/sofa_left"
+  },
+  "facing=east,shape=left": {
+   "model": "phantom:block/sofa_left",
+   "y": 90
+  },
+  "facing=south,shape=left": {
+   "model": "phantom:block/sofa_left",
+   "y": 180
+  },
+  "facing=west,shape=left": {
+   "model": "phantom:block/sofa_left",
+   "y": 270
+  },
+  "facing=north,shape=right": {
+   "model": "phantom:block/sofa_right"
+  },
+  "facing=east,shape=right": {
+   "model": "phantom:block/sofa_right",
+   "y": 90
+  },
+  "facing=south,shape=right": {
+   "model": "phantom:block/sofa_right",
+   "y": 180
+  },
+  "facing=west,shape=right": {
+   "model": "phantom:block/sofa_right",
+   "y": 270
+  },
+  "facing=north,shape=middle": {
+   "model": "phantom:block/sofa_middle"
+  },
+  "facing=east,shape=middle": {
+   "model": "phantom:block/sofa_middle",
+   "y": 90
+  },
+  "facing=south,shape=middle": {
+   "model": "phantom:block/sofa_middle",
+   "y": 180
+  },
+  "facing=west,shape=middle": {
+   "model": "phantom:block/sofa_middle",
    "y": 270
   }
  }

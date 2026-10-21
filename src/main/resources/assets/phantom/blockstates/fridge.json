@@ -1,18 +1,33 @@
 {
  "variants": {
-  "facing=north": {
-   "model": "phantom:block/fridge"
+  "facing=north,half=lower": {
+   "model": "phantom:block/fridge_lower"
   },
-  "facing=east": {
-   "model": "phantom:block/fridge",
+  "facing=east,half=lower": {
+   "model": "phantom:block/fridge_lower",
    "y": 90
   },
-  "facing=south": {
-   "model": "phantom:block/fridge",
+  "facing=south,half=lower": {
+   "model": "phantom:block/fridge_lower",
    "y": 180
   },
-  "facing=west": {
-   "model": "phantom:block/fridge",
+  "facing=west,half=lower": {
+   "model": "phantom:block/fridge_lower",
+   "y": 270
+  },
+  "facing=north,half=upper": {
+   "model": "phantom:block/fridge_upper"
+  },
+  "facing=east,half=upper": {
+   "model": "phantom:block/fridge_upper",
+   "y": 90
+  },
+  "facing=south,half=upper": {
+   "model": "phantom:block/fridge_upper",
+   "y": 180
+  },
+  "facing=west,half=upper": {
+   "model": "phantom:block/fridge_upper",
    "y": 270
   }
  }

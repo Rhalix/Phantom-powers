@@ -2,7 +2,7 @@
  "parent": "block/block",
  "textures": {
   "front": "phantom:block/counter_front",
-  "top": "minecraft:block/smooth_quartz",
+  "top": "minecraft:block/quartz_block_bottom",
   "side": "minecraft:block/birch_planks",
   "particle": "phantom:block/counter_front"
  },

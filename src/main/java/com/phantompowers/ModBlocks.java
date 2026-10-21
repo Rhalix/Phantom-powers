@@ -125,21 +125,33 @@ public final class ModBlocks {
 	// ------------------------------------------------------------- furniture
 	public static final Block OAK_CHAIR = furniture("oak_chair", new double[]{2, 0, 2, 14, 10, 14}, 0.55, BlockSoundGroup.WOOD);
 	public static final Block BAR_STOOL = furniture("bar_stool", new double[]{4, 0, 4, 12, 12, 12}, 0.78, BlockSoundGroup.METAL);
-	public static final Block SOFA = furniture("sofa", new double[]{0, 0, 0, 16, 12, 16}, 0.50, BlockSoundGroup.WOOD);
+	public static final Block SOFA = register("sofa", new SofaBlock(AbstractBlock.Settings.create().mapColor(MapColor.LIGHT_BLUE).strength(1.5f).nonOpaque()
+			.sounds(BlockSoundGroup.WOOL), new double[]{0, 0, 0, 16, 12, 16}, 0.50));
 	public static final Block DINING_TABLE = furniture("dining_table", new double[]{0, 0, 0, 16, 16, 16}, -1, BlockSoundGroup.WOOD);
 	public static final Block COFFEE_TABLE = furniture("coffee_table", new double[]{0, 0, 0, 16, 8, 16}, -1, BlockSoundGroup.WOOD);
-	public static final Block FLOOR_LAMP = furniture("floor_lamp", new double[]{4, 0, 4, 12, 16, 12}, -1, BlockSoundGroup.METAL, true);
+	public static final Block FLOOR_LAMP = furniture("floor_lamp", new double[]{2, 0, 2, 14, 16, 14}, -1, BlockSoundGroup.WOOD, true);
 	public static final Block TELEVISION = furniture("television", new double[]{0, 0, 4, 16, 15, 12}, -1, BlockSoundGroup.METAL, false);
 	public static final Block KITCHEN_COUNTER = furniture("kitchen_counter", new double[]{0, 0, 0, 16, 16, 16}, -1, BlockSoundGroup.WOOD);
-	public static final Block FRIDGE = furniture("fridge", new double[]{1, 0, 1, 15, 16, 15}, -1, BlockSoundGroup.METAL);
+	public static final Block FRIDGE = register("fridge", new TallStorageBlock(AbstractBlock.Settings.create().mapColor(MapColor.WHITE).strength(2f).nonOpaque()
+			.sounds(BlockSoundGroup.METAL), new double[]{1, 1, 15, 15}, net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN));
 	public static final Block SCHOOL_DESK = furniture("school_desk", new double[]{1, 0, 2, 15, 13, 14}, -1, BlockSoundGroup.WOOD);
-	public static final Block LOCKER = furniture("locker", new double[]{1, 0, 2, 15, 16, 16}, -1, BlockSoundGroup.METAL);
+	public static final Block LOCKER = register("locker", new TallStorageBlock(AbstractBlock.Settings.create().mapColor(MapColor.LIGHT_GRAY).strength(2f).nonOpaque()
+			.sounds(BlockSoundGroup.METAL), new double[]{1, 2, 15, 16}, net.minecraft.sound.SoundEvents.BLOCK_IRON_DOOR_OPEN));
 	public static final Block LAB_CONSOLE = furniture("lab_console", new double[]{0, 0, 4, 16, 16, 16}, -1, BlockSoundGroup.METAL, false);
 	public static final Block BOOKCASE = furniture("bookcase", new double[]{0, 0, 8, 16, 16, 16}, -1, BlockSoundGroup.WOOD);
 	public static final Block POTTED_PLANT = furniture("potted_plant", new double[]{3, 0, 3, 13, 16, 13}, -1, BlockSoundGroup.AZALEA_LEAVES);
 
 	public static final Block[] FURNITURE = {OAK_CHAIR, BAR_STOOL, SOFA, DINING_TABLE, COFFEE_TABLE, FLOOR_LAMP, TELEVISION, KITCHEN_COUNTER, FRIDGE,
 			SCHOOL_DESK, LOCKER, LAB_CONSOLE, BOOKCASE, POTTED_PLANT};
+
+	public static final net.minecraft.block.entity.BlockEntityType<FurnitureStorageBlockEntity> STORAGE_FURNITURE = Registry.register(Registries.BLOCK_ENTITY_TYPE,
+			PhantomMod.id("storage_furniture"), net.minecraft.block.entity.BlockEntityType.Builder.create(FurnitureStorageBlockEntity::new, FRIDGE, LOCKER).build(null));
+
+	private static Block register(String name, Block b) {
+		Registry.register(Registries.BLOCK, PhantomMod.id(name), b);
+		Registry.register(Registries.ITEM, PhantomMod.id(name), new BlockItem(b, new Item.Settings()));
+		return b;
+	}
 
 	private static Block furniture(String name, double[] box, double seat, BlockSoundGroup sound) {
 		return furniture(name, box, seat, sound, 0);

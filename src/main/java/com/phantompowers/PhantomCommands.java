@@ -93,6 +93,12 @@ public final class PhantomCommands {
 						.then(CommandManager.argument("place", com.mojang.brigadier.arguments.StringArgumentType.word())
 								.suggests((ctx, b) -> net.minecraft.command.CommandSource.suggestMatching(PLACES, b))
 								.executes(ctx -> teleport(ctx.getSource(), com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "place")))))
+				.then(CommandManager.literal("rebuildtown").executes(ctx -> {
+					boolean ok = com.phantompowers.world.AmityPark.rebuild(ctx.getSource().getServer());
+					ctx.getSource().sendFeedback(() -> Text.literal(ok ? "Rebuilding Amity Park's buildings with the latest designs (in the background)..."
+							: "There's no Amity Park to rebuild yet (or it's already being built)."), false);
+					return ok ? 1 : 0;
+				}))
 				.then(CommandManager.literal("acne")
 						.then(CommandManager.literal("cure").executes(ctx -> {
 							DarkPowers.endAcne(ctx.getSource().getPlayerOrThrow(), false);

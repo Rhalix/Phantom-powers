@@ -1,18 +1,33 @@
 {
  "variants": {
-  "facing=north": {
-   "model": "phantom:block/locker"
+  "facing=north,half=lower": {
+   "model": "phantom:block/locker_lower"
   },
-  "facing=east": {
-   "model": "phantom:block/locker",
+  "facing=east,half=lower": {
+   "model": "phantom:block/locker_lower",
    "y": 90
   },
-  "facing=south": {
-   "model": "phantom:block/locker",
+  "facing=south,half=lower": {
+   "model": "phantom:block/locker_lower",
    "y": 180
   },
-  "facing=west": {
-   "model": "phantom:block/locker",
+  "facing=west,half=lower": {
+   "model": "phantom:block/locker_lower",
+   "y": 270
+  },
+  "facing=north,half=upper": {
+   "model": "phantom:block/locker_upper"
+  },
+  "facing=east,half=upper": {
+   "model": "phantom:block/locker_upper",
+   "y": 90
+  },
+  "facing=south,half=upper": {
+   "model": "phantom:block/locker_upper",
+   "y": 180
+  },
+  "facing=west,half=upper": {
+   "model": "phantom:block/locker_upper",
    "y": 270
   }
  }

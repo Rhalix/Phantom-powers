@@ -6,7 +6,16 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "phantom:fridge"
+          "name": "phantom:fridge",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "phantom:fridge",
+              "properties": {
+                "half": "lower"
+              }
+            }
+          ]
         }
       ],
       "conditions": [

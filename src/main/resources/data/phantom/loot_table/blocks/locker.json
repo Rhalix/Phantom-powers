@@ -6,7 +6,16 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "phantom:locker"
+          "name": "phantom:locker",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "phantom:locker",
+              "properties": {
+                "half": "lower"
+              }
+            }
+          ]
         }
       ],
       "conditions": [
