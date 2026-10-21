@@ -42,6 +42,8 @@ import net.minecraft.world.World;
  */
 public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	public static final String STORY_TAG = "phantom_story_chef";
+	/** Story round one: she's too strong to beat yet and escapes once she's been hurt enough. */
+	public static final String ROUND1_TAG = "phantom_story_chef_round1";
 	private static final TrackedData<Boolean> MEAT = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> DAZED = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> POSE = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -133,6 +135,19 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	@Override
 	public boolean damage(DamageSource source, float amount) {
 		if (dazed() && !source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)) return false;
+		if (getCommandTags().contains(ROUND1_TAG) && !source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)) {
+			boolean hit = super.damage(source, amount);
+			if (getHealth() <= getMaxHealth() * 0.6f && getWorld() instanceof ServerWorld w && !isRemoved()) {
+				// round one: she bails out, promising to be back for lunch
+				say(w, "Hmph! You haven't seen the last of me! Lunch is served TOMORROW!", Formatting.GREEN, false);
+				w.spawnParticles(com.phantompowers.GhostPowers.GREEN, getX(), getY() + 1, getZ(), 120, 0.8, 1.2, 0.8, 0.15);
+				w.playSound(null, getX(), getY(), getZ(), com.phantompowers.ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2f, 1.2f);
+				for (var g : w.getEntitiesByClass(HostileGhostEntity.class, getBoundingBox().expand(40), e -> e.getCommandTags().contains("phantom_kitchen"))) g.discard();
+				com.phantompowers.Story.onChefEscaped(w, this);
+				discard();
+			}
+			return hit;
+		}
 		if (storyMode() && !source.isOf(net.minecraft.entity.damage.DamageTypes.GENERIC_KILL)) {
 			// she can't be destroyed in the story: knocked down far enough, she gets dazed instead
 			float floor = getMaxHealth() * 0.15f;

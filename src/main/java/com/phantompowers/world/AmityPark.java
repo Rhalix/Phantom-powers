@@ -318,6 +318,16 @@ public final class AmityPark {
 		return new Vec3d(c.getX() - 68.5, c.getY(), c.getZ() - 74.5);
 	}
 
+	/** In front of the lab consoles in the basement lab. */
+	public static Vec3d labConsoles(BlockPos c) {
+		return new Vec3d(c.getX() + Builder.LAB_X + 6, c.getY() - 9, c.getZ() + Builder.LAB_Z + 8.5);
+	}
+
+	/** Just inside the park, by the corner nearest the town centre. */
+	public static Vec3d parkGate(BlockPos c) {
+		return new Vec3d(c.getX() + 14.5, c.getY(), c.getZ() + 12.5);
+	}
+
 	/** Beside the park fountain, where the dance is. */
 	public static Vec3d parkFountain(BlockPos c) {
 		return new Vec3d(c.getX() + 38.5, c.getY(), c.getZ() + 29.5);

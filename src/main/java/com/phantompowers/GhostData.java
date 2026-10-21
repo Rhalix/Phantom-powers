@@ -58,6 +58,8 @@ public class GhostData {
 	public boolean cannonManual;
 	/** Story mode: chosen path (0 none, 1 half-ghost, 2 evil half-ghost, 3 ghost hunter), mission, objective step, counter. Saved. */
 	public int storyPath, storyMission, storyStep, storyCount;
+	/** Which version of the story's objective lists this progress was saved with (they got longer in version 2). Saved. */
+	public int storyVersion;
 	public int missileCooldown, cannonCooldown;
 	/** Which Thermos cell this player is locked in (saved). */
 	public BlockPos thermosCell;
@@ -121,6 +123,7 @@ public class GhostData {
 		n.putInt("storyMission", storyMission);
 		n.putInt("storyStep", storyStep);
 		n.putInt("storyCount", storyCount);
+		n.putInt("storyVersion", storyVersion);
 		n.putInt("acne", acneTicks);
 		if (respawnDim != null && respawnPos != null) {
 			n.putString("respawnDim", respawnDim);
@@ -163,6 +166,7 @@ public class GhostData {
 		d.storyMission = n.getInt("storyMission");
 		d.storyStep = n.getInt("storyStep");
 		d.storyCount = n.getInt("storyCount");
+		d.storyVersion = n.getInt("storyVersion");
 		d.acneTicks = n.getInt("acne");
 		d.energy = n.contains("energy") ? n.getFloat("energy") : GhostPowers.MAX_ENERGY;
 		if (n.contains("respawnDim")) {
