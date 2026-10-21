@@ -48,6 +48,10 @@ public final class ModItems {
 			new EctoLauncherItem(new Item.Settings().maxDamage(300).rarity(Rarity.RARE)));
 	public static final Item REV_EGG = Registry.register(Registries.ITEM, PhantomMod.id("rev_spawn_egg"),
 			new net.minecraft.item.SpawnEggItem(ModEntities.REV, 0x1C1C22, 0xC8CCD6, new Item.Settings()));
+	public static final Item RAGE_AMULET = Registry.register(Registries.ITEM, PhantomMod.id("rage_amulet"),
+			new RageAmuletItem(new Item.Settings().maxCount(1).rarity(net.minecraft.util.Rarity.EPIC)));
+	public static final Item RAGE_WYVERN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("rage_wyvern_spawn_egg"),
+			new net.minecraft.item.SpawnEggItem(ModEntities.RAGE_WYVERN, 0x46AAAA, 0x9650D2, new Item.Settings()));
 	public static final Item CHEF_GHOULASH_EGG = Registry.register(Registries.ITEM, PhantomMod.id("chef_ghoulash_spawn_egg"),
 			new net.minecraft.item.SpawnEggItem(ModEntities.CHEF_GHOULASH, 0xEEF4F0, 0x8E3A34, new Item.Settings()));
 	public static final Item ROXY_EGG = Registry.register(Registries.ITEM, PhantomMod.id("roxy_spawn_egg"),
@@ -196,6 +200,7 @@ public final class ModItems {
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(e -> {
 			e.add(THERMOS);
+			e.add(RAGE_AMULET);
 			e.add(HOVER_GLIDER);
 			e.add(SHIELD_REMOTE);
 			e.add(ModBlocks.SHIELD_EMITTER_ITEM);
@@ -219,6 +224,7 @@ public final class ModItems {
 			e.add(VOLTAGE_EGG);
 			e.add(WISHKEEPER_EGG);
 			e.add(CHEF_GHOULASH_EGG);
+			e.add(RAGE_WYVERN_EGG);
 		});
 	}
 }

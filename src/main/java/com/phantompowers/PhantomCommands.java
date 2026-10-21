@@ -452,7 +452,28 @@ public final class PhantomCommands {
 							stand.discard();
 						}
 					}
-					story = story && chef;
+					// the Rage Wyvern (mission 3): every move, Berserk, the story daze and pulling the amulet off
+					boolean wyvernOk = false;
+					{
+						var wy = ModEntities.RAGE_WYVERN.create(ow);
+						var stand = net.minecraft.entity.EntityType.ARMOR_STAND.create(ow);
+						if (wy != null && stand != null) {
+							net.minecraft.util.math.Vec3d f = com.phantompowers.world.AmityPark.parkFountain(town);
+							wy.refreshPositionAndAngles(f.x, f.y + 4, f.z, 0, 0);
+							stand.refreshPositionAndAngles(f.x + 3, f.y, f.z, 0, 0);
+							wy.addCommandTag(com.phantompowers.entity.RageWyvernEntity.STORY_TAG);
+							ow.spawnEntity(wy);
+							ow.spawnEntity(stand);
+							wy.testMoves(ow, stand);
+							wy.damage(ow.getDamageSources().magic(), 9999f);
+							wyvernOk = wy.berserk() && wy.isAlive() && wy.dazed() && !ThermosItem.canTrap(wy)
+									&& Story.missionTitle(Story.HERO, 3).contains("Dance Disaster");
+							for (var e : ow.getOtherEntities(null, wy.getBoundingBox().expand(30), e -> e instanceof com.phantompowers.entity.WyvernFireballEntity)) e.discard();
+							wy.discard();
+							stand.discard();
+						}
+					}
+					story = story && chef && wyvernOk;
 					boolean sword = ModItems.ECTO_SWORD != null && !EctoSwordItem.lit(new net.minecraft.item.ItemStack(ModItems.ECTO_SWORD))
 							&& HunterPaint.cost(3)[0][0] == ModItems.PHANTOM_HEART && HunterPaint.gadgetCost(1).length == 4
 							&& !Party.allies(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()) && Slots.GADGETS.length == 4;

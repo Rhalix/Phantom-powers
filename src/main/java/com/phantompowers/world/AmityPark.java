@@ -318,6 +318,16 @@ public final class AmityPark {
 		return new Vec3d(c.getX() - 68.5, c.getY(), c.getZ() - 74.5);
 	}
 
+	/** Beside the park fountain, where the dance is. */
+	public static Vec3d parkFountain(BlockPos c) {
+		return new Vec3d(c.getX() + 38.5, c.getY(), c.getZ() + 29.5);
+	}
+
+	/** On the grass at the edge of the park pond. */
+	public static Vec3d parkPond(BlockPos c) {
+		return new Vec3d(c.getX() + 63.5, c.getY(), c.getZ() + 27.5);
+	}
+
 	/** Just outside the Ghost Lab house's front door. */
 	public static Vec3d labHouseDoor(BlockPos c) {
 		return new Vec3d(c.getX() + Builder.LAB_X + 14.5, c.getY(), c.getZ() + Builder.LAB_Z + 22.5);

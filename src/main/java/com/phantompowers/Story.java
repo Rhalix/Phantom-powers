@@ -2,6 +2,7 @@ package com.phantompowers;
 
 import com.phantompowers.entity.AbstractGhostEntity;
 import com.phantompowers.entity.ChefGhoulashEntity;
+import com.phantompowers.entity.RageWyvernEntity;
 import com.phantompowers.network.StoryPayload;
 import com.phantompowers.world.AmityPark;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -32,8 +33,11 @@ import net.minecraft.util.math.Vec3d;
 public final class Story {
 	public static final int NONE = 0, HERO = 1, EVIL = 2, HUNTER = 3;
 	public static final String[] PATHS = {"", "Half-Ghost", "Evil Half-Ghost", "Ghost Hunter"};
-	/** storyMission after the last mission. (99 was "finished mission 1" before mission 2 existed; it moves on to mission 2.) */
-	private static final int DONE = 100, LEGACY_DONE = 99, MISSIONS = 2;
+	/**
+	 * storyMission is 1..MISSIONS while playing; 98 + n means "finished mission n and it was the last one at the time".
+	 * When new missions are added, those players move straight on to the next one.
+	 */
+	private static final int MISSIONS = 3, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
 
 	private Story() {}
 
@@ -41,6 +45,7 @@ public final class Story {
 		if (path == NONE) return "";
 		if (mission >= LEGACY_DONE) return "Mission complete!";
 		if (mission == 2) return path == EVIL ? "Mission 2: Lunch Rush (Dark Side)" : "Mission 2: Lunch Rush";
+		if (mission == 3) return path == EVIL ? "Mission 3: Dance Disaster (Dark Side)" : "Mission 3: Dance Disaster";
 		return switch (path) {
 			case HUNTER -> "Mission 1: Ghost Must Die";
 			case EVIL -> "Mission 1: My Molecules Got All Rearranged (Dark Side)";
@@ -50,6 +55,27 @@ public final class Story {
 
 	/** The objectives of a mission for each path. */
 	private static String[] steps(int path, int mission) {
+		if (mission == 3) return switch (path) {
+			case HERO -> new String[]{
+					"Something is glowing by the park pond. Go and find it",
+					"Your powers got you in trouble at school! Overshadow the teacher outside Amity High to talk your way out of it",
+					"Take your date to the dance at the park fountain (bring the amulet as a gift)",
+					"The amulet turned your date into a Rage Wyvern! Fight it until it's dazed",
+					"Pull the amulet off the dazed wyvern (right-click it)"};
+			case EVIL -> new String[]{
+					"Something full of rage is glowing by the park pond. Go and take it",
+					"Overshadow the teacher outside Amity High and get yourself out of detention",
+					"Crash the dance at the park fountain (bring the amulet)",
+					"The amulet's rage got loose and made a Rage Wyvern! Beat it until it's dazed",
+					"Rip the amulet off the wyvern (right-click it). Its power is yours now"};
+			case HUNTER -> new String[]{
+					"Strange ghost readings by the park pond. Find what's causing them",
+					"Take the amulet to the Ghost Lab basement to study it",
+					"Chaperone the dance at the park fountain (bring the amulet)",
+					"A Rage Wyvern is attacking the dance! Fight it until it's dazed",
+					"Pull the amulet off the dazed wyvern (right-click it)"};
+			default -> new String[0];
+		};
 		if (mission == 2) return switch (path) {
 			case HERO -> new String[]{
 					"Head to Amity High (your new powers keep glitching!)",
@@ -198,7 +224,8 @@ public final class Story {
 	private static String direction(ServerPlayerEntity p, GhostData d) {
 		BlockPos c = AmityPark.state(p.getServer()).center;
 		if (p.getWorld() != p.getServer().getOverworld()) return " (it's in the Overworld)";
-		Vec3d goal = d.storyMission != 2 ? AmityPark.labHouseDoor(c) : d.storyStep == 0 ? AmityPark.schoolDoor(c) : AmityPark.cafeteria(c);
+		Vec3d goal = d.storyMission == 3 ? (d.storyStep == 0 ? AmityPark.parkPond(c) : d.storyStep == 1 ? AmityPark.labHouseDoor(c) : AmityPark.parkFountain(c))
+				: d.storyMission != 2 ? AmityPark.labHouseDoor(c) : d.storyStep == 0 ? AmityPark.schoolDoor(c) : AmityPark.cafeteria(c);
 		Vec3d to = goal.subtract(p.getPos());
 		int dist = (int) Math.sqrt(to.x * to.x + to.z * to.z);
 		String[] dirs = {"south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"};
@@ -215,8 +242,8 @@ public final class Story {
 		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 			GhostData d = st.data(p.getUuid());
 			if (d.storyPath == NONE || d.storyMission >= DONE) continue;
-			if (d.storyMission == LEGACY_DONE) {   // finished mission 1 before mission 2 existed
-				startMission(p, d, 2);
+			if (d.storyMission >= LEGACY_DONE) {   // finished what was the last mission at the time: on to the next one
+				startMission(p, d, d.storyMission - 98 + 1);
 				st.markDirty();
 				continue;
 			}
@@ -235,6 +262,7 @@ public final class Story {
 				send(p, d, false);
 			}
 			if (d.storyMission == 2) mission2Tick(p, d);
+			if (d.storyMission == 3) mission3Tick(p, d);
 		}
 	}
 
@@ -242,6 +270,16 @@ public final class Story {
 	private static boolean check(ServerPlayerEntity p, GhostData d) {
 		BlockPos c = AmityPark.state(p.getServer()).center;
 		boolean overworld = p.getWorld() == p.getServer().getOverworld();
+		if (d.storyMission == 3) return switch (d.storyStep) {
+			case 0 -> p.getInventory().contains(new ItemStack(ModItems.RAGE_AMULET));
+			case 1 -> d.storyPath == HUNTER
+					? overworld && p.getPos().squaredDistanceTo(Vec3d.ofBottomCenter(AmityPark.lab(c))) < 9 * 9 && p.getY() < c.getY() - 3
+					: d.possessing != null && d.possessing.getCommandTags().contains("phantom_story_teacher");
+			case 2 -> overworld && p.getPos().squaredDistanceTo(AmityPark.parkFountain(c)) < 9 * 9 && p.getInventory().contains(new ItemStack(ModItems.RAGE_AMULET));
+			case 3 -> d.storyCount > 0 || (overworld && !p.getServerWorld().getEntitiesByClass(RageWyvernEntity.class,
+					new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(64), e -> e.storyMode() && e.dazed()).isEmpty());
+			default -> d.storyCount > 0;
+		};
 		if (d.storyMission == 2) return switch (d.storyStep) {
 			case 0 -> overworld && p.getPos().squaredDistanceTo(AmityPark.schoolDoor(c)) < 12 * 12;
 			case 1 -> p.getInventory().contains(new ItemStack(ModItems.THERMOS));
@@ -268,6 +306,7 @@ public final class Story {
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.8f, 1.4f);
 		p.sendMessage(Text.literal("New objective: " + objective(d)).formatted(Formatting.YELLOW), true);
 		if (d.storyMission == 2 && d.storyStep == 3) spawnChef(p, true);
+		if (d.storyMission == 3) mission3Step(p, d);
 		if (d.storyMission == 1 && d.storyPath == HUNTER && d.storyStep == 4) {
 			// the portal coughs up some ghosts for you to deal with
 			for (int i = 0; i < 3; i++) {
@@ -300,6 +339,13 @@ public final class Story {
 				case EVIL -> give(p, new ItemStack(ModItems.ESSENCES[GhostPowers.ESS_SHADE]));
 				default -> give(p, new ItemStack(ModItems.ESSENCES[GhostPowers.ESS_FRIENDLY], 2));
 			}
+		} else if (mission == 3) {
+			give(p, new ItemStack(ModItems.PHANTOM_HEART));
+			give(p, new ItemStack(ModItems.SPECTRAL_SHARD, 3));
+			if (d.storyPath == HUNTER) give(p, new ItemStack(ModItems.GHOST_CORE, 2));
+			else give(p, new ItemStack(ModItems.ESSENCES[d.storyPath == EVIL ? GhostPowers.ESS_SHADE : GhostPowers.ESS_FRIENDLY]));
+			p.sendMessage(Text.literal("You keep the Rage Amulet: right-click it for a burst of rage-powered strength.").formatted(Formatting.LIGHT_PURPLE), false);
+			cleanUpDance(w, p);
 		} else {
 			give(p, new ItemStack(net.minecraft.item.Items.COOKED_BEEF, 8));   // leftovers
 			switch (d.storyPath) {
@@ -348,12 +394,199 @@ public final class Story {
 				.formatted(d.storyPath == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(objective(d)).formatted(Formatting.GRAY)));
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
+		if (d.storyMission == 3) p.sendMessage(Text.literal(switch (d.storyPath) {
+			case HUNTER -> "The Amity Park dance is tonight and you're on chaperone duty. But the ghost sensors just picked up something strange in the park...";
+			case EVIL -> "The big dance is tonight. You've got no date and no patience. But something in the park is calling to you: something angry...";
+			default -> "The big dance is tonight and you finally have a date! You just need the perfect gift... and to stay out of trouble at school.";
+		}).formatted(Formatting.GRAY), false);
 		if (d.storyMission == 2) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "Ghost sensors are going crazy over at Amity High. Something in the cafeteria is VERY unhappy about the new healthy lunch menu...";
 			case EVIL -> "Your new powers keep acting up on their own. Meanwhile, some ghost is throwing a tantrum in the Amity High cafeteria. Nobody haunts YOUR town but you.";
 			default -> "Being half-ghost is harder than it looks: your powers keep going off by themselves! And today Amity High switched to a healthy lunch menu. Somebody is NOT happy about it...";
 		}).formatted(Formatting.GRAY), false);
 		send(p, d, false);
+	}
+
+	/** Mission 3: set up each step as it starts. */
+	private static void mission3Step(ServerPlayerEntity p, GhostData d) {
+		ServerWorld w = p.getServerWorld();
+		BlockPos c = AmityPark.state(p.getServer()).center;
+		switch (d.storyStep) {
+			case 1 -> {
+				if (d.storyPath == HUNTER) {
+					p.sendMessage(Text.literal("The amulet hums and gets warmer whenever someone nearby is angry...").formatted(Formatting.GRAY), false);
+					break;
+				}
+				// learn overshadowing (if you hadn't already) and find the teacher waiting outside school
+				if (!d.has(GhostPowers.POSSESS)) {
+					d.unlocked |= 1 << GhostPowers.POSSESS;
+					Slots.autoAdd(d, GhostPowers.POSSESS);
+					if (Slots.slotOf(d, GhostPowers.POSSESS) < 0) {
+						d.slots[Slots.COUNT - 1] = GhostPowers.POSSESS;
+						Slots.ensure(d);
+					}
+					GhostPowers.syncNow(p);
+					p.sendMessage(Text.literal("You learned a new power: Overshadowing (Possession)! It's on Power Slot "
+							+ (Slots.slotOf(d, GhostPowers.POSSESS) + 1) + ". Go ghost, look at someone and use it to take them over.").formatted(Formatting.GREEN, Formatting.BOLD), false);
+				}
+				spawnTeacher(w, c);
+			}
+			case 2 -> spawnDance(w, c);
+			case 3 -> startWyvern(p, c);
+			default -> {}
+		}
+	}
+
+	private static void mission3Tick(ServerPlayerEntity p, GhostData d) {
+		ServerWorld w = p.getServerWorld();
+		if (w != p.getServer().getOverworld()) return;
+		BlockPos c = AmityPark.state(p.getServer()).center;
+		long t = w.getServer().getTicks();
+		if (d.storyStep == 0 && t % 40 == 0 && !p.getInventory().contains(new ItemStack(ModItems.RAGE_AMULET))) {
+			// the amulet waits by the pond, glowing
+			Vec3d at = AmityPark.parkPond(c);
+			if (p.getPos().squaredDistanceTo(at) < 40 * 40 && w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new Box(BlockPos.ofFloored(at)).expand(6),
+					e -> e.getStack().isOf(ModItems.RAGE_AMULET)).isEmpty()) {
+				var item = new net.minecraft.entity.ItemEntity(w, at.x, at.y + 0.3, at.z, new ItemStack(ModItems.RAGE_AMULET), 0, 0, 0);
+				item.setNeverDespawn();
+				item.setGlowing(true);
+				w.spawnEntity(item);
+			}
+			if (p.getPos().squaredDistanceTo(at) < 40 * 40) w.spawnParticles(net.minecraft.particle.ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y + 0.6, at.z, 3, 0.2, 0.3, 0.2, 0.01);
+		}
+		if (d.storyStep == 1 && d.storyPath != HUNTER && t % 60 == 0) spawnTeacher(w, c);
+		if (d.storyStep == 2 && t % 20 == 0) {
+			Vec3d f = AmityPark.parkFountain(c);
+			if (p.getPos().squaredDistanceTo(f) < 48 * 48) {
+				spawnDance(w, c);
+				for (int i = 0; i < 4; i++) {
+					double a = w.random.nextDouble() * Math.PI * 2;
+					w.spawnParticles(net.minecraft.particle.ParticleTypes.NOTE, f.x + Math.cos(a) * 7, f.y + 2.2, f.z + Math.sin(a) * 7, 0, w.random.nextDouble(), 0, 0, 1);
+				}
+			}
+			if (p.getPos().squaredDistanceTo(f) < 16 * 16 && !p.getInventory().contains(new ItemStack(ModItems.RAGE_AMULET)))
+				p.sendMessage(Text.literal("You need the amulet you found! (Lost it? It's back by the park pond.)").formatted(Formatting.YELLOW), true);
+		}
+		if (d.storyStep == 2 && t % 40 == 0 && !p.getInventory().contains(new ItemStack(ModItems.RAGE_AMULET))) {
+			Vec3d at = AmityPark.parkPond(c);
+			if (w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new Box(BlockPos.ofFloored(at)).expand(6), e -> e.getStack().isOf(ModItems.RAGE_AMULET)).isEmpty()) {
+				var item = new net.minecraft.entity.ItemEntity(w, at.x, at.y + 0.3, at.z, new ItemStack(ModItems.RAGE_AMULET), 0, 0, 0);
+				item.setNeverDespawn();
+				item.setGlowing(true);
+				w.spawnEntity(item);
+			}
+		}
+		if (d.storyStep == 3 && d.storyCount == 0 && t % 40 == 0 && p.getPos().squaredDistanceTo(AmityPark.parkFountain(c)) < 40 * 40
+				&& w.getEntitiesByClass(RageWyvernEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(80), RageWyvernEntity::storyMode).isEmpty()) {
+			spawnWyvern(w, c, p, AmityPark.parkFountain(c).add(4, 3, 0));
+		}
+	}
+
+	/** The teacher who wants a word with you, waiting outside Amity High. */
+	private static void spawnTeacher(ServerWorld w, BlockPos c) {
+		Vec3d at = AmityPark.schoolDoor(c).add(0, 0, 2);
+		if (!w.getEntitiesByClass(net.minecraft.entity.passive.VillagerEntity.class, new Box(BlockPos.ofFloored(at)).expand(40),
+				v -> v.getCommandTags().contains("phantom_story_teacher")).isEmpty()) return;
+		var v = net.minecraft.entity.EntityType.VILLAGER.create(w);
+		if (v == null) return;
+		v.refreshPositionAndAngles(at.x, at.y, at.z, 180f, 0f);
+		v.setCustomName(Text.literal("Mr. Pemberton (teacher)"));
+		v.setCustomNameVisible(true);
+		v.setVillagerData(v.getVillagerData().withProfession(net.minecraft.village.VillagerProfession.LIBRARIAN));
+		v.setPersistent();
+		v.setAiDisabled(true);
+		v.addCommandTag("phantom_story_teacher");
+		w.spawnEntity(v);
+	}
+
+	/** The dance around the park fountain: your date and a few classmates. */
+	private static void spawnDance(ServerWorld w, BlockPos c) {
+		Vec3d f = AmityPark.parkFountain(c);
+		if (!w.getEntitiesByClass(net.minecraft.entity.passive.VillagerEntity.class, new Box(BlockPos.ofFloored(f)).expand(24),
+				v -> v.getCommandTags().contains("phantom_dance")).isEmpty()) return;
+		String[] names = {"Paige (your date)", "Marcus", "Tiffany", "Leon", "Jasmine", "Owen"};
+		for (int i = 0; i < names.length; i++) {
+			var v = net.minecraft.entity.EntityType.VILLAGER.create(w);
+			if (v == null) continue;
+			double a = i * Math.PI * 2 / names.length;
+			v.refreshPositionAndAngles(f.x + Math.cos(a) * 7, f.y, f.z + Math.sin(a) * 7, (float) Math.toDegrees(a) + 90f, 0f);
+			v.setCustomName(Text.literal(names[i]));
+			v.setCustomNameVisible(i == 0);
+			v.setPersistent();
+			v.setAiDisabled(true);
+			v.addCommandTag("phantom_dance");
+			if (i == 0) v.addCommandTag("phantom_dance_date");
+			w.spawnEntity(v);
+		}
+	}
+
+	/** You hand over the amulet... and your date loses her temper. */
+	private static void startWyvern(ServerPlayerEntity p, BlockPos c) {
+		ServerWorld w = p.getServerWorld();
+		removeOne(p, ModItems.RAGE_AMULET);
+		Vec3d at = AmityPark.parkFountain(c).add(4, 1, 0);
+		for (var v : w.getEntitiesByClass(net.minecraft.entity.passive.VillagerEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(24),
+				v -> v.getCommandTags().contains("phantom_dance_date"))) {
+			at = v.getPos();
+			v.discard();
+		}
+		String date = "Paige";
+		p.sendMessage(Text.literal("You give " + date + " the amulet. She puts it on...").formatted(Formatting.GRAY), false);
+		p.sendMessage(Text.literal(date + ": "It's beautiful! ...Wait. You were supposed to pick me up an HOUR ago!"").formatted(Formatting.LIGHT_PURPLE), false);
+		p.sendMessage(Text.literal("The amulet flares red as she gets angrier and angrier...").formatted(Formatting.RED, Formatting.ITALIC), false);
+		spawnWyvern(w, c, p, at);
+	}
+
+	private static void spawnWyvern(ServerWorld w, BlockPos c, ServerPlayerEntity p, Vec3d at) {
+		RageWyvernEntity wy = ModEntities.RAGE_WYVERN.create(w);
+		if (wy == null) return;
+		wy.refreshPositionAndAngles(at.x, at.y + 1, at.z, 0f, 0f);
+		wy.addCommandTag(RageWyvernEntity.STORY_TAG);
+		wy.setWearer("Paige");
+		wy.setHome(BlockPos.ofFloored(AmityPark.parkFountain(c)).up(4), 26f);
+		wy.setTarget(p);
+		w.spawnEntity(wy);
+		w.spawnParticles(net.minecraft.particle.ParticleTypes.FLASH, at.x, at.y + 1, at.z, 1, 0, 0, 0, 0);
+		w.spawnParticles(net.minecraft.particle.ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y + 1, at.z, 120, 1.2, 1.5, 1.2, 0.15);
+		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 2.5f, 1.1f);
+		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Rage Wyvern").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("\"NOBODY KEEPS ME WAITING!\"").formatted(Formatting.GRAY)));
+		// the other dancers run for it
+		for (var v : w.getEntitiesByClass(net.minecraft.entity.passive.VillagerEntity.class, new Box(BlockPos.ofFloored(at)).expand(24),
+				v -> v.getCommandTags().contains("phantom_dance") && !v.getCommandTags().contains("phantom_dance_date"))) v.setAiDisabled(false);
+	}
+
+	/** The amulet came off: everyone fighting the wyvern moves on. */
+	public static void onAmuletPulled(ServerWorld w, ServerPlayerEntity by, Entity wyvern) {
+		GhostState st = GhostState.of(w.getServer());
+		for (ServerPlayerEntity p : w.getPlayers(sp -> sp == by || sp.squaredDistanceTo(wyvern) < 64 * 64)) {
+			GhostData d = st.data(p.getUuid());
+			if (d.storyMission != 3 || d.storyStep < 3) continue;
+			d.storyStep = 4;
+			d.storyCount = 1;
+			st.markDirty();
+		}
+	}
+
+	private static void cleanUpDance(ServerWorld w, ServerPlayerEntity p) {
+		com.phantompowers.entity.BossMoves.later(400, () -> {
+			for (var v : w.getEntitiesByClass(net.minecraft.entity.passive.VillagerEntity.class, p.getBoundingBox().expand(96),
+					v -> v.getCommandTags().contains("phantom_dance") || v.getCommandTags().contains("phantom_story_teacher"))) {
+				w.spawnParticles(net.minecraft.particle.ParticleTypes.POOF, v.getX(), v.getY() + 1, v.getZ(), 8, 0.3, 0.5, 0.3, 0.02);
+				v.discard();
+			}
+		});
+	}
+
+	private static void removeOne(ServerPlayerEntity p, net.minecraft.item.Item item) {
+		var inv = p.getInventory();
+		for (int i = 0; i < inv.size(); i++) {
+			if (inv.getStack(i).isOf(item)) {
+				inv.getStack(i).decrement(1);
+				return;
+			}
+		}
 	}
 
 	/** Mission 2 extras: powers glitching on the way to school, and keeping Chef Ghoulash around for the fight. */
@@ -442,7 +675,8 @@ public final class Story {
 		if (!ServerPlayNetworking.canSend(p, StoryPayload.ID)) return;
 		String[] s = steps(d.storyPath, d.storyMission);
 		String obj = objective(d);
-		boolean travel = d.storyMission == 1 ? d.storyStep == 0 : d.storyMission == 2 && (d.storyStep == 0 || d.storyStep == 2);
+		boolean travel = d.storyMission == 1 ? d.storyStep == 0 : d.storyMission == 2 ? d.storyStep == 0 || d.storyStep == 2
+				: d.storyMission == 3 && (d.storyStep == 0 || d.storyStep == 2 || (d.storyStep == 1 && d.storyPath == HUNTER));
 		if (d.storyPath != NONE && d.storyMission < LEGACY_DONE && travel)
 			obj += AmityPark.ready(p.getServer()) ? direction(p, d) : " (Amity Park is being built: " + AmityPark.progress(p.getServer()) + "%)";
 		ServerPlayNetworking.send(p, new StoryPayload(openPicker, d.storyPath, missionTitle(d.storyPath, d.storyMission), obj,

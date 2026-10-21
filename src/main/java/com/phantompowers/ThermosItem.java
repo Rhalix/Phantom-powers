@@ -79,6 +79,7 @@ public class ThermosItem extends Item {
 		if (e instanceof com.phantompowers.entity.RevEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.RoxyEntity k) return k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.ChefGhoulashEntity k) return k.dazed() || k.getHealth() < k.getMaxHealth() * 0.25f;
+		if (e instanceof com.phantompowers.entity.RageWyvernEntity k) return !k.storyMode() && k.getHealth() < k.getMaxHealth() * 0.2f;
 		if (e instanceof com.phantompowers.entity.ShadeEntity s) return !s.isBoss() || s.getHealth() < s.getMaxHealth() * 0.25f;
 		return e instanceof AbstractGhostEntity || e instanceof VexEntity || e instanceof PhantomEntity;
 	}

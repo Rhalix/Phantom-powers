@@ -131,6 +131,16 @@ public final class ModEntities {
 			EntityType.Builder.<com.phantompowers.entity.FoodProjectileEntity>create(com.phantompowers.entity.FoodProjectileEntity::new, SpawnGroup.MISC)
 					.dimensions(0.4f, 0.4f).maxTrackingRange(6).trackingTickInterval(10).build("food_projectile"));
 
+	public static final EntityType<com.phantompowers.entity.RageWyvernEntity> RAGE_WYVERN = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("rage_wyvern"),
+			EntityType.Builder.create(com.phantompowers.entity.RageWyvernEntity::new, SpawnGroup.MONSTER)
+					.dimensions(2.2f, 2.0f).maxTrackingRange(14).trackingTickInterval(1).makeFireImmune().build("rage_wyvern"));
+
+	public static final EntityType<com.phantompowers.entity.WyvernFireballEntity> WYVERN_FIREBALL = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("wyvern_fireball"),
+			EntityType.Builder.<com.phantompowers.entity.WyvernFireballEntity>create(com.phantompowers.entity.WyvernFireballEntity::new, SpawnGroup.MISC)
+					.dimensions(0.5f, 0.5f).maxTrackingRange(8).trackingTickInterval(2).build("wyvern_fireball"));
+
 	public static final EntityType<CrateProjectileEntity> CRATE_PROJECTILE = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("crate_projectile"),
 			EntityType.Builder.<CrateProjectileEntity>create(CrateProjectileEntity::new, SpawnGroup.MISC)
@@ -168,6 +178,7 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(GHOST_CLONE, com.phantompowers.entity.GhostCloneEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROXY, com.phantompowers.entity.RoxyEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(CHEF_GHOULASH, com.phantompowers.entity.ChefGhoulashEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(RAGE_WYVERN, com.phantompowers.entity.RageWyvernEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(SHADE, com.phantompowers.entity.ShadeEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROOM_GHOST, RoomGhostEntity.createAttributes());
