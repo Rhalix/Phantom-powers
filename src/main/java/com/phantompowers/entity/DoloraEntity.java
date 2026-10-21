@@ -41,7 +41,7 @@ import org.joml.Vector3f;
 import java.util.List;
 
 /**
- * Dolora, the emotion eater. She starts out as "Counselor Dolora", a prim, smiling school counselor with a clipboard
+ * Dolora, the emotion eater. She starts out as "Counselor Penelope Spectra", a prim, smiling school counselor with a clipboard
  * and a lot of discouraging advice. Hurt her and the disguise tears away into THE MISERY, a shadow wraith in a cracked
  * porcelain mask that latches onto you and feeds on your despair, growing bigger the more it eats. Beat that and she
  * shows her true self: DOLORA, QUEEN OF SORROW, crowned and gowned, raining tears and breaking hearts.
@@ -59,7 +59,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 			"I'm writing down 'hopeless'. Is that spelled with one S?"};
 	private static final String[] FEAST = {"Mmm... your despair is DELICIOUS!", "Feel sad for me. Feel SO sad.", "Your misery makes me stronger!"};
 
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Counselor Dolora").formatted(Formatting.LIGHT_PURPLE),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Counselor Penelope Spectra").formatted(Formatting.LIGHT_PURPLE),
 			BossBar.Color.PINK, BossBar.Style.NOTCHED_10);
 	private int adviceCooldown = 60, drainCooldown = 80, wispCooldown = 200, rainCooldown = 100, waveCooldown = 160, pulseCooldown = 240, remarkCooldown = 40;
 	private int drainTicks;
@@ -343,10 +343,10 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 			say(w, "You thought I was here to HELP you? I'm here to EAT. Your sadness, your fear... all of it!", Formatting.DARK_PURPLE);
 			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.HOSTILE, 1.2f, 1.4f);
 		} else {
-			say(w, "Enough hiding. Behold Dolora, QUEEN OF SORROW!", Formatting.DARK_PURPLE);
+			say(w, "Enough hiding. Behold Penelope Spectra, QUEEN OF SORROW!", Formatting.DARK_PURPLE);
 			w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.HOSTILE, 1.5f, 0.8f);
 		}
-		org.slf4j.LoggerFactory.getLogger("phantom").info("Dolora changed to phase {}", to);
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Penelope Spectra changed to phase {}", to);
 	}
 
 	private void finishChange(ServerWorld w) {
@@ -359,7 +359,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 			bossBar.setName(Text.literal("The Misery").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
 			bossBar.setColor(BossBar.Color.PURPLE);
 		} else {
-			bossBar.setName(Text.literal("Dolora, Queen of Sorrow").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
+			bossBar.setName(Text.literal("Penelope Spectra, Queen of Sorrow").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
 			bossBar.setColor(BossBar.Color.BLUE);
 		}
 		w.spawnParticles(ParticleTypes.FLASH, getX(), getY() + 1, getZ(), 1, 0, 0, 0, 0);
@@ -370,7 +370,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 	// ------------------------------------------------------------------ misc
 
 	private void say(ServerWorld w, String line, Formatting color) {
-		String who = phase() == HUMAN ? "Counselor Dolora" : phase() == WRAITH ? "The Misery" : "Dolora";
+		String who = phase() == HUMAN ? "Counselor Penelope Spectra" : phase() == WRAITH ? "The Misery" : "Penelope Spectra";
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 40 * 40)) {
 			p.sendMessage(Text.literal(who + ": \"" + line + "\"").formatted(color), false);
 		}
@@ -441,7 +441,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 		dataTracker.set(FED, nbt.getFloat("Fed"));
 		if (phase() != HUMAN) setFlying();
 		if (phase() == WRAITH) bossBar.setName(Text.literal("The Misery").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
-		if (phase() == QUEEN) bossBar.setName(Text.literal("Dolora, Queen of Sorrow").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
+		if (phase() == QUEEN) bossBar.setName(Text.literal("Penelope Spectra, Queen of Sorrow").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class ShadeEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> BOSS = DataTracker.registerData(ShadeEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> CLONE = DataTracker.registerData(ShadeEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private final net.minecraft.entity.boss.ServerBossBar bossBar = new net.minecraft.entity.boss.ServerBossBar(
-			net.minecraft.text.Text.literal("The Shade").formatted(net.minecraft.util.Formatting.DARK_PURPLE),
+			net.minecraft.text.Text.literal("Shadow").formatted(net.minecraft.util.Formatting.DARK_PURPLE),
 			net.minecraft.entity.boss.BossBar.Color.PURPLE, net.minecraft.entity.boss.BossBar.Style.NOTCHED_10);
 	private boolean decided, eclipse;
 	private int blinkCooldown = 120, eclipseCooldown = 200;
@@ -209,11 +209,11 @@ public class ShadeEntity extends AbstractGhostEntity implements Monster {
 	private void startEclipse(ServerWorld w) {
 		eclipse = true;
 		heal(getMaxHealth() * 0.08f);
-		bossBar.setName(net.minecraft.text.Text.literal("The Shade: ECLIPSE").formatted(net.minecraft.util.Formatting.DARK_PURPLE, net.minecraft.util.Formatting.BOLD));
+		bossBar.setName(net.minecraft.text.Text.literal("Shadow: ECLIPSE").formatted(net.minecraft.util.Formatting.DARK_PURPLE, net.minecraft.util.Formatting.BOLD));
 		bossBar.setColor(net.minecraft.entity.boss.BossBar.Color.RED);
 		for (int i = 0; i < 2; i++) splitClone(w);
 		eclipsePulse(w);
-		org.slf4j.LoggerFactory.getLogger("phantom").info("The Shade split into the Eclipse (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Shadow split into the Eclipse (stage two)");
 	}
 
 	public void splitClone(ServerWorld w) {

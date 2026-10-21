@@ -476,7 +476,7 @@ public final class GhostPowers {
 	// ------------------------------------------------------- devoured essences
 
 	public static final int ESS_HOSTILE = 0, ESS_FRIENDLY = 1, ESS_JAILER = 2, ESS_CRATE = 3, ESS_VOLTAGE = 4, ESS_WISH = 5, ESS_REV = 6, ESS_ROXY = 7, ESS_SHADE = 8, ESS_DOLORA = 9;
-	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Jailer", "Crate King", "Voltage", "Wishkeeper", "Rev", "Roxy", "Shade", "Dolora"};
+	public static final String[] ESSENCE_NAMES = {"Hostile Ghost", "Friendly Ghost", "Ghost Walker", "Box Ghost", "Voltage", "Desiree", "Johnny 13", "Kitty", "Shadow", "Penelope Spectra"};
 	public static final String[] ESSENCE_POWERS = {
 			"Strength and night vision",
 			"Constant healing",

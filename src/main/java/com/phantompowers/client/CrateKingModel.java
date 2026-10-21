@@ -47,60 +47,68 @@ public class CrateKingModel extends SinglePartEntityModel<CrateKingEntity> {
 		ModelData data = new ModelData();
 		ModelPartData r = data.getRoot();
 		ModelPartData p_head = r.addChild("head", ModelPartBuilder.create()
-				.uv(42, 0).cuboid(-4f, -8f, -4f, 8f, 8f, 8f),
+				.uv(2, 2).cuboid(-4.5f, -8f, -4f, 9f, 8f, 8f)
+				.uv(39, 2).cuboid(-0.7f, -4.3f, -4.5f, 1.4f, 1.1f, 0.8f)
+				.uv(47, 2).cuboid(-4.65f, -5.6f, -0.6f, 0.5f, 2f, 1.6f)
+				.uv(55, 2).cuboid(4.15f, -5.6f, -0.6f, 0.5f, 2f, 1.6f),
 				ModelTransform.of(0f, 0.5f, -1.5f, 0f, 0f, 0f));
-		ModelPartData p_crown = p_head.addChild("crown", ModelPartBuilder.create()
-				.uv(40, 19).cuboid(-5f, -3f, -5f, 10f, 3f, 10f, new Dilation(0.1f, 0f, 0.1f)),
+		ModelPartData p_cap = p_head.addChild("cap", ModelPartBuilder.create()
+				.uv(63, 2).cuboid(-4.7f, -10f, -4.2f, 9.4f, 2.1f, 8.4f)
+				.uv(102, 2).cuboid(-4.2f, -10.35f, -3.8f, 8.4f, 0.4f, 7.6f)
+				.uv(137, 2).cuboid(-4.78f, -8.65f, -4.28f, 9.56f, 0.7f, 8.56f)
+				.uv(177, 2).cuboid(-4.85f, -8.6f, -4.85f, 9.7f, 0.45f, 1.5f),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_crown = p_head.addChild("crown", ModelPartBuilder.create(),
 				ModelTransform.of(0f, -7.6f, 0f, 0f, 0f, 0f));
-		ModelPartData p_flap_front = p_crown.addChild("flap_front", ModelPartBuilder.create()
-				.uv(100, 44).cuboid(-5f, -4f, -0.5f, 10f, 4f, 1f, new Dilation(0.1f, 0f, -0.3f)),
-				ModelTransform.of(0f, -3f, -5f, 0.25f, 0f, 0f));
-		ModelPartData p_flap_back = p_crown.addChild("flap_back", ModelPartBuilder.create()
-				.uv(0, 53).cuboid(-5f, -4f, -0.5f, 10f, 4f, 1f, new Dilation(0.1f, 0f, -0.3f)),
-				ModelTransform.of(0f, -3f, 5f, -0.25f, 0f, 0f));
-		ModelPartData p_flap_right = p_crown.addChild("flap_right", ModelPartBuilder.create()
-				.uv(74, 0).cuboid(-0.5f, -4f, -5f, 1f, 4f, 10f, new Dilation(-0.3f, 0f, 0.1f)),
-				ModelTransform.of(-5f, -3f, 0f, 0f, 0f, -0.25f));
-		ModelPartData p_flap_left = p_crown.addChild("flap_left", ModelPartBuilder.create()
-				.uv(96, 0).cuboid(-0.5f, -4f, -5f, 1f, 4f, 10f, new Dilation(-0.3f, 0f, 0.1f)),
-				ModelTransform.of(5f, -3f, 0f, 0f, 0f, 0.25f));
+		ModelPartData p_flap_front = p_crown.addChild("flap_front", ModelPartBuilder.create(),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_flap_back = p_crown.addChild("flap_back", ModelPartBuilder.create(),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_flap_right = p_crown.addChild("flap_right", ModelPartBuilder.create(),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
+		ModelPartData p_flap_left = p_crown.addChild("flap_left", ModelPartBuilder.create(),
+				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
 		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
-				.uv(0, 0).cuboid(-5.5f, 0f, -3.5f, 11f, 12f, 7f),
+				.uv(203, 2).cuboid(-5.5f, 0f, -3.5f, 11f, 11.5f, 7f)
+				.uv(2, 24).cuboid(-5.6f, 6f, -3.6f, 11.2f, 6.2f, 7.2f)
+				.uv(42, 24).cuboid(-4.2f, 2.9f, -3.68f, 8.4f, 5.2f, 0.28f)
+				.uv(63, 24).cuboid(-4.7f, -0.05f, -3.65f, 1.15f, 4.6f, 0.25f)
+				.uv(69, 24).cuboid(-4.6f, 3.2f, -3.98f, 0.95f, 1f, 0.35f)
+				.uv(75, 24).cuboid(-4.7f, -0.05f, 3.45f, 1.15f, 5.9f, 0.3f)
+				.uv(81, 24).cuboid(3.55f, -0.05f, -3.65f, 1.15f, 4.6f, 0.25f)
+				.uv(87, 24).cuboid(3.65f, 3.2f, -3.98f, 0.95f, 1f, 0.35f)
+				.uv(93, 24).cuboid(3.55f, -0.05f, 3.45f, 1.15f, 5.9f, 0.3f)
+				.uv(99, 24).cuboid(-2.65f, 4.7f, -4.02f, 5.3f, 3.2f, 0.35f),
 				ModelTransform.of(0f, 0f, 0f, 0.2f, 0f, 0f));
-		ModelPartData p_sash = p_body.addChild("sash", ModelPartBuilder.create()
-				.uv(36, 0).cuboid(-1f, -8.5f, -0.5f, 2f, 17f, 1f, new Dilation(-0.1f, 0f, -0.3f)),
-				ModelTransform.of(0f, 6f, -3.7f, 0f, 0f, -0.65f));
-		ModelPartData p_box = p_body.addChild("box", ModelPartBuilder.create()
-				.uv(80, 19).cuboid(-3f, -3f, -3f, 6f, 6f, 6f),
+		ModelPartData p_box = p_body.addChild("box", ModelPartBuilder.create(),
 				ModelTransform.of(0f, 7f, -9f, 0f, 0f, 0f));
-		ModelPartData p_lid = p_box.addChild("lid", ModelPartBuilder.create()
-				.uv(68, 33).cuboid(-3.5f, -1.6f, -7f, 7f, 2f, 7f, new Dilation(0f, -0.2f, 0f)),
+		ModelPartData p_lid = p_box.addChild("lid", ModelPartBuilder.create(),
 				ModelTransform.of(0f, -3f, 3f, 0f, 0f, 0f));
 		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
-				.uv(104, 19).cuboid(-3f, -2f, -2f, 4f, 7f, 4f)
-				.uv(96, 33).cuboid(-3f, 5f, -2f, 4f, 5f, 4f, new Dilation(0.25f, 0f, 0.25f))
-				.uv(0, 44).cuboid(-3.5f, 9.5f, -2.5f, 5f, 4f, 5f),
+				.uv(114, 24).cuboid(-2.55f, -1.1f, -2.6f, 4.6f, 6.2f, 5.2f)
+				.uv(137, 24).cuboid(-2.5f, 5f, -2.5f, 4.5f, 6.4f, 5f)
+				.uv(159, 24).cuboid(-2.45f, 10.3f, -2.55f, 4.4f, 1.5f, 5.05f),
 				ModelTransform.of(-7f, 1.5f, -1f, 0f, 0f, 0f));
-		ModelPartData p_right_pad = p_right_arm.addChild("right_pad", ModelPartBuilder.create()
-				.uv(20, 44).cuboid(-4f, -3f, -3f, 5f, 3f, 6f, new Dilation(0.1f)),
-				ModelTransform.of(0f, 0f, 0f, 0f, 0f, -0.15f));
 		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
-				.uv(0, 33).cuboid(-1f, -2f, -2f, 4f, 7f, 4f)
-				.uv(42, 44).cuboid(-1f, 5f, -2f, 4f, 5f, 4f, new Dilation(0.25f, 0f, 0.25f))
-				.uv(58, 44).cuboid(-1.5f, 9.5f, -2.5f, 5f, 4f, 5f),
+				.uv(84, 41).cuboid(-2.05f, -1.1f, -2.6f, 4.6f, 6.2f, 5.2f)
+				.uv(107, 41).cuboid(-2f, 5f, -2.5f, 4.5f, 6.4f, 5f)
+				.uv(129, 41).cuboid(-1.95f, 10.3f, -2.55f, 4.4f, 1.5f, 5.05f),
 				ModelTransform.of(7f, 1.5f, -1f, 0f, 0f, 0f));
-		ModelPartData p_left_pad = p_left_arm.addChild("left_pad", ModelPartBuilder.create()
-				.uv(78, 44).cuboid(-1f, -3f, -3f, 5f, 3f, 6f, new Dilation(0.1f)),
-				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0.15f));
 		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
-				.uv(0, 19).cuboid(-2.5f, 0f, -2.5f, 5f, 9f, 5f)
-				.uv(16, 33).cuboid(-3f, 8.25f, -3.5f, 6f, 4f, 7f, new Dilation(0f, -0.25f, 0f)),
+				.uv(181, 24).cuboid(-2.6f, 0f, -3.1f, 5.2f, 7.6f, 6.2f)
+				.uv(207, 24).cuboid(-2.64f, 7.25f, -3.14f, 5.28f, 0.75f, 6.28f)
+				.uv(2, 41).cuboid(-2.5f, 8f, -3.05f, 5f, 2.1f, 6.1f)
+				.uv(28, 41).cuboid(-2.65f, 9f, -4f, 5.3f, 1.3f, 7f)
+				.uv(56, 41).cuboid(-2.7f, 10f, -4.05f, 5.4f, 0.4f, 7.1f),
 				ModelTransform.of(-2.8f, 12f, 2f, 0f, 0f, 0f));
 		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
-				.uv(20, 19).cuboid(-2.5f, 0f, -2.5f, 5f, 9f, 5f)
-				.uv(42, 33).cuboid(-3f, 8.25f, -3.5f, 6f, 4f, 7f, new Dilation(0f, -0.25f, 0f)),
+				.uv(151, 41).cuboid(-2.6f, 0f, -3.1f, 5.2f, 7.6f, 6.2f)
+				.uv(177, 41).cuboid(-2.64f, 7.25f, -3.14f, 5.28f, 0.75f, 6.28f)
+				.uv(204, 41).cuboid(-2.5f, 8f, -3.05f, 5f, 2.1f, 6.1f)
+				.uv(2, 58).cuboid(-2.65f, 9f, -4f, 5.3f, 1.3f, 7f)
+				.uv(30, 58).cuboid(-2.7f, 10f, -4.05f, 5.4f, 0.4f, 7.1f),
 				ModelTransform.of(2.8f, 12f, 2f, 0f, 0f, 0f));
-		return TexturedModelData.of(data, 128, 128);
+		return TexturedModelData.of(data, 256, 256);
 	}
 
 	@Override

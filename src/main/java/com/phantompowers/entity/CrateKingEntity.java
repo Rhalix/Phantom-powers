@@ -50,7 +50,7 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> EVIL = DataTracker.registerData(CrateKingEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final DustParticleEffect DARK = new DustParticleEffect(new Vector3f(0.55f, 0.1f, 0.85f), 1.6f);
 
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("The Crate King").formatted(Formatting.GOLD),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("The Box Ghost").formatted(Formatting.GOLD),
 			BossBar.Color.YELLOW, BossBar.Style.NOTCHED_10);
 	private int throwCooldown = 40;
 	private int volleyCooldown = 160;
@@ -252,7 +252,7 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 	public void boxIn(ServerWorld w, LivingEntity target) {
 		boxOpen = 12;
 		if (BossMoves.cage(w, target, net.minecraft.block.Blocks.SPRUCE_PLANKS, 70) > 0 && target instanceof ServerPlayerEntity p) {
-			p.sendMessage(Text.literal("The Crate King: \"You're BOXED IN!\"").formatted(Formatting.GOLD, Formatting.BOLD), true);
+			p.sendMessage(Text.literal("The Box Ghost: \"You're BOXED IN!\"").formatted(Formatting.GOLD, Formatting.BOLD), true);
 		}
 	}
 
@@ -295,11 +295,11 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 
 	/** Stage two: he pulls out Pandora's Box and turns evil. */
 	private void unbox(ServerWorld w) {
-		org.slf4j.LoggerFactory.getLogger("phantom").info("The Crate King opened Pandora's Box (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("The Box Ghost opened Pandora's Box (stage two)");
 		dataTracker.set(EVIL, true);
 		boxOpen = 30;
 		heal(getMaxHealth() * 0.1f);
-		bossBar.setName(Text.literal("The Crate King, Unboxed").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+		bossBar.setName(Text.literal("The Box Ghost, Unboxed").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.PURPLE);
 		addMod(EntityAttributes.GENERIC_ATTACK_DAMAGE, "evil_damage", 5.0);
 		addMod(EntityAttributes.GENERIC_FLYING_SPEED, "evil_speed", 0.2);
@@ -309,7 +309,7 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.JAILER_ROAR, SoundCategory.HOSTILE, 4.0f, 0.7f);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.HOSTILE, 2.0f, 0.6f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("The Crate King opened Pandora's Box... he's not playing anymore!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("The Box Ghost opened Pandora's Box... he's not playing anymore!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD), false);
 		}
 	}
 
@@ -331,7 +331,7 @@ public class CrateKingEntity extends AbstractGhostEntity implements Monster {
 		super.readCustomDataFromNbt(nbt);
 		if (nbt.getBoolean("Evil")) {
 			dataTracker.set(EVIL, true);
-			bossBar.setName(Text.literal("The Crate King, Unboxed").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+			bossBar.setName(Text.literal("The Box Ghost, Unboxed").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
 			bossBar.setColor(BossBar.Color.PURPLE);
 		}
 	}

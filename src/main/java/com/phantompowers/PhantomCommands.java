@@ -197,7 +197,7 @@ public final class PhantomCommands {
 					BlockPos keep = GhostZoneLife.nearestCrateKeep(zone, at);
 					GhostZoneLife.ensureCrateKeep(zone, keep);
 					p.teleport(zone, keep.getX() + 0.5, keep.getY(), keep.getZ() + 22.5, 180f, 0f);
-					ctx.getSource().sendFeedback(() -> Text.literal("The Crate King's warehouse..."), false);
+					ctx.getSource().sendFeedback(() -> Text.literal("The Box Ghost's warehouse..."), false);
 					return 1;
 				}))
 				.then(CommandManager.literal("testcrate").executes(ctx -> {
@@ -221,7 +221,7 @@ public final class PhantomCommands {
 					BlockPos palace = GhostZoneLife.nearestPalace(zone, at);
 					GhostZoneLife.ensurePalace(zone, palace);
 					p.teleport(zone, palace.getX() + 0.5, palace.getY(), palace.getZ() + 15.5, 180f, 0f);
-					ctx.getSource().sendFeedback(() -> Text.literal("The Wishkeeper's palace... be careful what you wish for."), false);
+					ctx.getSource().sendFeedback(() -> Text.literal("Desiree's palace... be careful what you wish for."), false);
 					return 1;
 				}))
 				.then(CommandManager.literal("testthermos").executes(ctx -> {
@@ -348,10 +348,10 @@ public final class PhantomCommands {
 					}
 					ok &= ModBlocks.CLONING_POD.getDefaultState().contains(CloningPodBlock.ACTIVE);
 					if (!ok) {
-						ctx.getSource().sendError(Text.literal("Dolora test: FAILED"));
+						ctx.getSource().sendError(Text.literal("Penelope Spectra test: FAILED"));
 						return 0;
 					}
-					ctx.getSource().sendFeedback(() -> Text.literal("Dolora test: OK"), false);
+					ctx.getSource().sendFeedback(() -> Text.literal("Penelope Spectra test: OK"), false);
 					return 1;
 				}))
 				.then(CommandManager.literal("testdark").executes(ctx -> {

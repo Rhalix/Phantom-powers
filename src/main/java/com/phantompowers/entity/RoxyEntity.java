@@ -38,7 +38,7 @@ import net.minecraft.world.World;
 public class RoxyEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> HEARTBREAK = DataTracker.registerData(RoxyEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> POSE = DataTracker.registerData(RoxyEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Roxy").formatted(Formatting.LIGHT_PURPLE),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Kitty").formatted(Formatting.LIGHT_PURPLE),
 			BossBar.Color.PINK, BossBar.Style.NOTCHED_10);
 	private int kissCooldown = 40, volleyCooldown = 140, shriekCooldown = 90, repath;
 	/** Animation timers (synced): kiss pose and shriek pose. */
@@ -177,7 +177,7 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 		}
 		w.playSound(null, getX(), getY(), getZ(), com.phantompowers.ModSounds.KISS_SMOOCH, SoundCategory.HOSTILE, 1.8f, 0.9f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
-			p.sendMessage(Text.literal("Roxy: \"Kisses for everyone!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
+			p.sendMessage(Text.literal("Kitty: \"Kisses for everyone!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
 		}
 	}
 
@@ -202,24 +202,24 @@ public class RoxyEntity extends AbstractGhostEntity implements Monster {
 		if (hasVehicle()) stopRiding();
 		heal(getMaxHealth() * 0.25f);
 		kissCooldown = 10;
-		bossBar.setName(Text.literal("Roxy: VENGEFUL").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setName(Text.literal("Kitty: VENGEFUL").formatted(Formatting.RED, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		if (!heartbreak()) dataTracker.set(HEARTBREAK, true);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Roxy: \"REV!! ...Nobody hurts my guy!\"").formatted(Formatting.RED, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Kitty: \"REV!! ...Nobody hurts my guy!\"").formatted(Formatting.RED, Formatting.BOLD), false);
 		}
 	}
 
 	private void heartbreaker(ServerWorld w) {
 		dataTracker.set(HEARTBREAK, true);
-		bossBar.setName(Text.literal("Roxy: Heartbreaker").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
+		bossBar.setName(Text.literal("Kitty: Heartbreaker").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		heal(getMaxHealth() * 0.08f);
 		if (hasVehicle()) stopRiding();
 		w.spawnParticles(ParticleTypes.DAMAGE_INDICATOR, getX(), getY() + 1, getZ(), 30, 0.8, 1, 0.8, 0.1);
-		org.slf4j.LoggerFactory.getLogger("phantom").info("Roxy became the Heartbreaker (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Kitty became the Heartbreaker (stage two)");
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Roxy: \"Okay. Now you've broken my heart.\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Kitty: \"Okay. Now you've broken my heart.\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
 		}
 	}
 

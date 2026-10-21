@@ -109,11 +109,11 @@ jobs:
           grep -q "The Rage Wyvern went Berserk" server.log || { echo "Rage Wyvern stage two never triggered" >> problems.txt; ok=0; }
           grep -q "Chef Ghoulash became the Meat Monster" server.log || { echo "Chef Ghoulash stage two never triggered" >> problems.txt; ok=0; }
           grep -q "opened Pandora's Box" server.log || { echo "Crate King stage two never triggered" >> problems.txt; ok=0; }
-          grep -q "Summoned new Ghost Jailer" server.log || { echo "Summon test did not pass" >> problems.txt; grep -n -B1 -A2 "summon" server.log >> problems.txt; ok=0; }
+          grep -q "Summoned new Ghost Walker" server.log || { echo "Summon test did not pass" >> problems.txt; grep -n -B1 -A2 "summon" server.log >> problems.txt; ok=0; }
           grep -q "Boss test: OK" server.log || { echo "Boss moves test failed" >> problems.txt; grep -n -A5 "testbosses\|Boss test" server.log >> problems.txt; ok=0; }
           grep -q "Boss cleanup: OK" server.log || { echo "Boss cage cleanup failed" >> problems.txt; grep -n "Boss cleanup" server.log >> problems.txt; ok=0; }
           grep -q "Biker test: OK" server.log || { echo "Biker test failed" >> problems.txt; grep -n -A5 "testbikers\|Biker test" server.log >> problems.txt; ok=0; }
-          grep -q "Dolora test: OK" server.log || { echo "Dolora test failed" >> problems.txt; grep -n -A5 "testdolora\|Dolora test" server.log >> problems.txt; ok=0; }
+          grep -q "Penelope Spectra test: OK" server.log || { echo "Dolora test failed" >> problems.txt; grep -n -A5 "testdolora\|Dolora test" server.log >> problems.txt; ok=0; }
           grep -q "Zone test: OK" server.log || { echo "Zone test failed" >> problems.txt; grep -n -A3 "testzone\|Zone test" server.log >> problems.txt; ok=0; }
           grep -q "Dark test: OK" server.log || { echo "Dark test failed" >> problems.txt; grep -n -A3 "testdark\|Dark test" server.log >> problems.txt; ok=0; }
           grep -q "Gear test: OK" server.log || { echo "Gear test failed" >> problems.txt; grep -n -A3 "testgear\|Gear test" server.log >> problems.txt; ok=0; }

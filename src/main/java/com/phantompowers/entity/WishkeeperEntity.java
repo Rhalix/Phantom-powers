@@ -54,7 +54,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 	private static final DustParticleEffect GOLD = new DustParticleEffect(new Vector3f(1f, 0.82f, 0.25f), 1.4f);
 	private static final DustParticleEffect TEAL = new DustParticleEffect(new Vector3f(0.25f, 0.95f, 0.85f), 1.6f);
 
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("The Wishkeeper").formatted(Formatting.GOLD),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Desiree").formatted(Formatting.GOLD),
 			BossBar.Color.YELLOW, BossBar.Style.NOTCHED_10);
 	private int wishCooldown = 60;
 	private int orbCooldown = 40;
@@ -161,7 +161,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 
 	private void say(ServerWorld w, String line) {
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
-			p.sendMessage(Text.literal("The Wishkeeper: ").formatted(Formatting.GOLD).append(Text.literal(line).formatted(Formatting.YELLOW, Formatting.ITALIC)), false);
+			p.sendMessage(Text.literal("Desiree: ").formatted(Formatting.GOLD).append(Text.literal(line).formatted(Formatting.YELLOW, Formatting.ITALIC)), false);
 		}
 	}
 
@@ -268,7 +268,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 	private void wishStorm(ServerWorld w) {
 		dataTracker.set(STORM, true);
 		heal(getMaxHealth() * 0.1f);
-		bossBar.setName(Text.literal("The Wishkeeper: WISH STORM").formatted(Formatting.GOLD, Formatting.BOLD));
+		bossBar.setName(Text.literal("Desiree: WISH STORM").formatted(Formatting.GOLD, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.PURPLE);
 		EntityAttributeInstance speed = getAttributeInstance(EntityAttributes.GENERIC_FLYING_SPEED);
 		if (speed != null && speed.getModifier(PhantomMod.id("wish_storm")) == null) {
@@ -277,7 +277,7 @@ public class WishkeeperEntity extends AbstractGhostEntity implements Monster {
 		w.spawnParticles(GOLD, getX(), getY() + 2, getZ(), 200, 2, 2, 2, 0.2);
 		w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, getX(), getY() + 2, getZ(), 1, 0, 0, 0, 0);
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.5f, 1.5f);
-		org.slf4j.LoggerFactory.getLogger("phantom").info("The Wishkeeper called up a Wish Storm (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Desiree called up a Wish Storm (stage two)");
 		say(w, "\"Enough! I wish for a STORM!\"");
 	}
 

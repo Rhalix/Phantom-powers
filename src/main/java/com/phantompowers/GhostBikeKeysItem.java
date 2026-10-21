@@ -38,7 +38,7 @@ public class GhostBikeKeysItem extends Item {
 
 	@Override
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-		tooltip.add(Text.literal("Use on the ground to summon Rev's ghost bike").formatted(Formatting.GRAY));
+		tooltip.add(Text.literal("Use on the ground to summon Johnny 13's ghost bike").formatted(Formatting.GRAY));
 		tooltip.add(Text.literal("Steers where you look. Sprint = nitro, jump = hop").formatted(Formatting.DARK_GRAY));
 		tooltip.add(Text.literal("Sneak + right-click the bike to pocket it").formatted(Formatting.DARK_GRAY));
 	}

@@ -47,7 +47,7 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 	private float pointAnim;
 	private float prevPointAnim;
 	private static final DustParticleEffect CHAIN = new DustParticleEffect(new Vector3f(0.6f, 0.65f, 0.7f), 1.2f);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Ghost Jailer").formatted(Formatting.DARK_GREEN),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Ghost Walker").formatted(Formatting.DARK_GREEN),
 			BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
 	private int chainCooldown = 60;
 	private int summonCooldown = 200;
@@ -225,21 +225,21 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 	public void lockUp(ServerWorld w, LivingEntity target) {
 		cast(16);
 		if (BossMoves.cage(w, target, net.minecraft.block.Blocks.IRON_BARS, enraged ? 120 : 80) > 0 && target instanceof ServerPlayerEntity p) {
-			p.sendMessage(Text.literal("Ghost Jailer: \"Back in your cell!\"").formatted(Formatting.DARK_GREEN, Formatting.BOLD), true);
+			p.sendMessage(Text.literal("Ghost Walker: \"Back in your cell!\"").formatted(Formatting.DARK_GREEN, Formatting.BOLD), true);
 		}
 		target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 3), this);
 	}
 
 	private void enrage(ServerWorld w) {
 		enraged = true;
-		bossBar.setName(Text.literal("Ghost Jailer: LOCKDOWN").formatted(Formatting.DARK_GREEN, Formatting.BOLD));
+		bossBar.setName(Text.literal("Ghost Walker: LOCKDOWN").formatted(Formatting.DARK_GREEN, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.JAILER_ROAR, SoundCategory.HOSTILE, 4.0f, 0.6f);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_BELL_USE, SoundCategory.HOSTILE, 3.0f, 0.5f);
 		w.spawnParticles(CHAIN, getX(), getY() + 2, getZ(), 120, 2, 2, 2, 0.1);
-		org.slf4j.LoggerFactory.getLogger("phantom").info("Ghost Jailer went into Lockdown (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Ghost Walker went into Lockdown (stage two)");
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Ghost Jailer: \"LOCKDOWN! Nobody escapes my prison!\"").formatted(Formatting.DARK_GREEN, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Ghost Walker: \"LOCKDOWN! Nobody escapes my prison!\"").formatted(Formatting.DARK_GREEN, Formatting.BOLD), false);
 		}
 	}
 
@@ -269,7 +269,7 @@ public class GhostJailerEntity extends AbstractGhostEntity implements Monster {
 				g.clearHome();
 			}
 			for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 96 * 96)) {
-				p.sendMessage(Text.literal("The Ghost Jailer is defeated! The prison cells fall open...").formatted(Formatting.GREEN), false);
+				p.sendMessage(Text.literal("The Ghost Walker is defeated! The prison cells fall open...").formatted(Formatting.GREEN), false);
 			}
 		}
 	}

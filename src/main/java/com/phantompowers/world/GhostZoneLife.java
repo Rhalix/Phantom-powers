@@ -303,7 +303,7 @@ public final class GhostZoneLife {
 		switch (lair) {
 			case PRISON -> {
 				GhostPrison.spawnJailer(zone, GhostPrison.bossSpot(c, GhostPrison.isSpire(key)), 20f, true);
-				name = "The Ghost Jailer has returned to his prison!";
+				name = "The Ghost Walker has returned to his prison!";
 			}
 			case CRATE_KEEP -> {
 				CrateKingEntity k = ModEntities.CRATE_KING.create(zone);
@@ -313,7 +313,7 @@ public final class GhostZoneLife {
 					k.setPersistent();
 					zone.spawnEntity(k);
 				}
-				name = "The Crate King is back in his warehouse!";
+				name = "The Box Ghost is back in his warehouse!";
 			}
 			case ROAD -> {
 				GhostHighway.spawnBosses(zone, c);
@@ -321,11 +321,11 @@ public final class GhostZoneLife {
 			}
 			case MANOR -> {
 				GloomManor.spawnBoss(zone, c);
-				name = "The lights flicker in the Gloom Manor... Counselor Dolora is \"in session\" again.";
+				name = "The lights flicker in the Gloom Manor... Counselor Penelope Spectra is \"in session\" again.";
 			}
 			case PALACE -> {
 				WishPalace.spawnBoss(zone, c);
-				name = "The Wishkeeper has returned to her palace... careful what you wish for!";
+				name = "Desiree has returned to her palace... careful what you wish for!";
 			}
 			default -> {
 				VoltageEntity v = ModEntities.VOLTAGE.create(zone);

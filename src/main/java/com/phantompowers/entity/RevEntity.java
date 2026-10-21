@@ -44,7 +44,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> SHADOW_PHASE = DataTracker.registerData(RevEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> CHARGE = DataTracker.registerData(RevEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Boolean> RIDE_OR_DIE = DataTracker.registerData(RevEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Rev").formatted(Formatting.GRAY),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Johnny 13").formatted(Formatting.GRAY),
 			BossBar.Color.WHITE, BossBar.Style.NOTCHED_10);
 	private int ramCooldown = 70, burnCooldown = 160, shadeCooldown;
 	private int ramTicks;
@@ -209,7 +209,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.HOSTILE, 1.8f, 1.6f);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.HOSTILE, 1.5f, 0.5f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
-			p.sendMessage(Text.literal("Rev: \"Outta my way!\"").formatted(Formatting.GRAY, Formatting.BOLD), true);
+			p.sendMessage(Text.literal("Johnny 13: \"Outta my way!\"").formatted(Formatting.GRAY, Formatting.BOLD), true);
 		}
 	}
 
@@ -290,8 +290,8 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 		w.playSound(null, getX(), getY(), getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2.5f, 1.5f);
 		org.slf4j.LoggerFactory.getLogger("phantom").info("The Biker Couple went Ride or Die (couple stage two)");
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Roxy: \"Ride or die, babe!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
-			p.sendMessage(Text.literal("Rev: \"Hang on tight. Shade, you too!\"").formatted(Formatting.GRAY, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Kitty: \"Ride or die, babe!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Johnny 13: \"Hang on tight. Shadow, you too!\"").formatted(Formatting.GRAY, Formatting.BOLD), false);
 		}
 	}
 
@@ -306,11 +306,11 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 					net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE));
 		}
 		ramCooldown = 20;
-		bossBar.setName(Text.literal("Rev: VENGEFUL").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setName(Text.literal("Johnny 13: VENGEFUL").formatted(Formatting.RED, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		if (!shadowPhase()) startShadowPhase(w);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Rev: \"ROXY!! ...You're gonna pay for that.\"").formatted(Formatting.RED, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Johnny 13: \"ROXY!! ...You're gonna pay for that.\"").formatted(Formatting.RED, Formatting.BOLD), false);
 		}
 	}
 
@@ -352,7 +352,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 			lapTicks = 70;
 			lapAngle = Math.atan2(getZ() - target.getZ(), getX() - target.getX());
 			for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
-				p.sendMessage(Text.literal("Roxy: \"Love lap!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
+				p.sendMessage(Text.literal("Kitty: \"Love lap!\"").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), true);
 			}
 			return true;
 		}
@@ -401,7 +401,7 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 
 	private void startShadowPhase(ServerWorld w) {
 		dataTracker.set(SHADOW_PHASE, true);
-		bossBar.setName(Text.literal("Rev & his Shade").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
+		bossBar.setName(Text.literal("Johnny 13 & his Shadow").formatted(Formatting.DARK_PURPLE, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.PURPLE);
 		heal(getMaxHealth() * 0.08f);
 		summonShade(w);
@@ -413,9 +413,9 @@ public class RevEntity extends AbstractGhostEntity implements Monster {
 			roxy.addVelocity(0, 0.6, 0);
 			roxy.velocityModified = true;
 		}
-		org.slf4j.LoggerFactory.getLogger("phantom").info("Rev let his Shade loose (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Johnny 13 let his Shadow loose (stage two)");
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 80 * 80)) {
-			p.sendMessage(Text.literal("Rev: \"Shade! Sic 'em!\"").formatted(Formatting.DARK_PURPLE, Formatting.BOLD), false);
+			p.sendMessage(Text.literal("Johnny 13: \"Shadow! Sic 'em!\"").formatted(Formatting.DARK_PURPLE, Formatting.BOLD), false);
 		}
 	}
 
