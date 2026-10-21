@@ -57,7 +57,7 @@ public class WyvernFireballEntity extends ThrownItemEntity {
 	private void burst(ServerWorld w) {
 		Entity owner = getOwner();
 		for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(2.2), e -> e instanceof LivingEntity && e != owner
-				&& !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity))) {
+				&& !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity) && !(e instanceof TownspersonEntity))) {
 			e.damage(getDamageSources().mobProjectile(this, owner instanceof LivingEntity le ? le : null), damage);
 			e.setOnFireFor(3);
 		}

@@ -169,8 +169,9 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, SoundCategory.HOSTILE, 2f, 0.6f);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 1.2f, 1.8f);
 		if (!wearer.isEmpty()) {
-			VillagerEntity v = net.minecraft.entity.EntityType.VILLAGER.create(w);
+			TownspersonEntity v = com.phantompowers.ModEntities.TOWNSPERSON.create(w);
 			if (v != null) {
+				v.setVariant(TownspersonEntity.PAIGE);
 				Vec3d g = BossMoves.ground(w, getPos());
 				v.refreshPositionAndAngles(g.x, g.y, g.z, getYaw(), 0);
 				v.setCustomName(Text.literal(wearer));
@@ -222,9 +223,9 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 			}
 			if (breathTicks % 5 == 0) {
 				BossMoves.coneHit(w, this, mouth, breathDir, berserk() ? 13 : 10, 0.86, getDamageSources().mobAttack(this), berserk() ? 4f : 3f, 0.2,
-						e -> !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity));
+						e -> !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity) && !(e instanceof TownspersonEntity));
 				for (Entity e : w.getOtherEntities(this, getBoundingBox().stretch(breathDir.multiply(12)).expand(1.5),
-						e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity))) {
+						e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity) && !(e instanceof TownspersonEntity))) {
 					Vec3d to = e.getPos().add(0, e.getHeight() * 0.5, 0).subtract(mouth);
 					if (to.lengthSquared() < 13 * 13 && to.normalize().dotProduct(breathDir) > 0.86) e.setOnFireFor(4);
 				}
@@ -238,7 +239,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 			Vec3d to = target.getPos().add(0, 1, 0).subtract(getPos());
 			if (diveTicks > 8) setVelocity(to.normalize().multiply(berserk() ? 1.25 : 1.0));
 			else setVelocity(getVelocity().multiply(0.8).add(0, 0.12, 0));
-			for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(0.6), e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity))) {
+			for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(0.6), e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity) && !(e instanceof TownspersonEntity))) {
 				if (e.damage(getDamageSources().mobAttack(this), berserk() ? 11f : 8f)) {
 					Vec3d push = e.getPos().subtract(getPos()).multiply(1, 0, 1).normalize();
 					e.addVelocity(push.x * 1.4, 0.7, push.z * 1.4);
@@ -302,7 +303,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 	/** Spins and lashes everything nearby with its tail. */
 	public void tailSwipe(ServerWorld w) {
 		swipeAnim = 12;
-		for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(3.5), e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity))) {
+		for (Entity e : w.getOtherEntities(this, getBoundingBox().expand(3.5), e -> e instanceof LivingEntity && !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity) && !(e instanceof TownspersonEntity))) {
 			e.damage(getDamageSources().mobAttack(this), berserk() ? 9f : 7f);
 			Vec3d push = e.getPos().subtract(getPos()).multiply(1, 0, 1);
 			push = push.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : push.normalize();

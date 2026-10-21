@@ -62,11 +62,14 @@ public final class AmityPark {
 	public static final class State extends PersistentState {
 		public static final PersistentState.Type<State> TYPE = new PersistentState.Type<>(State::new, State::fromNbt, null);
 		public boolean built;
+		/** Windows, fences and railings joined up to their neighbours (towns built before this fix get it done once). */
+		public boolean connected;
 		public BlockPos center = BlockPos.ORIGIN;
 
 		static State fromNbt(NbtCompound n, RegistryWrapper.WrapperLookup lookup) {
 			State s = new State();
 			s.built = n.getBoolean("built");
+			s.connected = n.getBoolean("connected");
 			s.center = BlockPos.fromLong(n.getLong("center"));
 			return s;
 		}
@@ -74,6 +77,7 @@ public final class AmityPark {
 		@Override
 		public NbtCompound writeNbt(NbtCompound n, RegistryWrapper.WrapperLookup lookup) {
 			n.putBoolean("built", built);
+			n.putBoolean("connected", connected);
 			n.putLong("center", center.asLong());
 			return n;
 		}
@@ -140,8 +144,55 @@ public final class AmityPark {
 	}
 
 	/** Called every server tick: does a few milliseconds of work on the town, so the game never freezes. */
+	static boolean joins(BlockState s) {
+		Block b = s.getBlock();
+		return b instanceof net.minecraft.block.PaneBlock || b instanceof net.minecraft.block.FenceBlock || b instanceof net.minecraft.block.WallBlock
+				|| b instanceof StairsBlock;
+	}
+
+	static void join(ServerWorld w, BlockPos p) {
+		BlockState s = w.getBlockState(p);
+		if (!joins(s)) return;
+		BlockState n = Block.postProcessState(s, w, p);
+		if (n != s) w.setBlockState(p, n, Block.NOTIFY_LISTENERS);
+	}
+
+	/** Fixing up a town built before windows joined up: the next column of x to do. */
+	private static int repairX = Integer.MIN_VALUE;
+
+	private static void repair(MinecraftServer server) {
+		State st = state(server);
+		ServerWorld w = server.getOverworld();
+		BlockPos c = st.center;
+		if (repairX == Integer.MIN_VALUE) repairX = -R;
+		int outer = R;
+		BlockPos.Mutable m = new BlockPos.Mutable();
+		for (int x = repairX; x < Math.min(repairX + 3, outer + 1); x++) {
+			for (int z = -outer; z <= outer; z++) {
+				int cx = c.getX() + x, cz = c.getZ() + z;
+				if (!w.isChunkLoaded(net.minecraft.util.math.ChunkPos.toLong(cx >> 4, cz >> 4))) continue;
+				for (int y = c.getY() - 11; y <= c.getY() + 28; y++) {
+					m.set(cx, y, cz);
+					if (joins(w.getBlockState(m))) join(w, m.toImmutable());
+				}
+			}
+		}
+		repairX += 3;
+		if (repairX > outer) {
+			st.connected = true;
+			st.markDirty();
+			repairX = Integer.MIN_VALUE;
+		}
+	}
+
 	public static void tick(MinecraftServer server) {
-		if (job == null) return;
+		if (job == null) {
+			// an older town: join up its windows a few columns at a time once someone is nearby (its chunks are loaded)
+			State st = state(server);
+			if (st.built && !st.connected && server.getTicks() % 2 == 0
+					&& server.getOverworld().isChunkLoaded(net.minecraft.util.math.ChunkPos.toLong(st.center.getX() >> 4, st.center.getZ() >> 4))) repair(server);
+			return;
+		}
 		State st = state(server);
 		ServerWorld w = server.getOverworld();
 		if (st.built) {
@@ -184,6 +235,7 @@ public final class AmityPark {
 				} while (job.next < job.tasks.size() && System.nanoTime() < until);
 				if (job.next >= job.tasks.size()) {
 					st.built = true;
+					st.connected = true;
 					st.center = job.center;
 					st.markDirty();
 					finish(w);
@@ -217,6 +269,7 @@ public final class AmityPark {
 		BlockPos c = new BlockPos(site.getX(), g, site.getZ());
 		new Builder(w, c).build();
 		st.built = true;
+		st.connected = true;
 		st.center = c;
 		st.markDirty();
 		return c;
@@ -360,8 +413,18 @@ public final class AmityPark {
 
 		// ------------------------------------------------------------ helpers
 
+		final java.util.List<BlockPos> joins = new java.util.ArrayList<>();
+
 		void set(int x, int y, int z, BlockState s) {
-			w.setBlockState(c.add(x, y - g, z), s, Block.NOTIFY_LISTENERS);
+			BlockPos p = c.add(x, y - g, z);
+			w.setBlockState(p, s, Block.NOTIFY_LISTENERS);
+			if (joins(s)) joins.add(p);
+		}
+
+		/** Glass panes, iron bars, fences, walls and stairs shape themselves to their neighbours, once everything is placed. */
+		void connect() {
+			for (BlockPos p : joins) join(w, p);
+			joins.clear();
 		}
 
 		BlockState get(int x, int y, int z) {
@@ -473,6 +536,7 @@ public final class AmityPark {
 			}
 			t.add(this::welcome);
 			t.add(this::lamps);
+			t.add(this::connect);
 			return t;
 		}
 

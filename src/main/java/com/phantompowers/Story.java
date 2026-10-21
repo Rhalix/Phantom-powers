@@ -10,7 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.passive.VillagerEntity;
+import com.phantompowers.entity.TownspersonEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
@@ -420,7 +420,7 @@ public final class Story {
 
 	private static boolean npcNear(ServerWorld w, ServerPlayerEntity p, String tag, double r) {
 		if (w != p.getServer().getOverworld()) return false;
-		return !w.getEntitiesByClass(VillagerEntity.class, p.getBoundingBox().expand(r), v -> v.getCommandTags().contains(tag)).isEmpty();
+		return !w.getEntitiesByClass(TownspersonEntity.class, p.getBoundingBox().expand(r), v -> v.getCommandTags().contains(tag)).isEmpty();
 	}
 
 	/** A new objective just started: set the scene. */
@@ -539,9 +539,9 @@ public final class Story {
 					spawnWyvern(w, c, p, AmityPark.parkFountain(c).add(4, 3, 0));
 			}
 			case CHECK_PAIGE -> {
-				if (t % 60 == 0 && w.getEntitiesByClass(VillagerEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(48),
+				if (t % 60 == 0 && w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(48),
 						v -> v.getCommandTags().contains("phantom_paige_saved")).isEmpty()) {
-					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Paige", "phantom_paige_saved", false, null);
+					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Paige", "phantom_paige_saved", true, TownspersonEntity.PAIGE);
 				}
 			}
 			default -> {}
@@ -587,16 +587,15 @@ public final class Story {
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON, SoundCategory.HOSTILE, 1f, 1.2f);
 	}
 
-	/** A story character (a villager that stands still). Only one per tag. */
-	private static VillagerEntity spawnNpc(ServerWorld w, Vec3d at, String name, String tag, boolean showName,
-			net.minecraft.village.VillagerProfession job) {
-		if (!w.getEntitiesByClass(VillagerEntity.class, new Box(BlockPos.ofFloored(at)).expand(64), v -> v.getCommandTags().contains(tag)).isEmpty()) return null;
-		var v = net.minecraft.entity.EntityType.VILLAGER.create(w);
+	/** A story character (standing still until the story lets them move). Only one per tag. */
+	private static TownspersonEntity spawnNpc(ServerWorld w, Vec3d at, String name, String tag, boolean showName, int look) {
+		if (!w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(at)).expand(64), v -> v.getCommandTags().contains(tag)).isEmpty()) return null;
+		var v = ModEntities.TOWNSPERSON.create(w);
 		if (v == null) return null;
+		v.setVariant(look);
 		v.refreshPositionAndAngles(at.x, at.y, at.z, w.random.nextFloat() * 360f, 0f);
 		v.setCustomName(Text.literal(name));
 		v.setCustomNameVisible(showName);
-		if (job != null) v.setVillagerData(v.getVillagerData().withProfession(job));
 		v.setPersistent();
 		v.setAiDisabled(true);
 		v.addCommandTag(tag);
@@ -606,15 +605,15 @@ public final class Story {
 	}
 
 	private static void spawnFriend(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.schoolDoor(c).add(-4, 0, 1.5), "Lena (your friend)", "phantom_story_friend", true, null);
+		spawnNpc(w, AmityPark.schoolDoor(c).add(-4, 0, 1.5), "Lena (your friend)", "phantom_story_friend", true, TownspersonEntity.LENA);
 	}
 
 	private static void spawnTeacher(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.schoolDoor(c).add(0, 0, 2), "Mr. Pemberton (teacher)", "phantom_story_teacher", true, net.minecraft.village.VillagerProfession.LIBRARIAN);
+		spawnNpc(w, AmityPark.schoolDoor(c).add(0, 0, 2), "Mr. Pemberton (teacher)", "phantom_story_teacher", true, TownspersonEntity.PEMBERTON);
 	}
 
 	private static void spawnPaigeInPark(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.parkGate(c), "Paige", "phantom_paige_park", true, null);
+		spawnNpc(w, AmityPark.parkGate(c), "Paige", "phantom_paige_park", true, TownspersonEntity.PAIGE);
 	}
 
 	/** The glowing amulet waiting by the pond (unless you've got it, or it's already there). */
@@ -630,15 +629,18 @@ public final class Story {
 	/** The dance around the park fountain: your date and a few classmates. */
 	private static void spawnDance(ServerWorld w, BlockPos c) {
 		Vec3d f = AmityPark.parkFountain(c);
-		for (var v : w.getEntitiesByClass(VillagerEntity.class, new Box(BlockPos.ofFloored(f)).expand(64), v -> v.getCommandTags().contains("phantom_paige_park"))) v.discard();
-		if (!w.getEntitiesByClass(VillagerEntity.class, new Box(BlockPos.ofFloored(f)).expand(24), v -> v.getCommandTags().contains("phantom_dance")).isEmpty()) return;
-		String[] names = {"Paige", "Marcus", "Tiffany", "Leon", "Jasmine", "Owen"};
-		for (int i = 0; i < names.length; i++) {
-			var v = net.minecraft.entity.EntityType.VILLAGER.create(w);
+		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(64), v -> v.getCommandTags().contains("phantom_paige_park"))) v.discard();
+		if (!w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(24), v -> v.getCommandTags().contains("phantom_dance")).isEmpty()) return;
+		int[] looks = {TownspersonEntity.PAIGE, TownspersonEntity.MARCUS, TownspersonEntity.TIFFANY, TownspersonEntity.LEON, TownspersonEntity.JASMINE, TownspersonEntity.OWEN};
+		for (int i = 0; i < looks.length; i++) {
+			var v = ModEntities.TOWNSPERSON.create(w);
 			if (v == null) continue;
-			double a = i * Math.PI * 2 / names.length;
+			v.setVariant(looks[i]);
+			v.setDancing(true);
+			String[] names = TownspersonEntity.NAMES;
+			double a = i * Math.PI * 2 / looks.length;
 			v.refreshPositionAndAngles(f.x + Math.cos(a) * 7, f.y, f.z + Math.sin(a) * 7, (float) Math.toDegrees(a) + 90f, 0f);
-			v.setCustomName(Text.literal(names[i]));
+			v.setCustomName(Text.literal(names[looks[i]]));
 			v.setCustomNameVisible(i == 0);
 			v.setPersistent();
 			v.setAiDisabled(true);
@@ -654,7 +656,7 @@ public final class Story {
 		ServerWorld w = p.getServerWorld();
 		removeOne(p, ModItems.RAGE_AMULET);
 		Vec3d at = AmityPark.parkFountain(c).add(4, 1, 0);
-		for (var v : w.getEntitiesByClass(VillagerEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(24),
+		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(24),
 				v -> v.getCommandTags().contains("phantom_dance_date"))) {
 			at = v.getPos();
 			v.discard();
@@ -694,8 +696,11 @@ public final class Story {
 		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Rage Wyvern").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("\"NOBODY TELLS ME WHAT TO DO!\"").formatted(Formatting.GRAY)));
 		// the other dancers run for it
-		for (var v : w.getEntitiesByClass(VillagerEntity.class, new Box(BlockPos.ofFloored(at)).expand(24),
-				v -> v.getCommandTags().contains("phantom_dance") && !v.getCommandTags().contains("phantom_dance_date"))) v.setAiDisabled(false);
+		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(at)).expand(24),
+				v -> v.getCommandTags().contains("phantom_dance") && !v.getCommandTags().contains("phantom_dance_date"))) {
+			v.setDancing(false);
+			v.setAiDisabled(false);
+		}
 	}
 
 	/** Chef Ghoulash bursts out of the cafeteria kitchen (unless she's already around). Round one: she escapes when hurt. */
@@ -781,7 +786,7 @@ public final class Story {
 			st.markDirty();
 		}
 		// Paige is back (the wyvern spawns her): tag her so "check on Paige" can find her
-		for (var v : w.getEntitiesByClass(VillagerEntity.class, wyvern.getBoundingBox().expand(6), v -> v.getCommandTags().contains("phantom_dance")
+		for (var v : w.getEntitiesByClass(TownspersonEntity.class, wyvern.getBoundingBox().expand(6), v -> v.getCommandTags().contains("phantom_dance")
 				&& v.getCustomName() != null && v.getCustomName().getString().startsWith("Paige"))) {
 			v.addCommandTag("phantom_paige_saved");
 			v.setAiDisabled(true);
@@ -867,7 +872,7 @@ public final class Story {
 	/** Story characters wave goodbye a little while after a mission ends. */
 	private static void cleanUpNpcs(ServerWorld w, ServerPlayerEntity p) {
 		com.phantompowers.entity.BossMoves.later(400, () -> {
-			for (var v : w.getEntitiesByClass(VillagerEntity.class, p.getBoundingBox().expand(128),
+			for (var v : w.getEntitiesByClass(TownspersonEntity.class, p.getBoundingBox().expand(128),
 					v -> v.getCommandTags().contains("phantom_story_npc") || v.getCommandTags().contains("phantom_dance") || v.getCommandTags().contains("phantom_story_teacher"))) {
 				w.spawnParticles(ParticleTypes.POOF, v.getX(), v.getY() + 1, v.getZ(), 8, 0.3, 0.5, 0.3, 0.02);
 				v.discard();

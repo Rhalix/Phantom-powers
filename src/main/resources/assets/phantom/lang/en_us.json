@@ -72,6 +72,8 @@
   "entity.phantom.roxy": "Roxy",
   "entity.phantom.chef_ghoulash": "Chef Ghoulash",
   "entity.phantom.rage_wyvern": "Rage Wyvern",
+  "entity.phantom.townsperson": "Townsperson",
+  "item.phantom.townsperson_spawn_egg": "Townsperson Spawn Egg",
   "entity.phantom.wyvern_fireball": "Ghost Fireball",
   "item.phantom.rage_wyvern_spawn_egg": "Rage Wyvern Spawn Egg",
   "item.phantom.rage_amulet": "Rage Amulet",
