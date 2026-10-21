@@ -532,7 +532,7 @@ public final class Story {
 		}
 		String date = "Paige";
 		p.sendMessage(Text.literal("You give " + date + " the amulet. She puts it on...").formatted(Formatting.GRAY), false);
-		p.sendMessage(Text.literal(date + ": "It's beautiful! ...Wait. You were supposed to pick me up an HOUR ago!"").formatted(Formatting.LIGHT_PURPLE), false);
+		p.sendMessage(Text.literal(date + ": \"It's beautiful! ...Wait. You were supposed to pick me up an HOUR ago!\"").formatted(Formatting.LIGHT_PURPLE), false);
 		p.sendMessage(Text.literal("The amulet flares red as she gets angrier and angrier...").formatted(Formatting.RED, Formatting.ITALIC), false);
 		spawnWyvern(w, c, p, at);
 	}
