@@ -401,6 +401,21 @@ public final class AmityPark {
 		return new Vec3d(c.getX() + 14.5, c.getY(), c.getZ() + 12.5);
 	}
 
+	/** In front of the Quick Stop corner store. */
+	public static Vec3d store(BlockPos c) {
+		return new Vec3d(c.getX() - 15.5, c.getY(), c.getZ() - 10.5);
+	}
+
+	/** Among the reading tables in the library. */
+	public static Vec3d library(BlockPos c) {
+		return new Vec3d(c.getX() + 80.5, c.getY(), c.getZ() - 33.5);
+	}
+
+	/** Open grass in the park between the gate and the fountain. */
+	public static Vec3d parkMeadow(BlockPos c) {
+		return new Vec3d(c.getX() + 24.5, c.getY(), c.getZ() + 20.5);
+	}
+
 	/** Beside the park fountain, where the dance is. */
 	public static Vec3d parkFountain(BlockPos c) {
 		return new Vec3d(c.getX() + 38.5, c.getY(), c.getZ() + 29.5);

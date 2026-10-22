@@ -170,5 +170,7 @@
   "block.phantom.locker": "Locker",
   "block.phantom.lab_console": "Lab Console",
   "block.phantom.bookcase": "Bookcase",
-  "block.phantom.potted_plant": "Potted Plant"
+  "block.phantom.potted_plant": "Potted Plant",
+  "entity.phantom.collector": "The Collector",
+  "item.phantom.collector_spawn_egg": "Collector Spawn Egg"
 }

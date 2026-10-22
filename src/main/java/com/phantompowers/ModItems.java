@@ -50,6 +50,8 @@ public final class ModItems {
 			new net.minecraft.item.SpawnEggItem(ModEntities.REV, 0x1C1C22, 0xC8CCD6, new Item.Settings()));
 	public static final Item RAGE_AMULET = Registry.register(Registries.ITEM, PhantomMod.id("rage_amulet"),
 			new RageAmuletItem(new Item.Settings().maxCount(1).rarity(net.minecraft.util.Rarity.EPIC)));
+	public static final Item COLLECTOR_EGG = Registry.register(Registries.ITEM, PhantomMod.id("collector_spawn_egg"),
+			new net.minecraft.item.SpawnEggItem(ModEntities.COLLECTOR, 0xB09660, 0x5AE6FF, new Item.Settings()));
 	public static final Item TOWNSPERSON_EGG = Registry.register(Registries.ITEM, PhantomMod.id("townsperson_spawn_egg"),
 			new net.minecraft.item.SpawnEggItem(ModEntities.TOWNSPERSON, 0xE8BE28, 0x3C5A96, new Item.Settings()));
 	public static final Item RAGE_WYVERN_EGG = Registry.register(Registries.ITEM, PhantomMod.id("rage_wyvern_spawn_egg"),
@@ -228,6 +230,7 @@ public final class ModItems {
 			e.add(CHEF_GHOULASH_EGG);
 			e.add(RAGE_WYVERN_EGG);
 			e.add(TOWNSPERSON_EGG);
+			e.add(COLLECTOR_EGG);
 		});
 	}
 }

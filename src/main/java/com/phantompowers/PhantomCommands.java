@@ -479,7 +479,36 @@ public final class PhantomCommands {
 							stand.discard();
 						}
 					}
-					story = story && chef && wyvernOk;
+					// the Collector (mission 4): every move, Upgraded, untouchable while chasing, and the story daze
+					boolean collectorOk = false;
+					{
+						var col = ModEntities.COLLECTOR.create(ow);
+						var chaser = ModEntities.COLLECTOR.create(ow);
+						var stand = net.minecraft.entity.EntityType.ARMOR_STAND.create(ow);
+						if (col != null && chaser != null && stand != null) {
+							net.minecraft.util.math.Vec3d m = com.phantompowers.world.AmityPark.parkMeadow(town);
+							col.refreshPositionAndAngles(m.x, m.y + 2, m.z, 0, 0);
+							chaser.refreshPositionAndAngles(m.x + 4, m.y + 2, m.z, 0, 0);
+							stand.refreshPositionAndAngles(m.x + 2, m.y, m.z, 0, 0);
+							col.addCommandTag(com.phantompowers.entity.CollectorEntity.STORY_TAG);
+							chaser.addCommandTag(com.phantompowers.entity.CollectorEntity.STORY_TAG);
+							chaser.addCommandTag(com.phantompowers.entity.CollectorEntity.CHASE_TAG);
+							ow.spawnEntity(col);
+							ow.spawnEntity(chaser);
+							ow.spawnEntity(stand);
+							col.testMoves(ow, stand);
+							boolean untouchable = !chaser.damage(ow.getDamageSources().magic(), 50f) && chaser.getHealth() == chaser.getMaxHealth();
+							col.damage(ow.getDamageSources().magic(), 9999f);
+							collectorOk = untouchable && col.upgraded() && col.isAlive() && col.dazed() && ThermosItem.canTrap(col) && !ThermosItem.canTrap(chaser)
+									&& Story.missionTitle(Story.HUNTER, 4).contains("Rare Catch");
+							for (var e : ow.getOtherEntities(null, col.getBoundingBox().expand(30), e -> e instanceof com.phantompowers.entity.WyvernFireballEntity
+									|| e instanceof com.phantompowers.entity.FoodProjectileEntity)) e.discard();
+							col.discard();
+							chaser.discard();
+							stand.discard();
+						}
+					}
+					story = story && chef && wyvernOk && collectorOk;
 					boolean sword = ModItems.ECTO_SWORD != null && !EctoSwordItem.lit(new net.minecraft.item.ItemStack(ModItems.ECTO_SWORD))
 							&& HunterPaint.cost(3)[0][0] == ModItems.PHANTOM_HEART && HunterPaint.gadgetCost(1).length == 4
 							&& !Party.allies(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()) && Slots.GADGETS.length == 4;

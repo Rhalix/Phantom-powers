@@ -421,6 +421,8 @@ public class PhantomClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(RageWyvernModel.LAYER, RageWyvernModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.RAGE_WYVERN, RageWyvernRenderer::new);
 		EntityRendererRegistry.register(ModEntities.TOWNSPERSON, TownspersonRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(CollectorModel.LAYER, CollectorModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.COLLECTOR, CollectorRenderer::new);
 		EntityRendererRegistry.register(ModEntities.WYVERN_FIREBALL, ctx -> new FlyingItemEntityRenderer<>(ctx, 1.4f, true));
 		EntityModelLayerRegistry.registerModelLayer(BackpackFeature.LAYER, BackpackFeature::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(GhostTail.LAYER, GhostTail::getTexturedModelData);

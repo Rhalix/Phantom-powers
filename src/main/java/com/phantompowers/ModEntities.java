@@ -146,6 +146,11 @@ public final class ModEntities {
 			EntityType.Builder.create(com.phantompowers.entity.TownspersonEntity::new, SpawnGroup.CREATURE)
 					.dimensions(0.6f, 1.8f).maxTrackingRange(10).build("townsperson"));
 
+	public static final EntityType<com.phantompowers.entity.CollectorEntity> COLLECTOR = Registry.register(Registries.ENTITY_TYPE,
+			PhantomMod.id("collector"),
+			EntityType.Builder.create(com.phantompowers.entity.CollectorEntity::new, SpawnGroup.MONSTER)
+					.dimensions(0.8f, 2.3f).maxTrackingRange(12).makeFireImmune().build("collector"));
+
 	public static final EntityType<CrateProjectileEntity> CRATE_PROJECTILE = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("crate_projectile"),
 			EntityType.Builder.<CrateProjectileEntity>create(CrateProjectileEntity::new, SpawnGroup.MISC)
@@ -185,6 +190,7 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(CHEF_GHOULASH, com.phantompowers.entity.ChefGhoulashEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(RAGE_WYVERN, com.phantompowers.entity.RageWyvernEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(TOWNSPERSON, com.phantompowers.entity.TownspersonEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(COLLECTOR, com.phantompowers.entity.CollectorEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(SHADE, com.phantompowers.entity.ShadeEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(VOLTAGE, VoltageEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(ROOM_GHOST, RoomGhostEntity.createAttributes());

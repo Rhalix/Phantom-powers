@@ -41,7 +41,7 @@ public final class Story {
 	 * storyMission is 1..MISSIONS while playing; 98 + n means "finished mission n and it was the last one at the time".
 	 * When new missions are added, those players move straight on to the next one.
 	 */
-	private static final int MISSIONS = 3, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
+	private static final int MISSIONS = 4, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
 	/** Objective lists got longer in version 2: anyone part-way through a mission from before starts its objectives again. */
 	private static final int VERSION = 2;
 
@@ -52,8 +52,9 @@ public final class Story {
 			TRAP_ANY = "trap_any", SCHOOL = "school", FRIEND = "friend", CAFETERIA = "cafeteria", CHEF1 = "chef1", CHEF_DAZED = "chef_dazed",
 			CHEF_TRAPPED = "chef_trapped", AMULET = "amulet", TALK_PAIGE = "talk_paige", SNEAK_PAIGE = "sneak_paige", OVERSHADOW = "overshadow",
 			TUNIC = "tunic", FOUNTAIN = "fountain", DANCE = "dance", WYVERN_DAZED = "wyvern_dazed", AMULET_PULLED = "amulet_pulled",
-			CHECK_PAIGE = "check_paige";
-	private static final int SCAN_CHECKS = 20, DANCE_CHECKS = 40;   // checks happen twice a second
+			CHECK_PAIGE = "check_paige", BOX = "box", ESCAPE = "escape", NAP = "nap", LIBRARY = "library", FOX = "fox",
+			COLLECTOR_DAZED = "collector_dazed", COLLECTOR_TRAPPED = "collector_trapped", TEACHER = "teacher";
+	private static final int SCAN_CHECKS = 20, DANCE_CHECKS = 40, NAP_CHECKS = 20, STUDY_CHECKS = 20;   // checks happen twice a second
 
 	private Story() {}
 
@@ -68,6 +69,7 @@ public final class Story {
 		if (mission >= LEGACY_DONE) return "Mission complete!";
 		if (mission == 2) return path == EVIL ? "Mission 2: Lunch Rush (Dark Side)" : "Mission 2: Lunch Rush";
 		if (mission == 3) return path == EVIL ? "Mission 3: Dance Disaster (Dark Side)" : "Mission 3: Dance Disaster";
+		if (mission == 4) return path == EVIL ? "Mission 4: Rare Catch (Dark Side)" : "Mission 4: Rare Catch";
 		return switch (path) {
 			case HUNTER -> "Mission 1: Ghost Must Die";
 			case EVIL -> "Mission 1: My Molecules Got All Rearranged (Dark Side)";
@@ -145,6 +147,39 @@ public final class Story {
 					s(FRIEND, "Let Lena know the ghost is caught")};
 			default -> new Step[0];
 		};
+		if (mission == 4) return switch (path) {
+			case HERO -> new Step[]{
+					s(BOX, "It's late, and the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
+					s(ESCAPE, "Something's been watching you... The Collector! He's too strong to fight. Get back to the Ghost Lab house!"),
+					s(NAP, "You were up all night. Take a nap on the couch in the Ghost Lab house (sit on it)"),
+					s(FRIEND, "You flunked your biology test! Find Lena outside Amity High"),
+					s(LIBRARY, "Lena says do an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
+					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
+					s(COLLECTOR_DAZED, "The Collector stole Lena's tablet to upgrade his gear, and now he wants the fox AND you! Fight him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Collector in the Thermos (right-click him with it)"),
+					s(TEACHER, "Hand your report in to Mr. Pemberton outside Amity High")};
+			case EVIL -> new Step[]{
+					s(BOX, "The Box Ghost is making a mess of YOUR town at the Quick Stop. Teach him a lesson (beat him or trap him)"),
+					s(ESCAPE, "A ghost hunter is stalking you: the Collector! Not now. Get back to the Ghost Lab house!"),
+					s(NAP, "Even villains need sleep. Nap on the couch in the Ghost Lab house (sit on it)"),
+					s(FRIEND, "You flunked biology. Annoying. Find Lena outside Amity High"),
+					s(LIBRARY, "Extra credit, ugh. Read up on rare animals in the library (stay inside a while)"),
+					s(FOX, "Find the rare snow fox in the park and study it (stay close to it)"),
+					s(COLLECTOR_DAZED, "The Collector stole Lena's tablet and upgraded his gear. Nobody collects YOU. Beat him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Collector in the Thermos. Your trophy now"),
+					s(TEACHER, "Hand your report in to Mr. Pemberton outside Amity High")};
+			case HUNTER -> new Step[]{
+					s(BOX, "Night patrol: the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
+					s(ESCAPE, "Ghost readings off the charts... the Collector wants your suit for his collection! Fall back to the Ghost Lab house!"),
+					s(NAP, "You've been on patrol all night. Rest on the couch in the Ghost Lab house (sit on it)"),
+					s(FRIEND, "You flunked your biology test! Find Lena outside Amity High"),
+					s(LIBRARY, "Lena suggests an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
+					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
+					s(COLLECTOR_DAZED, "The Collector stole Lena's tablet to upgrade his gear and he's hunting the fox! Fight him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Collector in the Thermos (right-click him with it)"),
+					s(TEACHER, "Hand your report in to Mr. Pemberton outside Amity High")};
+			default -> new Step[0];
+		};
 		if (mission == 3) return switch (path) {
 			case HERO -> new Step[]{
 					s(AMULET, "Something is glowing by the park pond. Go and find it"),
@@ -199,6 +234,8 @@ public final class Story {
 		switch (st.goal()) {
 			case KILL3 -> o += " (" + Math.min(3, d.storyCount) + "/3)";
 			case SCAN -> o += " (" + Math.min(100, d.storyCount * 100 / SCAN_CHECKS) + "%)";
+			case LIBRARY, FOX -> o += " (" + Math.min(100, d.storyCount * 100 / STUDY_CHECKS) + "%)";
+			case NAP -> o += " (" + Math.max(0, (NAP_CHECKS - d.storyCount) / 2) + "s)";
 			case DANCE -> o += " (" + Math.max(0, (DANCE_CHECKS - d.storyCount) / 2) + "s left)";
 			default -> {}
 		}
@@ -307,6 +344,11 @@ public final class Story {
 			case AMULET -> AmityPark.parkPond(c);
 			case TALK_PAIGE, SNEAK_PAIGE -> AmityPark.parkGate(c);
 			case FOUNTAIN, DANCE, CHECK_PAIGE -> AmityPark.parkFountain(c);
+			case BOX -> AmityPark.store(c);
+			case ESCAPE, NAP -> AmityPark.labHouseDoor(c);
+			case LIBRARY -> AmityPark.library(c);
+			case FOX, COLLECTOR_DAZED -> AmityPark.parkMeadow(c);
+			case TEACHER -> AmityPark.schoolDoor(c);
 			default -> null;
 		};
 	}
@@ -414,6 +456,13 @@ public final class Story {
 			case WYVERN_DAZED -> d.storyCount > 0 || (near(p, AmityPark.parkFountain(c), 64) && !w.getEntitiesByClass(RageWyvernEntity.class,
 					new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(64), e -> e.storyMode() && e.dazed()).isEmpty());
 			case CHECK_PAIGE -> npcNear(w, p, "phantom_paige_saved", 4);
+			case BOX, COLLECTOR_TRAPPED -> d.storyCount > 0;
+			case ESCAPE -> near(p, AmityPark.labHouseDoor(c), 10);
+			case NAP -> d.storyCount >= NAP_CHECKS || p.isSleeping();
+			case LIBRARY, FOX -> d.storyCount >= STUDY_CHECKS;
+			case COLLECTOR_DAZED -> d.storyCount > 0 || (near(p, AmityPark.parkMeadow(c), 80) && !w.getEntitiesByClass(com.phantompowers.entity.CollectorEntity.class,
+					new Box(BlockPos.ofFloored(AmityPark.parkMeadow(c))).expand(80), e -> e.storyMode() && !e.chasing() && e.dazed()).isEmpty());
+			case TEACHER -> npcNear(w, p, "phantom_story_teacher", 3.5);
 			default -> false;
 		};
 	}
@@ -444,6 +493,15 @@ public final class Story {
 			case TALK_PAIGE, SNEAK_PAIGE -> spawnPaigeInPark(w, c);
 			case FOUNTAIN -> spawnDance(w, c);
 			case WYVERN_DAZED -> startWyvern(p, c);
+			case BOX -> spawnBoxGhost(p, c);
+			case ESCAPE -> spawnCollector(p, c, true);
+			case NAP -> callOffChase(w, p);
+			case FOX -> spawnFox(w, c);
+			case COLLECTOR_DAZED -> {
+				p.sendMessage(Text.literal("Lena: \"My tablet! It's gone! I had your whole schedule on it...\"").formatted(Formatting.LIGHT_PURPLE), false);
+				spawnCollector(p, c, false);
+			}
+			case TEACHER -> spawnTeacher(w, c);
 			case SCAN -> p.sendMessage(Text.literal("The amulet hums and gets warmer whenever someone nearby is angry...").formatted(Formatting.GRAY), false);
 			case HUMAN -> p.sendMessage(Text.literal("Half human, half ghost... This is going to take some getting used to.").formatted(Formatting.GRAY), false);
 			default -> {}
@@ -537,6 +595,48 @@ public final class Story {
 				if (t % 40 == 0 && d.storyCount == 0 && near(p, AmityPark.parkFountain(c), 40)
 						&& w.getEntitiesByClass(RageWyvernEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(80), RageWyvernEntity::storyMode).isEmpty())
 					spawnWyvern(w, c, p, AmityPark.parkFountain(c).add(4, 3, 0));
+			}
+			case BOX -> {
+				if (t % 40 == 0 && d.storyCount == 0 && near(p, AmityPark.store(c), 40) && w.getEntitiesByClass(com.phantompowers.entity.CrateKingEntity.class,
+						new Box(BlockPos.ofFloored(AmityPark.store(c))).expand(64), e -> e.getCommandTags().contains("phantom_story_box")).isEmpty()) spawnBoxGhost(p, c);
+			}
+			case ESCAPE -> {
+				if (t % 40 == 0 && w.getEntitiesByClass(com.phantompowers.entity.CollectorEntity.class, p.getBoundingBox().expand(64), com.phantompowers.entity.CollectorEntity::chasing).isEmpty())
+					spawnCollector(p, c, true);
+			}
+			case NAP -> {
+				if (p.getVehicle() instanceof com.phantompowers.entity.SeatEntity && w.getBlockState(p.getVehicle().getBlockPos()).getBlock() instanceof SofaBlock) {
+					d.storyCount++;
+					st.markDirty();
+					if (d.storyCount % 6 == 0) w.spawnParticles(ParticleTypes.CLOUD, p.getX(), p.getY() + 1.6, p.getZ(), 2, 0.2, 0.1, 0.2, 0.01);
+					if (d.storyCount == NAP_CHECKS) p.sendMessage(Text.literal("Zzz... You wake up feeling a lot better. Wait, the biology test was TODAY?!").formatted(Formatting.GRAY), false);
+				}
+			}
+			case TEACHER -> {
+				if (t % 60 == 0) spawnTeacher(w, c);
+			}
+			case LIBRARY -> {
+				if (near(p, AmityPark.library(c), 9)) {
+					d.storyCount++;
+					st.markDirty();
+					if (d.storyCount % 4 == 0) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_BOOK_PAGE_TURN, SoundCategory.PLAYERS, 1f, 1f);
+					if (d.storyCount == STUDY_CHECKS) p.sendMessage(Text.literal("You read all about the rare snow fox. Somebody spotted one in the park!").formatted(Formatting.AQUA), false);
+				}
+			}
+			case FOX -> {
+				var foxes = w.getEntitiesByClass(net.minecraft.entity.passive.FoxEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkMeadow(c))).expand(80),
+						f -> f.getCommandTags().contains("phantom_story_fox"));
+				if (foxes.isEmpty()) {
+					if (t % 40 == 0) spawnFox(w, c);
+				} else if (p.squaredDistanceTo(foxes.get(0)) < 7 * 7) {
+					d.storyCount++;
+					st.markDirty();
+					if (d.storyCount == STUDY_CHECKS) p.sendMessage(Text.literal("Great notes! ...Uh oh. Something else is interested in the fox.").formatted(Formatting.AQUA), false);
+				}
+			}
+			case COLLECTOR_DAZED -> {
+				if (t % 40 == 0 && d.storyCount == 0 && near(p, AmityPark.parkMeadow(c), 48) && w.getEntitiesByClass(com.phantompowers.entity.CollectorEntity.class,
+						new Box(BlockPos.ofFloored(AmityPark.parkMeadow(c))).expand(80), e -> e.storyMode() && !e.chasing()).isEmpty()) spawnCollector(p, c, false);
 			}
 			case CHECK_PAIGE -> {
 				if (t % 60 == 0 && w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(48),
@@ -703,6 +803,79 @@ public final class Story {
 		}
 	}
 
+	/** The Box Ghost, crashing around outside the Quick Stop (a little weaker in the story). */
+	private static void spawnBoxGhost(ServerPlayerEntity p, BlockPos c) {
+		ServerWorld w = p.getServerWorld();
+		if (w != p.getServer().getOverworld()) return;
+		Vec3d at = AmityPark.store(c);
+		if (!w.getEntitiesByClass(com.phantompowers.entity.CrateKingEntity.class, new Box(BlockPos.ofFloored(at)).expand(64), e -> e.getCommandTags().contains("phantom_story_box")).isEmpty()) return;
+		var k = ModEntities.CRATE_KING.create(w);
+		if (k == null) return;
+		k.refreshPositionAndAngles(at.x, at.y + 1, at.z + 3, 0f, 0f);
+		k.addCommandTag("phantom_story_box");
+		var hp = k.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH);
+		if (hp != null) hp.setBaseValue(120);
+		k.setHealth(120);
+		k.setHome(BlockPos.ofFloored(at), 16f);
+		k.setTarget(p);
+		w.spawnEntity(k);
+		w.spawnParticles(GhostPowers.GREEN, k.getX(), k.getY() + 1, k.getZ(), 60, 0.8, 1, 0.8, 0.1);
+	}
+
+	/** The Collector: chasing you (round one, untouchable) or ready for the real fight in the park. */
+	private static void spawnCollector(ServerPlayerEntity p, BlockPos c, boolean chase) {
+		ServerWorld w = p.getServerWorld();
+		if (w != p.getServer().getOverworld()) return;
+		if (!chase && p.getPos().squaredDistanceTo(AmityPark.parkMeadow(c)) > 48 * 48) return;
+		if (!w.getEntitiesByClass(com.phantompowers.entity.CollectorEntity.class, p.getBoundingBox().expand(80), e -> e.storyMode() && e.chasing() == chase).isEmpty()) return;
+		var col = ModEntities.COLLECTOR.create(w);
+		if (col == null) return;
+		Vec3d at;
+		if (chase) {
+			Vec3d back = p.getRotationVec(1f).multiply(-1, 0, -1);
+			if (back.lengthSquared() < 1.0E-4) back = new Vec3d(1, 0, 0);
+			at = p.getPos().add(back.normalize().multiply(8)).add(0, 2, 0);
+			col.addCommandTag(com.phantompowers.entity.CollectorEntity.CHASE_TAG);
+		} else {
+			at = AmityPark.parkMeadow(c).add(0, 2, 0);
+			col.setHome(BlockPos.ofFloored(AmityPark.parkMeadow(c)).up(2), 28f);
+		}
+		col.refreshPositionAndAngles(at.x, at.y, at.z, 0f, 0f);
+		col.addCommandTag(com.phantompowers.entity.CollectorEntity.STORY_TAG);
+		col.setTarget(p);
+		w.spawnEntity(col);
+		w.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 70, 0.6, 1, 0.6, 0.1);
+		w.playSound(null, at.x, at.y, at.z, ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2f, 0.6f);
+		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("The Collector").formatted(Formatting.GOLD, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(chase ? "\"Such a RARE specimen...\"" : "\"Now, where were we?\"").formatted(Formatting.GRAY)));
+	}
+
+	/** You made it to the Ghost Lab: the Collector backs off (for now). */
+	private static void callOffChase(ServerWorld w, ServerPlayerEntity p) {
+		for (var col : w.getEntitiesByClass(com.phantompowers.entity.CollectorEntity.class, p.getBoundingBox().expand(96), com.phantompowers.entity.CollectorEntity::chasing)) {
+			w.spawnParticles(GhostPowers.GREEN, col.getX(), col.getY() + 1, col.getZ(), 60, 0.6, 1, 0.6, 0.1);
+			col.discard();
+		}
+		p.sendMessage(Text.literal("The Collector: \"Hide, then. I can wait. Every hunt ends with a trophy...\"").formatted(Formatting.GOLD), false);
+	}
+
+	/** The rare snow fox in the park. */
+	private static void spawnFox(ServerWorld w, BlockPos c) {
+		Vec3d at = AmityPark.parkMeadow(c);
+		if (!w.getEntitiesByClass(net.minecraft.entity.passive.FoxEntity.class, new Box(BlockPos.ofFloored(at)).expand(80), f -> f.getCommandTags().contains("phantom_story_fox")).isEmpty()) return;
+		var fox = net.minecraft.entity.EntityType.FOX.create(w);
+		if (fox == null) return;
+		fox.setVariant(net.minecraft.entity.passive.FoxEntity.Type.SNOW);
+		fox.refreshPositionAndAngles(at.x, at.y, at.z, 0f, 0f);
+		fox.setCustomName(Text.literal("Rare Snow Fox"));
+		fox.setCustomNameVisible(true);
+		fox.setPersistent();
+		fox.setInvulnerable(true);
+		fox.addCommandTag("phantom_story_fox");
+		w.spawnEntity(fox);
+	}
+
 	/** Chef Ghoulash bursts out of the cafeteria kitchen (unless she's already around). Round one: she escapes when hurt. */
 	private static void spawnChef(ServerPlayerEntity p, boolean announce, boolean roundOne) {
 		ServerWorld w = p.getServerWorld();
@@ -766,6 +939,26 @@ public final class Story {
 			}
 			return;
 		}
+		if (ghost instanceof com.phantompowers.entity.CollectorEntity col && col.storyMode()) {
+			GhostState st = GhostState.of(w.getServer());
+			for (ServerPlayerEntity p : w.getPlayers(sp -> sp == by || sp.squaredDistanceTo(ghost) < 64 * 64)) {
+				GhostData d = st.data(p.getUuid());
+				if (goal(d).equals(COLLECTOR_DAZED)) d.storyStep++;
+				if (goal(d).equals(COLLECTOR_TRAPPED)) d.storyCount = 1;
+				st.markDirty();
+			}
+			if (by != null) {
+				ItemStack tablet = new ItemStack(Items.MAP);
+				tablet.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("Lena's Tablet"));
+				give(by, tablet);
+				by.sendMessage(Text.literal("The Collector dropped Lena's tablet! You got it back.").formatted(Formatting.GREEN), false);
+			}
+			return;
+		}
+		if (ghost.getCommandTags().contains("phantom_story_box")) {
+			advanceNearby(w, by, ghost, BOX, 64);
+			return;
+		}
 		if (ghost instanceof AbstractGhostEntity && by != null) {
 			GhostState st = GhostState.of(w.getServer());
 			GhostData d = st.data(by.getUuid());
@@ -798,6 +991,10 @@ public final class Story {
 	public static void onDeath(LivingEntity victim, DamageSource source) {
 		if (!(victim instanceof AbstractGhostEntity)) return;
 		Entity killer = source.getAttacker();
+		if (victim.getCommandTags().contains("phantom_story_box") && victim.getWorld() instanceof ServerWorld w) {
+			advanceNearby(w, killer instanceof ServerPlayerEntity sp ? sp : null, victim, BOX, 64);
+			return;
+		}
 		if (!(killer instanceof ServerPlayerEntity p)) return;
 		GhostState st = GhostState.of(p.getServer());
 		GhostData d = st.data(p.getUuid());
@@ -828,6 +1025,11 @@ public final class Story {
 				case EVIL -> give(p, new ItemStack(ModItems.ESSENCES[GhostPowers.ESS_SHADE]));
 				default -> give(p, new ItemStack(ModItems.ESSENCES[GhostPowers.ESS_FRIENDLY], 2));
 			}
+		} else if (mission == 4) {
+			give(p, new ItemStack(ModItems.PHANTOM_HEART));
+			give(p, new ItemStack(ModItems.GHOST_CORE));
+			give(p, new ItemStack(ModItems.GHOST_NET, 4));
+			p.sendMessage(Text.literal("Mr. Pemberton: \"An A on the extra credit! ...Somehow you've raised your grade to a C. Congratulations.\"").formatted(Formatting.GRAY), false);
 		} else if (mission == 3) {
 			give(p, new ItemStack(ModItems.PHANTOM_HEART));
 			give(p, new ItemStack(ModItems.SPECTRAL_SHARD, 3));
@@ -894,6 +1096,11 @@ public final class Story {
 				.formatted(d.storyPath == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(objective(d)).formatted(Formatting.GRAY)));
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
+		if (d.storyMission == 4) p.sendMessage(Text.literal(switch (d.storyPath) {
+			case HUNTER -> "Another long night on ghost patrol... and you've got a biology test in the morning. Somewhere out there, a ghost hunter is hunting YOU.";
+			case EVIL -> "Busy night. A pest is smashing up the Quick Stop, there's a biology test tomorrow, and something out there has started collecting rare ghosts...";
+			default -> "Being half-ghost means a lot of late nights. Tonight the Box Ghost is acting up, and tomorrow is your biology test. Oh, and somebody out there collects rare things...";
+		}).formatted(Formatting.GRAY), false);
 		if (d.storyMission == 3) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "The Amity Park dance is tonight and you're on chaperone duty. But the ghost sensors just picked up something strange in the park...";
 			case EVIL -> "The big dance is tonight. You've got no date and no patience. But something in the park is calling to you: something angry...";
