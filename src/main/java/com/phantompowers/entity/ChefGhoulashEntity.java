@@ -47,7 +47,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> MEAT = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> DAZED = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> POSE = DataTracker.registerData(ChefGhoulashEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Chef Ghoulash (stage 1)").formatted(Formatting.GREEN),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Lunch Lady (stage 1)").formatted(Formatting.GREEN),
 			BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
 	private int throwCooldown = 30, barrageCooldown = 160, smackCooldown = 20, helperCooldown = 120, slamCooldown = 140, repath, tauntCooldown;
 	private int throwAnim, smackAnim;
@@ -165,7 +165,7 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 		if (dazed()) return;
 		dataTracker.set(DAZED, true);
 		setTarget(null);
-		bossBar.setName(Text.literal("Chef Ghoulash: DAZED (trap her with a Thermos!)").formatted(Formatting.YELLOW, Formatting.BOLD));
+		bossBar.setName(Text.literal("Lunch Lady: DAZED (trap her with a Thermos!)").formatted(Formatting.YELLOW, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.YELLOW);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.HOSTILE, 1.5f, 0.6f);
 		say(w, "Ooogh... my soufflé... it's fallen...", Formatting.YELLOW, false);
@@ -320,11 +320,11 @@ public class ChefGhoulashEntity extends AbstractGhostEntity implements Monster {
 			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(Text.literal("STAGE 2").formatted(Formatting.RED, Formatting.BOLD)));
 			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(Text.literal("The Meat Monster").formatted(Formatting.GOLD)));
 		}
-		bossBar.setName(Text.literal("Meat Monster (Chef Ghoulash, stage 2)").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setName(Text.literal("Meat Monster (Lunch Lady, stage 2)").formatted(Formatting.RED, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		w.spawnParticles(ParticleTypes.EXPLOSION, getX(), getY() + 1.5, getZ(), 6, 1, 1, 1, 0);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.HOSTILE, 2f, 0.8f);
-		org.slf4j.LoggerFactory.getLogger("phantom").info("Chef Ghoulash became the Meat Monster (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Lunch Lady became the Meat Monster (stage two)");
 		say(w, "You want to see MYSTERY MEAT?! I'll SHOW you mystery meat!", Formatting.RED, false);
 	}
 

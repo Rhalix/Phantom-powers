@@ -50,7 +50,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> BERSERK = DataTracker.registerData(RageWyvernEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> DAZED = DataTracker.registerData(RageWyvernEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> POSE = DataTracker.registerData(RageWyvernEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Rage Wyvern (stage 1)").formatted(Formatting.DARK_AQUA),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Princess Dorathea (stage 1)").formatted(Formatting.DARK_AQUA),
 			BossBar.Color.BLUE, BossBar.Style.NOTCHED_10);
 	private int breathCooldown = 60, fireballCooldown = 40, diveCooldown = 160, swipeCooldown = 30, repath;
 	private int breathTicks, diveTicks, swipeAnim, roarAnim;
@@ -146,7 +146,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		setTarget(null);
 		breathTicks = 0;
 		diveTicks = 0;
-		bossBar.setName(Text.literal("Rage Wyvern: DAZED (right-click it to pull off the amulet!)").formatted(Formatting.YELLOW, Formatting.BOLD));
+		bossBar.setName(Text.literal("Princess Dorathea: DAZED (right-click it to pull off the amulet!)").formatted(Formatting.YELLOW, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.YELLOW);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ENDER_DRAGON_HURT, SoundCategory.HOSTILE, 1.6f, 1.3f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
@@ -319,7 +319,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		dataTracker.set(BERSERK, true);
 		roarAnim = 30;
 		heal(getMaxHealth() * 0.1f);
-		bossBar.setName(Text.literal("Rage Wyvern: BERSERK (stage 2)").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setName(Text.literal("Princess Dorathea: BERSERK (stage 2)").formatted(Formatting.RED, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 2.5f, 0.9f);
 		w.spawnParticles(ParticleTypes.FLAME, getX(), getY() + 1, getZ(), 80, 1.5, 1, 1.5, 0.12);
@@ -329,7 +329,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(Text.literal("STAGE 2").formatted(Formatting.RED, Formatting.BOLD)));
 			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(Text.literal("The wyvern goes Berserk!").formatted(Formatting.GOLD)));
 		}
-		org.slf4j.LoggerFactory.getLogger("phantom").info("The Rage Wyvern went Berserk (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("The Princess Dorathea went Berserk (stage two)");
 	}
 
 	@Override

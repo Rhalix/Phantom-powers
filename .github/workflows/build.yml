@@ -106,9 +106,9 @@ jobs:
           grep -q "Breakout test: OK" server.log || { echo "Breakout test failed" >> problems.txt; grep -n -A3 "breakout\|Breakout" server.log >> problems.txt; ok=0; }
           grep -q "started her Encore" server.log || { echo "Voltage encore never triggered" >> problems.txt; ok=0; }
           grep -q "Summoned new Room Ghost\|Summoned new Librarian Specter" server.log || { echo "Room ghost summon failed" >> problems.txt; grep -n "room_ghost" server.log >> problems.txt; ok=0; }
-          grep -q "The Collector got Upgraded" server.log || { echo "Collector stage two never triggered" >> problems.txt; ok=0; }
-          grep -q "The Rage Wyvern went Berserk" server.log || { echo "Rage Wyvern stage two never triggered" >> problems.txt; ok=0; }
-          grep -q "Chef Ghoulash became the Meat Monster" server.log || { echo "Chef Ghoulash stage two never triggered" >> problems.txt; ok=0; }
+          grep -q "Slucker got Upgraded" server.log || { echo "Collector stage two never triggered" >> problems.txt; ok=0; }
+          grep -q "The Princess Dorathea went Berserk" server.log || { echo "Rage Wyvern stage two never triggered" >> problems.txt; ok=0; }
+          grep -q "Lunch Lady became the Meat Monster" server.log || { echo "Chef Ghoulash stage two never triggered" >> problems.txt; ok=0; }
           grep -q "opened Pandora's Box" server.log || { echo "Crate King stage two never triggered" >> problems.txt; ok=0; }
           grep -q "Summoned new Ghost Walker" server.log || { echo "Summon test did not pass" >> problems.txt; grep -n -B1 -A2 "summon" server.log >> problems.txt; ok=0; }
           grep -q "Boss test: OK" server.log || { echo "Boss moves test failed" >> problems.txt; grep -n -A5 "testbosses\|Boss test" server.log >> problems.txt; ok=0; }

@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 public class TownspersonEntity extends PathAwareEntity {
 	public static final int LENA = 0, PEMBERTON = 1, PAIGE = 2, MARCUS = 3, TIFFANY = 4, LEON = 5, JASMINE = 6, OWEN = 7;
 	public static final String[] SKINS = {"lena", "pemberton", "paige", "marcus", "tiffany", "leon", "jasmine", "owen"};
-	public static final String[] NAMES = {"Lena", "Mr. Pemberton", "Paige", "Marcus", "Tiffany", "Leon", "Jasmine", "Owen"};
+	public static final String[] NAMES = {"Sam", "Mr. Lancer", "Princess Dorathea", "Marcus", "Tiffany", "Leon", "Jasmine", "Owen"};
 	private static final TrackedData<Integer> VARIANT = DataTracker.registerData(TownspersonEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Boolean> DANCING = DataTracker.registerData(TownspersonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 

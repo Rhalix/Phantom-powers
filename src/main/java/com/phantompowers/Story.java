@@ -117,90 +117,90 @@ public final class Story {
 		if (mission == 2) return switch (path) {
 			case HERO -> new Step[]{
 					s(SCHOOL, "Head to Amity High (your new powers keep glitching!)"),
-					s(FRIEND, "Your friend Lena is starting a petition for a healthy lunch menu. Find her outside school and sign it"),
+					s(FRIEND, "Your friend Sam is starting a petition for a healthy lunch menu. Find her outside school and sign it"),
 					s(CAFETERIA, "The petition worked! Check out the new healthy menu in the school cafeteria"),
-					s(CHEF1, "Chef Ghoulash hates the new menu! Fight her"),
+					s(CHEF1, "Lunch Lady hates the new menu! Fight her"),
 					s(THERMOS, "She got away! Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "She'll be back for lunch. Get back to the cafeteria"),
-					s(CHEF_DAZED, "Round two! Fight Chef Ghoulash until she's dazed"),
-					s(CHEF_TRAPPED, "Trap Chef Ghoulash in the Thermos (right-click her with it)"),
-					s(FRIEND, "Tell Lena the cafeteria is safe again")};
+					s(CHEF_DAZED, "Round two! Fight Lunch Lady until she's dazed"),
+					s(CHEF_TRAPPED, "Trap Lunch Lady in the Thermos (right-click her with it)"),
+					s(FRIEND, "Tell Sam the cafeteria is safe again")};
 			case EVIL -> new Step[]{
 					s(SCHOOL, "Head to Amity High (your dark powers keep glitching!)"),
-					s(FRIEND, "Lena is collecting signatures for a healthy-menu petition outside school. Go and talk to her"),
+					s(FRIEND, "Sam is collecting signatures for a healthy-menu petition outside school. Go and talk to her"),
 					s(CAFETERIA, "The menu changed and somebody's furious. Go and see in the school cafeteria"),
 					s(CHEF1, "Some ghost is haunting YOUR school. Fight her"),
 					s(THERMOS, "She ran off! Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "She'll be back for lunch. Wait for her in the cafeteria"),
-					s(CHEF_DAZED, "Show Chef Ghoulash who's in charge: beat her until she's dazed"),
+					s(CHEF_DAZED, "Show Lunch Lady who's in charge: beat her until she's dazed"),
 					s(CHEF_TRAPPED, "Trap her in the Thermos. She works for you now"),
-					s(FRIEND, "Let Lena know there's a new boss in town")};
+					s(FRIEND, "Let Sam know there's a new boss in town")};
 			case HUNTER -> new Step[]{
 					s(SCHOOL, "Ghost activity at Amity High! Suit up and head there"),
-					s(FRIEND, "Ask Lena outside school about the ghost sightings"),
+					s(FRIEND, "Ask Sam outside school about the ghost sightings"),
 					s(CAFETERIA, "She says the cafeteria's haunted since the menu changed. Investigate"),
-					s(CHEF1, "Ghost! Fight Chef Ghoulash"),
+					s(CHEF1, "Ghost! Fight Lunch Lady"),
 					s(THERMOS, "She escaped! Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "Stake out the cafeteria: she'll be back for lunch"),
-					s(CHEF_DAZED, "Fight Chef Ghoulash until she's dazed"),
-					s(CHEF_TRAPPED, "Trap Chef Ghoulash in the Thermos (right-click her with it)"),
-					s(FRIEND, "Let Lena know the ghost is caught")};
+					s(CHEF_DAZED, "Fight Lunch Lady until she's dazed"),
+					s(CHEF_TRAPPED, "Trap Lunch Lady in the Thermos (right-click her with it)"),
+					s(FRIEND, "Let Sam know the ghost is caught")};
 			default -> new Step[0];
 		};
 		if (mission == 4) return switch (path) {
 			case HERO -> new Step[]{
 					s(BOX, "It's late, and the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
-					s(ESCAPE, "Something's been watching you... The Collector! He's too strong to fight. Get back to the Ghost Lab house!"),
+					s(ESCAPE, "Something's been watching you... Slucker! He's too strong to fight. Get back to the Ghost Lab house!"),
 					s(NAP, "You were up all night. Take a nap on the couch in the Ghost Lab house (sit on it)"),
-					s(FRIEND, "You flunked your biology test! Find Lena outside Amity High"),
-					s(LIBRARY, "Lena says do an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
+					s(FRIEND, "You flunked your biology test! Find Sam outside Amity High"),
+					s(LIBRARY, "Sam says do an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
 					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
-					s(COLLECTOR_DAZED, "The Collector stole Lena's tablet to upgrade his gear, and now he wants the fox AND you! Fight him until he's dazed"),
-					s(COLLECTOR_TRAPPED, "Trap the Collector in the Thermos (right-click him with it)"),
-					s(TEACHER, "Hand your report in to Mr. Pemberton outside Amity High")};
+					s(COLLECTOR_DAZED, "Slucker stole Sam's tablet to upgrade his gear, and now he wants the fox AND you! Fight him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Slucker in the Thermos (right-click him with it)"),
+					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
 			case EVIL -> new Step[]{
 					s(BOX, "The Box Ghost is making a mess of YOUR town at the Quick Stop. Teach him a lesson (beat him or trap him)"),
-					s(ESCAPE, "A ghost hunter is stalking you: the Collector! Not now. Get back to the Ghost Lab house!"),
+					s(ESCAPE, "A ghost hunter is stalking you: the Slucker! Not now. Get back to the Ghost Lab house!"),
 					s(NAP, "Even villains need sleep. Nap on the couch in the Ghost Lab house (sit on it)"),
-					s(FRIEND, "You flunked biology. Annoying. Find Lena outside Amity High"),
+					s(FRIEND, "You flunked biology. Annoying. Find Sam outside Amity High"),
 					s(LIBRARY, "Extra credit, ugh. Read up on rare animals in the library (stay inside a while)"),
 					s(FOX, "Find the rare snow fox in the park and study it (stay close to it)"),
-					s(COLLECTOR_DAZED, "The Collector stole Lena's tablet and upgraded his gear. Nobody collects YOU. Beat him until he's dazed"),
-					s(COLLECTOR_TRAPPED, "Trap the Collector in the Thermos. Your trophy now"),
-					s(TEACHER, "Hand your report in to Mr. Pemberton outside Amity High")};
+					s(COLLECTOR_DAZED, "Slucker stole Sam's tablet and upgraded his gear. Nobody collects YOU. Beat him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Slucker in the Thermos. Your trophy now"),
+					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
 			case HUNTER -> new Step[]{
 					s(BOX, "Night patrol: the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
-					s(ESCAPE, "Ghost readings off the charts... the Collector wants your suit for his collection! Fall back to the Ghost Lab house!"),
+					s(ESCAPE, "Ghost readings off the charts... the Slucker wants your suit for his collection! Fall back to the Ghost Lab house!"),
 					s(NAP, "You've been on patrol all night. Rest on the couch in the Ghost Lab house (sit on it)"),
-					s(FRIEND, "You flunked your biology test! Find Lena outside Amity High"),
-					s(LIBRARY, "Lena suggests an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
+					s(FRIEND, "You flunked your biology test! Find Sam outside Amity High"),
+					s(LIBRARY, "Sam suggests an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
 					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
-					s(COLLECTOR_DAZED, "The Collector stole Lena's tablet to upgrade his gear and he's hunting the fox! Fight him until he's dazed"),
-					s(COLLECTOR_TRAPPED, "Trap the Collector in the Thermos (right-click him with it)"),
-					s(TEACHER, "Hand your report in to Mr. Pemberton outside Amity High")};
+					s(COLLECTOR_DAZED, "Slucker stole Sam's tablet to upgrade his gear and he's hunting the fox! Fight him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Slucker in the Thermos (right-click him with it)"),
+					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
 			default -> new Step[0];
 		};
 		if (mission == 3) return switch (path) {
 			case HERO -> new Step[]{
 					s(AMULET, "Something is glowing by the park pond. Go and find it"),
-					s(TALK_PAIGE, "It'd make a great gift... Find Paige in the park and ask her to the dance"),
+					s(TALK_PAIGE, "It'd make a great gift... Find Princess Dorathea in the park and ask her to the dance"),
 					s(OVERSHADOW, "Your powers got you in trouble at school! Overshadow the teacher outside Amity High to talk your way out of it"),
 					s(TUNIC, "Get dressed up for the dance: wear a leather tunic (any colour)"),
 					s(FOUNTAIN, "Go to the dance at the park fountain (bring the amulet as a gift)"),
 					s(DANCE, "Dance! Stay on the dance floor by the fountain"),
-					s(WYVERN_DAZED, "The amulet turned Paige into a Rage Wyvern! Fight it until it's dazed"),
+					s(WYVERN_DAZED, "The amulet turned Princess Dorathea into a Princess Dorathea! Fight it until it's dazed"),
 					s(AMULET_PULLED, "Pull the amulet off the dazed wyvern (right-click it)"),
-					s(CHECK_PAIGE, "Check that Paige is okay")};
+					s(CHECK_PAIGE, "Check that Princess Dorathea is okay")};
 			case EVIL -> new Step[]{
 					s(AMULET, "Something full of rage is glowing by the park pond. Go and take it"),
-					s(SNEAK_PAIGE, "Paige is in the park. Turn invisible and sneak up on her"),
+					s(SNEAK_PAIGE, "Princess Dorathea is in the park. Turn invisible and sneak up on her"),
 					s(OVERSHADOW, "Overshadow the teacher outside Amity High and get yourself out of detention"),
 					s(TUNIC, "Crash the dance in style: wear a leather tunic (any colour)"),
 					s(FOUNTAIN, "Crash the dance at the park fountain (bring the amulet)"),
 					s(DANCE, "Make a scene: stay on the dance floor by the fountain"),
-					s(WYVERN_DAZED, "The amulet's rage got loose and made a Rage Wyvern! Beat it until it's dazed"),
+					s(WYVERN_DAZED, "The amulet's rage got loose and made a Princess Dorathea! Beat it until it's dazed"),
 					s(AMULET_PULLED, "Rip the amulet off the wyvern (right-click it). Its power is yours now"),
-					s(CHECK_PAIGE, "Go and see what's left of Paige")};
+					s(CHECK_PAIGE, "Go and see what's left of Princess Dorathea")};
 			case HUNTER -> new Step[]{
 					s(AMULET, "Strange ghost readings by the park pond. Find what's causing them"),
 					s(LAB_FLOOR, "Take the amulet to the Ghost Lab basement"),
@@ -208,9 +208,9 @@ public final class Story {
 					s(TUNIC, "You're chaperoning the dance tonight. Wear a leather tunic (any colour)"),
 					s(FOUNTAIN, "Chaperone the dance at the park fountain (bring the amulet)"),
 					s(DANCE, "Keep watch over the dance floor by the fountain"),
-					s(WYVERN_DAZED, "A Rage Wyvern is attacking the dance! Fight it until it's dazed"),
+					s(WYVERN_DAZED, "A Princess Dorathea is attacking the dance! Fight it until it's dazed"),
 					s(AMULET_PULLED, "Pull the amulet off the dazed wyvern (right-click it)"),
-					s(CHECK_PAIGE, "Check that Paige is okay")};
+					s(CHECK_PAIGE, "Check that Princess Dorathea is okay")};
 			default -> new Step[0];
 		};
 		return new Step[0];
@@ -498,7 +498,7 @@ public final class Story {
 			case NAP -> callOffChase(w, p);
 			case FOX -> spawnFox(w, c);
 			case COLLECTOR_DAZED -> {
-				p.sendMessage(Text.literal("Lena: \"My tablet! It's gone! I had your whole schedule on it...\"").formatted(Formatting.LIGHT_PURPLE), false);
+				p.sendMessage(Text.literal("Sam: \"My tablet! It's gone! I had your whole schedule on it...\"").formatted(Formatting.LIGHT_PURPLE), false);
 				spawnCollector(p, c, false);
 			}
 			case TEACHER -> spawnTeacher(w, c);
@@ -641,7 +641,7 @@ public final class Story {
 			case CHECK_PAIGE -> {
 				if (t % 60 == 0 && w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(48),
 						v -> v.getCommandTags().contains("phantom_paige_saved")).isEmpty()) {
-					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Paige", "phantom_paige_saved", true, TownspersonEntity.PAIGE);
+					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Princess Dorathea", "phantom_paige_saved", true, TownspersonEntity.PAIGE);
 				}
 			}
 			default -> {}
@@ -652,7 +652,7 @@ public final class Story {
 		String line = switch (d.storyPath) {
 			case HUNTER -> "All quiet so far... but the amulet in your pocket is getting hotter.";
 			case EVIL -> "Everyone's staring at you. Good.";
-			default -> "Paige: \"You're actually a pretty good dancer!\"";
+			default -> "Princess Dorathea: \"You're actually a pretty good dancer!\"";
 		};
 		p.sendMessage(Text.literal(line).formatted(Formatting.LIGHT_PURPLE), false);
 	}
@@ -705,15 +705,15 @@ public final class Story {
 	}
 
 	private static void spawnFriend(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.schoolDoor(c).add(-4, 0, 1.5), "Lena (your friend)", "phantom_story_friend", true, TownspersonEntity.LENA);
+		spawnNpc(w, AmityPark.schoolDoor(c).add(-4, 0, 1.5), "Sam (your friend)", "phantom_story_friend", true, TownspersonEntity.LENA);
 	}
 
 	private static void spawnTeacher(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.schoolDoor(c).add(0, 0, 2), "Mr. Pemberton (teacher)", "phantom_story_teacher", true, TownspersonEntity.PEMBERTON);
+		spawnNpc(w, AmityPark.schoolDoor(c).add(0, 0, 2), "Mr. Lancer (teacher)", "phantom_story_teacher", true, TownspersonEntity.PEMBERTON);
 	}
 
 	private static void spawnPaigeInPark(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.parkGate(c), "Paige", "phantom_paige_park", true, TownspersonEntity.PAIGE);
+		spawnNpc(w, AmityPark.parkGate(c), "Princess Dorathea", "phantom_paige_park", true, TownspersonEntity.PAIGE);
 	}
 
 	/** The glowing amulet waiting by the pond (unless you've got it, or it's already there). */
@@ -764,16 +764,16 @@ public final class Story {
 		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
 		switch (d.storyPath) {
 			case HUNTER -> {
-				p.sendMessage(Text.literal("Paige spots the amulet sticking out of your pocket and grabs it. \"Ooh, pretty!\"").formatted(Formatting.GRAY), false);
-				p.sendMessage(Text.literal("Paige: \"Hey! Give that back? It's MINE now! Don't tell me what to do!\"").formatted(Formatting.LIGHT_PURPLE), false);
+				p.sendMessage(Text.literal("Princess Dorathea spots the amulet sticking out of your pocket and grabs it. \"Ooh, pretty!\"").formatted(Formatting.GRAY), false);
+				p.sendMessage(Text.literal("Princess Dorathea: \"Hey! Give that back? It's MINE now! Don't tell me what to do!\"").formatted(Formatting.LIGHT_PURPLE), false);
 			}
 			case EVIL -> {
-				p.sendMessage(Text.literal("You toss the amulet to Paige, just to see what happens.").formatted(Formatting.GRAY), false);
-				p.sendMessage(Text.literal("Paige: \"What is this? Is this a JOKE? I am so SICK of you!\"").formatted(Formatting.LIGHT_PURPLE), false);
+				p.sendMessage(Text.literal("You toss the amulet to Princess Dorathea, just to see what happens.").formatted(Formatting.GRAY), false);
+				p.sendMessage(Text.literal("Princess Dorathea: \"What is this? Is this a JOKE? I am so SICK of you!\"").formatted(Formatting.LIGHT_PURPLE), false);
 			}
 			default -> {
-				p.sendMessage(Text.literal("You give Paige the amulet. She puts it on...").formatted(Formatting.GRAY), false);
-				p.sendMessage(Text.literal("Paige: \"It's beautiful! ...Wait. You stepped on my foot. AGAIN!\"").formatted(Formatting.LIGHT_PURPLE), false);
+				p.sendMessage(Text.literal("You give Princess Dorathea the amulet. She puts it on...").formatted(Formatting.GRAY), false);
+				p.sendMessage(Text.literal("Princess Dorathea: \"It's beautiful! ...Wait. You stepped on my foot. AGAIN!\"").formatted(Formatting.LIGHT_PURPLE), false);
 			}
 		}
 		p.sendMessage(Text.literal("The amulet flares red as she gets angrier and angrier...").formatted(Formatting.RED, Formatting.ITALIC), false);
@@ -785,7 +785,7 @@ public final class Story {
 		if (wy == null) return;
 		wy.refreshPositionAndAngles(at.x, at.y + 1, at.z, 0f, 0f);
 		wy.addCommandTag(RageWyvernEntity.STORY_TAG);
-		wy.setWearer("Paige");
+		wy.setWearer("Princess Dorathea");
 		wy.setHome(BlockPos.ofFloored(AmityPark.parkFountain(c)).up(4), 26f);
 		wy.setTarget(p);
 		w.spawnEntity(wy);
@@ -793,7 +793,7 @@ public final class Story {
 		w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y + 1, at.z, 120, 1.2, 1.5, 1.2, 0.15);
 		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 2.5f, 1.1f);
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Rage Wyvern").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Princess Dorathea").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("\"NOBODY TELLS ME WHAT TO DO!\"").formatted(Formatting.GRAY)));
 		// the other dancers run for it
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(at)).expand(24),
@@ -847,7 +847,7 @@ public final class Story {
 		w.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 70, 0.6, 1, 0.6, 0.1);
 		w.playSound(null, at.x, at.y, at.z, ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2f, 0.6f);
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("The Collector").formatted(Formatting.GOLD, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Slucker").formatted(Formatting.GOLD, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(chase ? "\"Such a RARE specimen...\"" : "\"Now, where were we?\"").formatted(Formatting.GRAY)));
 	}
 
@@ -857,7 +857,7 @@ public final class Story {
 			w.spawnParticles(GhostPowers.GREEN, col.getX(), col.getY() + 1, col.getZ(), 60, 0.6, 1, 0.6, 0.1);
 			col.discard();
 		}
-		p.sendMessage(Text.literal("The Collector: \"Hide, then. I can wait. Every hunt ends with a trophy...\"").formatted(Formatting.GOLD), false);
+		p.sendMessage(Text.literal("Slucker: \"Hide, then. I can wait. Every hunt ends with a trophy...\"").formatted(Formatting.GOLD), false);
 	}
 
 	/** The rare snow fox in the park. */
@@ -897,7 +897,7 @@ public final class Story {
 		w.playSound(null, chef.getX(), chef.getY(), chef.getZ(), ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2f, 0.7f);
 		if (announce) {
 			p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-			p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Chef Ghoulash").formatted(Formatting.GREEN, Formatting.BOLD)));
+			p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Lunch Lady").formatted(Formatting.GREEN, Formatting.BOLD)));
 			p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(roundOne ? "\"WHO CHANGED MY MENU?!\"" : "\"Lunch is SERVED!\"").formatted(Formatting.GRAY)));
 		}
 	}
@@ -949,9 +949,9 @@ public final class Story {
 			}
 			if (by != null) {
 				ItemStack tablet = new ItemStack(Items.MAP);
-				tablet.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("Lena's Tablet"));
+				tablet.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("Sam's Tablet"));
 				give(by, tablet);
-				by.sendMessage(Text.literal("The Collector dropped Lena's tablet! You got it back.").formatted(Formatting.GREEN), false);
+				by.sendMessage(Text.literal("Slucker dropped Sam's tablet! You got it back.").formatted(Formatting.GREEN), false);
 			}
 			return;
 		}
@@ -980,7 +980,7 @@ public final class Story {
 		}
 		// Paige is back (the wyvern spawns her): tag her so "check on Paige" can find her
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, wyvern.getBoundingBox().expand(6), v -> v.getCommandTags().contains("phantom_dance")
-				&& v.getCustomName() != null && v.getCustomName().getString().startsWith("Paige"))) {
+				&& v.getCustomName() != null && v.getCustomName().getString().startsWith("Princess Dorathea"))) {
 			v.addCommandTag("phantom_paige_saved");
 			v.setAiDisabled(true);
 			v.setCustomNameVisible(true);
@@ -1029,7 +1029,7 @@ public final class Story {
 			give(p, new ItemStack(ModItems.PHANTOM_HEART));
 			give(p, new ItemStack(ModItems.GHOST_CORE));
 			give(p, new ItemStack(ModItems.GHOST_NET, 4));
-			p.sendMessage(Text.literal("Mr. Pemberton: \"An A on the extra credit! ...Somehow you've raised your grade to a C. Congratulations.\"").formatted(Formatting.GRAY), false);
+			p.sendMessage(Text.literal("Mr. Lancer: \"An A on the extra credit! ...Somehow you've raised your grade to a C. Congratulations.\"").formatted(Formatting.GRAY), false);
 		} else if (mission == 3) {
 			give(p, new ItemStack(ModItems.PHANTOM_HEART));
 			give(p, new ItemStack(ModItems.SPECTRAL_SHARD, 3));
@@ -1104,12 +1104,12 @@ public final class Story {
 		if (d.storyMission == 3) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "The Amity Park dance is tonight and you're on chaperone duty. But the ghost sensors just picked up something strange in the park...";
 			case EVIL -> "The big dance is tonight. You've got no date and no patience. But something in the park is calling to you: something angry...";
-			default -> "The big dance is tonight and you want to ask Paige! You just need the perfect gift... and to stay out of trouble at school.";
+			default -> "The big dance is tonight and you want to ask Princess Dorathea! You just need the perfect gift... and to stay out of trouble at school.";
 		}).formatted(Formatting.GRAY), false);
 		if (d.storyMission == 2) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "Ghost sensors are going crazy over at Amity High. Something in the cafeteria is VERY unhappy...";
 			case EVIL -> "Your new powers keep acting up on their own. Meanwhile, some ghost is throwing a tantrum at Amity High. Nobody haunts YOUR town but you.";
-			default -> "Being half-ghost is harder than it looks: your powers keep going off by themselves! And your friend Lena is trying to change the school lunch menu...";
+			default -> "Being half-ghost is harder than it looks: your powers keep going off by themselves! And your friend Sam is trying to change the school lunch menu...";
 		}).formatted(Formatting.GRAY), false);
 		send(p, d, false);
 	}

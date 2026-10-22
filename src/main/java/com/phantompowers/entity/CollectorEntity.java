@@ -50,7 +50,7 @@ public class CollectorEntity extends AbstractGhostEntity implements Monster {
 	private static final TrackedData<Boolean> UPGRADED = DataTracker.registerData(CollectorEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Boolean> DAZED = DataTracker.registerData(CollectorEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 	private static final TrackedData<Integer> POSE = DataTracker.registerData(CollectorEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("The Collector (stage 1)").formatted(Formatting.GOLD),
+	private final ServerBossBar bossBar = new ServerBossBar(Text.literal("Slucker (stage 1)").formatted(Formatting.GOLD),
 			BossBar.Color.YELLOW, BossBar.Style.NOTCHED_10);
 	private int jarCooldown = 30, cageCooldown = 160, yankCooldown = 90, swipeCooldown = 20, rocketCooldown = 70, blinkCooldown = 120, repath, tauntCooldown = 60;
 	private int throwAnim, swipeAnim;
@@ -147,7 +147,7 @@ public class CollectorEntity extends AbstractGhostEntity implements Monster {
 		if (dazed()) return;
 		dataTracker.set(DAZED, true);
 		setTarget(null);
-		bossBar.setName(Text.literal("The Collector: DAZED (trap him with a Thermos!)").formatted(Formatting.YELLOW, Formatting.BOLD));
+		bossBar.setName(Text.literal("Slucker: DAZED (trap him with a Thermos!)").formatted(Formatting.YELLOW, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.YELLOW);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.HOSTILE, 1.5f, 0.7f);
 		say(w, "My armour... my beautiful collection...", Formatting.YELLOW, false);
@@ -293,16 +293,16 @@ public class CollectorEntity extends AbstractGhostEntity implements Monster {
 	private void upgrade(ServerWorld w) {
 		dataTracker.set(UPGRADED, true);
 		heal(getMaxHealth() * 0.1f);
-		bossBar.setName(Text.literal("The Collector: UPGRADED (stage 2)").formatted(Formatting.AQUA, Formatting.BOLD));
+		bossBar.setName(Text.literal("Slucker: UPGRADED (stage 2)").formatted(Formatting.AQUA, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.BLUE);
 		w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, getX(), getY() + 1.2, getZ(), 80, 0.8, 1, 0.8, 0.3);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.HOSTILE, 2f, 1.4f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
 			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket(5, 50, 15));
 			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(Text.literal("STAGE 2").formatted(Formatting.RED, Formatting.BOLD)));
-			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(Text.literal("The Collector is Upgraded!").formatted(Formatting.AQUA)));
+			p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(Text.literal("Slucker is Upgraded!").formatted(Formatting.AQUA)));
 		}
-		org.slf4j.LoggerFactory.getLogger("phantom").info("The Collector got Upgraded (stage two)");
+		org.slf4j.LoggerFactory.getLogger("phantom").info("Slucker got Upgraded (stage two)");
 		say(w, "Let's see what this little gadget can do... OH, how DELIGHTFUL!", Formatting.AQUA, false);
 	}
 

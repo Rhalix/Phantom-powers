@@ -14,17 +14,20 @@ import net.minecraft.util.math.MathHelper;
 
 /** Amity Park locals: player-shaped people with their own skins (slim arms for the girls), who bop along when dancing. */
 public class TownspersonRenderer extends MobEntityRenderer<TownspersonEntity, TownspersonRenderer.Model> {
-	private final Model wide, slim;
+	private final Model wide, slim, sam, lancer, princess;
 
 	public TownspersonRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx, new Model(ctx.getPart(EntityModelLayers.PLAYER), false), 0.5f);
 		this.wide = this.model;
 		this.slim = new Model(ctx.getPart(EntityModelLayers.PLAYER_SLIM), true);
+		this.sam = new Model(SamModelData.getTexturedModelData().createModel(), true);
+		this.lancer = new Model(LancerModelData.getTexturedModelData().createModel(), false);
+		this.princess = new Model(PrincessModelData.getTexturedModelData().createModel(), true);
 	}
 
 	@Override
 	public void render(TownspersonEntity e, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider consumers, int light) {
-		this.model = e.isFemale() ? slim : wide;
+		this.model = SamModelSelector.select(e, wide, slim, sam, lancer, princess);
 		super.render(e, yaw, tickDelta, matrices, consumers, light);
 	}
 

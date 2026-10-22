@@ -19,8 +19,12 @@ public class CollectorRenderer extends MobEntityRenderer<CollectorEntity, Collec
 	private static final Identifier GLOW = PhantomMod.id("textures/entity/collector_glow.png");
 	private static final Identifier UPGRADED_GLOW = PhantomMod.id("textures/entity/collector_upgraded_glow.png");
 
+	private final CollectorModel armored, green;
+
 	public CollectorRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx, new CollectorModel(ctx.getPart(CollectorModel.LAYER)), 0.6f);
+		this.armored = this.model;
+		this.green = new CollectorModel(CollectorGreenModelData.getTexturedModelData().createModel());
 		this.addFeature(new FeatureRenderer<>(this) {
 			@Override
 			public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, CollectorEntity e,
@@ -31,8 +35,14 @@ public class CollectorRenderer extends MobEntityRenderer<CollectorEntity, Collec
 	}
 
 	@Override
+	public void render(CollectorEntity e, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider consumers, int light) {
+		this.model = SluckerModels.model(e, armored, green);
+		super.render(e, yaw, tickDelta, matrices, consumers, light);
+	}
+
+	@Override
 	public Identifier getTexture(CollectorEntity e) {
-		return e.upgraded() ? UPGRADED : TEXTURE;
+		return SluckerModels.texture(e, TEXTURE, UPGRADED);
 	}
 
 	@Override

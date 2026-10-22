@@ -38,55 +38,70 @@ public class ChefModel extends SinglePartEntityModel<ChefGhoulashEntity> {
 		ModelData data = new ModelData();
 		ModelPartData r = data.getRoot();
 		ModelPartData p_body = r.addChild("body", ModelPartBuilder.create()
-				.uv(100, 0).cuboid(-4f, 0f, -2.5f, 8f, 7f, 5f)
-				.uv(32, 28).cuboid(-3.5f, 3f, -3.4f, 7f, 7f, 1f)
-				.uv(64, 16).cuboid(-5f, 6f, -3f, 10f, 4f, 6f, new Dilation(0.2f))
-				.uv(0, 37).cuboid(-4.5f, 1.25f, -3f, 9f, 3f, 1f, new Dilation(0f, -0.25f, 0f)),
+				.uv(2, 2).cuboid(-4.2f, 0f, -2.8f, 8.4f, 7f, 5.6f)
+				.uv(33, 2).cuboid(-4.7f, 6f, -3f, 9.4f, 4.3f, 6f)
+				.uv(67, 2).cuboid(-3.25f, 2f, -3.05f, 6.5f, 4.5f, 0.4f)
+				.uv(84, 2).cuboid(-3.1f, -0.2f, -3.15f, 0.75f, 4.5f, 0.45f)
+				.uv(90, 2).cuboid(-3.1f, -0.15f, 2.8f, 0.75f, 7.7f, 0.4f)
+				.uv(96, 2).cuboid(2.35f, -0.2f, -3.15f, 0.75f, 4.5f, 0.45f)
+				.uv(102, 2).cuboid(2.35f, -0.15f, 2.8f, 0.75f, 7.7f, 0.4f)
+				.uv(108, 2).cuboid(-3.9f, 6f, -3.32f, 7.8f, 4.3f, 0.45f)
+				.uv(128, 2).cuboid(-4.85f, 7f, -3.2f, 9.7f, 0.85f, 6.4f)
+				.uv(164, 2).cuboid(-0.6f, 7.1f, 3.3f, 1.2f, 1.2f, 0.7f)
+				.uv(171, 2).cuboid(-1.6f, 7f, 3.15f, 1.2f, 1.1f, 0.55f)
+				.uv(178, 2).cuboid(-1.2f, 8f, 3.15f, 0.65f, 2f, 0.4f)
+				.uv(184, 2).cuboid(0.5f, 7f, 3.15f, 1.2f, 1.1f, 0.55f)
+				.uv(191, 2).cuboid(0.9f, 8f, 3.15f, 0.65f, 2f, 0.4f),
 				ModelTransform.of(0f, 4f, 0f, 0f, 0f, 0f));
 		ModelPartData p_skirt = p_body.addChild("skirt", ModelPartBuilder.create()
-				.uv(0, 28).cuboid(-5f, 0f, -3f, 10f, 3f, 6f, new Dilation(0.25f)),
+				.uv(197, 2).cuboid(-5.1f, -0.7f, -3.2f, 10.2f, 5.8f, 6.4f)
+				.uv(234, 2).cuboid(-4f, -0.9f, -3.48f, 8f, 5.2f, 0.45f),
 				ModelTransform.of(0f, 10f, 0f, 0f, 0f, 0f));
 		ModelPartData p_head = p_body.addChild("head", ModelPartBuilder.create()
-				.uv(0, 0).cuboid(-4f, -8f, -4f, 8f, 8f, 8f)
-				.uv(82, 37).cuboid(-0.5f, -4.4f, -4.6f, 1f, 1f, 1f)
-				.uv(48, 37).cuboid(-3f, -1.25f, -3.2f, 6f, 2f, 1f, new Dilation(0f, -0.25f, 0f))
-				.uv(28, 16).cuboid(-4.5f, -9.5f, -4.5f, 9f, 2f, 9f)
-				.uv(32, 0).cuboid(-5f, -15.5f, -5f, 10f, 6f, 10f)
-				.uv(86, 37).cuboid(-4.6f, -5f, -2f, 1f, 1f, 1f)
-				.uv(90, 37).cuboid(3.6f, -5f, -2f, 1f, 1f, 1f)
-				.uv(0, 16).cuboid(-4.4f, -8f, -3.5f, 1f, 6f, 6f)
-				.uv(14, 16).cuboid(3.4f, -8f, -3.5f, 1f, 6f, 6f)
-				.uv(20, 37).cuboid(1.5f, -1.5f, -4.6f, 1f, 3f, 1f)
-				.uv(72, 28).cuboid(-4.6f, -6f, 1f, 1f, 2f, 4f),
+				.uv(2, 18).cuboid(-4f, -8f, -4f, 8f, 8f, 8f)
+				.uv(37, 18).cuboid(-0.65f, -4.4f, -4.45f, 1.3f, 1.25f, 0.65f)
+				.uv(44, 18).cuboid(-4.2f, -7.8f, 1.8f, 8.4f, 6.8f, 2.6f)
+				.uv(69, 18).cuboid(-4.45f, -6f, 0f, 0.9f, 4.8f, 3f)
+				.uv(80, 18).cuboid(-4.4f, -3f, 1.3f, 0.8f, 3f, 2f)
+				.uv(89, 18).cuboid(3.55f, -6f, 0f, 0.9f, 4.8f, 3f)
+				.uv(100, 18).cuboid(3.6f, -3f, 1.3f, 0.8f, 3f, 2f)
+				.uv(109, 18).cuboid(-4.5f, -8.8f, -4.45f, 9f, 1.8f, 8.9f)
+				.uv(148, 18).cuboid(-4.1f, -10.3f, -3.9f, 8.2f, 1.8f, 7.8f)
+				.uv(183, 18).cuboid(-4.4f, -7.1f, 3.05f, 8.8f, 3.2f, 1.4f),
 				ModelTransform.of(0f, 0f, 0f, 0f, 0f, 0f));
-		ModelPartData p_braid = p_head.addChild("braid", ModelPartBuilder.create()
-				.uv(48, 28).cuboid(-1.5f, 0f, -0.5f, 3f, 4f, 3f)
-				.uv(60, 28).cuboid(-1.5f, 4f, -0.5f, 3f, 4f, 3f, new Dilation(-0.25f, 0f, -0.25f))
-				.uv(24, 37).cuboid(-1.5f, 7.5f, -0.5f, 3f, 1f, 3f)
-				.uv(82, 28).cuboid(-1f, 8.5f, 0f, 2f, 3f, 2f),
+		ModelPartData p_braid = p_head.addChild("braid", ModelPartBuilder.create(),
 				ModelTransform.of(0f, -3f, 4f, 0.25f, 0f, 0f));
 		ModelPartData p_right_arm = r.addChild("right_arm", ModelPartBuilder.create()
-				.uv(72, 0).cuboid(-3f, -2f, -1.5f, 3f, 11f, 3f),
+				.uv(207, 18).cuboid(-3.3f, -2.2f, -1.9f, 3.6f, 3.6f, 3.8f)
+				.uv(225, 18).cuboid(-3f, 1f, -1.55f, 3f, 4.7f, 3.1f)
+				.uv(2, 37).cuboid(-3.15f, 5.5f, -1.7f, 3.3f, 3.5f, 3.4f)
+				.uv(19, 37).cuboid(-3f, 8.5f, -1.8f, 0.85f, 0.9f, 1.5f)
+				.uv(27, 37).cuboid(-1.97f, 8.5f, -1.8f, 0.85f, 0.9f, 1.5f)
+				.uv(35, 37).cuboid(-0.94f, 8.5f, -1.8f, 0.85f, 0.9f, 1.5f),
 				ModelTransform.of(-5f, 6f, 0f, 0f, 0f, 0f));
-		ModelPartData p_ladle = p_right_arm.addChild("ladle", ModelPartBuilder.create()
-				.uv(84, 0).cuboid(-0.5f, -2f, -0.5f, 1f, 13f, 1f)
-				.uv(90, 28).cuboid(-2f, 10.5f, -2f, 4f, 1f, 4f)
-				.uv(62, 37).cuboid(-2f, 8.5f, -2.2f, 4f, 2f, 1f, new Dilation(0f, 0f, -0.2f))
-				.uv(72, 37).cuboid(-2f, 8.5f, 1.2f, 4f, 2f, 1f, new Dilation(0f, 0f, -0.2f))
-				.uv(106, 28).cuboid(-2.2f, 8.5f, -1.5f, 1f, 2f, 3f, new Dilation(-0.2f, 0f, -0.1f))
-				.uv(114, 28).cuboid(1.2f, 8.5f, -1.5f, 1f, 2f, 3f, new Dilation(-0.2f, 0f, -0.1f))
-				.uv(36, 37).cuboid(-1.5f, 8.9f, -1.5f, 3f, 1f, 3f, new Dilation(-0.1f, -0.3f, -0.1f)),
+		ModelPartData p_ladle = p_right_arm.addChild("ladle", ModelPartBuilder.create(),
 				ModelTransform.of(-1.5f, 8f, -0.5f, 1.2f, 0f, 0f));
 		ModelPartData p_left_arm = r.addChild("left_arm", ModelPartBuilder.create()
-				.uv(88, 0).cuboid(0f, -2f, -1.5f, 3f, 11f, 3f),
+				.uv(43, 37).cuboid(-0.3f, -2.2f, -1.9f, 3.6f, 3.6f, 3.8f)
+				.uv(61, 37).cuboid(0f, 1f, -1.55f, 3f, 4.7f, 3.1f)
+				.uv(77, 37).cuboid(-0.15f, 5.5f, -1.7f, 3.3f, 3.5f, 3.4f)
+				.uv(94, 37).cuboid(0f, 8.5f, -1.8f, 0.85f, 0.9f, 1.5f)
+				.uv(102, 37).cuboid(1.03f, 8.5f, -1.8f, 0.85f, 0.9f, 1.5f)
+				.uv(110, 37).cuboid(2.06f, 8.5f, -1.8f, 0.85f, 0.9f, 1.5f),
 				ModelTransform.of(5f, 6f, 0f, 0f, 0f, 0f));
 		ModelPartData p_right_leg = r.addChild("right_leg", ModelPartBuilder.create()
-				.uv(96, 16).cuboid(-1.5f, 0f, -1.5f, 3f, 7f, 3f),
+				.uv(118, 37).cuboid(-1.5f, 1.8f, -1.5f, 3f, 2.7f, 3f)
+				.uv(133, 37).cuboid(-1.55f, 4.4f, -1.55f, 3.1f, 1.6f, 3.1f)
+				.uv(149, 37).cuboid(-1.7f, 6f, -2.25f, 3.4f, 1f, 4.1f)
+				.uv(167, 37).cuboid(-1f, 5.9f, -2.3f, 2f, 0.5f, 0.25f),
 				ModelTransform.of(-2f, 17f, 0f, 0f, 0f, 0f));
 		ModelPartData p_left_leg = r.addChild("left_leg", ModelPartBuilder.create()
-				.uv(108, 16).cuboid(-1.5f, 0f, -1.5f, 3f, 7f, 3f),
+				.uv(175, 37).cuboid(-1.5f, 1.8f, -1.5f, 3f, 2.7f, 3f)
+				.uv(190, 37).cuboid(-1.55f, 4.4f, -1.55f, 3.1f, 1.6f, 3.1f)
+				.uv(206, 37).cuboid(-1.7f, 6f, -2.25f, 3.4f, 1f, 4.1f)
+				.uv(224, 37).cuboid(-1f, 5.9f, -2.3f, 2f, 0.5f, 0.25f),
 				ModelTransform.of(2f, 17f, 0f, 0f, 0f, 0f));
-		return TexturedModelData.of(data, 128, 64);
+		return TexturedModelData.of(data, 256, 256);
 	}
 
 	@Override
