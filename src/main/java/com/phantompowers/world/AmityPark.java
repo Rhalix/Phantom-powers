@@ -585,8 +585,9 @@ public final class AmityPark {
 
 		// --------------------------------------------------------- the town
 
+		/** Build it all at once (just the middle of town: the whole thing at once would freeze the server). */
 		void build() {
-			for (Runnable r : plan()) r.run();
+			for (Runnable r : AmityPark500.plan(this, false)) r.run();
 		}
 
 		/** The town as a list of small jobs, so it can be built a little at a time without freezing the game. */

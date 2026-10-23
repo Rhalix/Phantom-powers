@@ -42,10 +42,19 @@ public final class AmityPark500 {
 	}
 
 	public static List<Runnable> plan(AmityPark.Builder b) {
+		return plan(b, true);
+	}
+
+	/**
+	 * The build as small jobs. {@code big = false} builds just the original middle of town (used when the town has
+	 * to be built all at once, like the automatic tests, where the whole 500 x 500 town would freeze the server).
+	 */
+	public static List<Runnable> plan(AmityPark.Builder b, boolean big) {
 		List<Runnable> t = new ArrayList<>();
+		int half = big ? HALF : 128;
 		t.add(b::pickLawn);
-		for (int x = -HALF; x < HALF; x += 16)
-			for (int z = -HALF; z < HALF; z += 8) {
+		for (int x = -half; x < half; x += 16)
+			for (int z = -half; z < half; z += 8) {
 				final int a = x, c = z;
 				t.add(() -> terrain(b, a, c));
 			}
@@ -74,14 +83,14 @@ public final class AmityPark500 {
 			t.add(() -> b.house(lot + 3, 60, s1, false));
 			t.add(() -> b.house(lot + 24, 60, s2, false));
 		}
-		for (int c : new int[]{-224, -160, -112, 0, 112, 176, 224}) {
+		if (big) for (int c : new int[]{-224, -160, -112, 0, 112, 176, 224}) {
 			for (int z = -HALF; z < HALF; z += 16) {
 				final int from = z, to = Math.min(z + 15, HALF - 1);
 				t.add(() -> road(b, false, c, from, to));
 				t.add(() -> road(b, true, c, from, to));
 			}
 		}
-		for (int i = 0; i < 67; i++) {
+		if (big) for (int i = 0; i < 67; i++) {
 			final int lot = i;
 			t.add(() -> lot(b, lot));
 		}
@@ -89,7 +98,7 @@ public final class AmityPark500 {
 			b.lamps();
 			b.welcome();
 		});
-		t.add(() -> landmarks(b));
+		t.add(() -> landmarks(b, big));
 		t.add(b::connect);
 		return t;
 	}
@@ -264,7 +273,7 @@ public final class AmityPark500 {
 	}
 
 	/** Fenton Works' ops tower, Casper High's third floor, the Nasty Burger sign and the big welcome billboard. */
-	static void landmarks(AmityPark.Builder b) {
+	static void landmarks(AmityPark.Builder b, boolean big) {
 		// the Fenton Works ops tower on top of the lab house
 		fill(b, 22, 20, -38, 34, 20, -28, "iron_block");
 		fill(b, 20, 21, -36, 36, 21, -30, "iron_block");
@@ -300,6 +309,7 @@ public final class AmityPark500 {
 				b.furn(x, b.g + 10, z, ModBlocks.SCHOOL_DESK, Direction.SOUTH);
 				b.furn(x, b.g + 10, z - 1, ModBlocks.OAK_CHAIR, Direction.SOUTH);
 			}
+		if (!big) return;
 		// the welcome billboard
 		fill(b, -235, 0, 232, -235, 8, 232, "dark_oak_planks");
 		fill(b, -215, 0, 232, -215, 8, 232, "dark_oak_planks");
