@@ -46,6 +46,12 @@ public final class PortalLogic {
 	private static final List<Runnable> NEXT_TICK = new ArrayList<>();
 	private static final Map<UUID, BlockPos> TRAVEL = new LinkedHashMap<>();
 	private static final Map<UUID, Integer> LAST_TRAVEL = new HashMap<>();
+	/** People the portal just threw out: they don't fall through into the Ghost Zone on the way. */
+	private static final Map<UUID, Integer> NO_TRAVEL_UNTIL = new HashMap<>();
+
+	public static void blockTravel(ServerPlayerEntity p, int ticks) {
+		NO_TRAVEL_UNTIL.put(p.getUuid(), p.getServer().getTicks() + ticks);
+	}
 
 	private PortalLogic() {}
 
@@ -186,7 +192,7 @@ public final class PortalLogic {
 		}
 		Frame f = scan.frame();
 		BlockState portal = ModBlocks.GHOST_PORTAL.getDefaultState().with(GhostPortalBlock.AXIS, f.axis());
-		for (BlockPos ip : f.interior()) w.setBlockState(ip, portal, Block.NOTIFY_ALL);
+		for (BlockPos ip : f.interior()) w.setBlockState(ip, portal, Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
 
 		Vec3d center = centerOf(f);
 		LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(w);
@@ -205,27 +211,93 @@ public final class PortalLogic {
 		if (p.isRemoved()) return;
 		Frame f = lightPortal(w, buttonPos, p);
 		if (f == null) return;
+		Vec3d front = frontOf(w, f), center = centerOf(f);
+		GhostState st = GhostState.of(w.getServer());
 
-		// Is the player standing in (or right at) the portal opening?
-		boolean inside = false;
-		for (BlockPos ip : f.interior()) {
-			if (p.getWorld() == w && p.getBlockPos().getSquaredDistance(ip) <= 6.0) {
-				inside = true;
-				break;
+		// Everyone standing in (or right at) the opening when it surges on gets thrown back out. Anyone who isn't
+		// half ghost yet becomes one on the way.
+		boolean presserInside = false, presserChanged = false;
+		for (ServerPlayerEntity q : w.getPlayers(q -> q.isAlive() && q.squaredDistanceTo(center) < 8 * 8)) {
+			boolean inside = false;
+			for (BlockPos ip : f.interior()) {
+				if (q.getBlockPos().getSquaredDistance(ip) <= 6.0) {
+					inside = true;
+					break;
+				}
+			}
+			if (!inside) continue;
+			if (q == p) presserInside = true;
+			GhostData qd = st.data(q.getUuid());
+			if (!qd.powers && qd.cutscene <= 0) {
+				if (q == p) presserChanged = true;
+				blockTravel(q, Cutscenes.ORIGIN_TICKS + 60);
+				q.sendMessage(Text.literal("The Ghost Portal surges to life... with you inside it!").formatted(Formatting.GREEN), false);
+				Cutscenes.startOrigin(q, center, front);
+			} else if (qd.cutscene <= 0) {
+				fling(q, center, front, f.axis());
+				q.sendMessage(Text.literal("The portal surges to life and blasts you back out!").formatted(Formatting.GREEN), true);
 			}
 		}
-		Vec3d front = frontOf(w, f);
-
-		GhostState st = GhostState.of(w.getServer());
 		GhostData d = st.data(p.getUuid());
-		if (inside && !d.powers && p.isAlive()) {
-			// the origin story: the portal surges through you (a cutscene), and you step out half ghost
-			p.sendMessage(Text.literal("The Ghost Portal surges to life... with you inside it!").formatted(Formatting.GREEN), false);
-			Cutscenes.startOrigin(p, centerOf(f), front);
-		} else if (!d.powers) {
+		if (presserChanged) return;
+		if (!d.powers) {
 			p.sendMessage(Text.literal("The Ghost Portal is open! (You have to be standing inside it when it turns on to get ghost powers.)").formatted(Formatting.GREEN), false);
-		} else {
+		} else if (!presserInside) {
 			p.sendMessage(Text.literal("The Ghost Portal is open! Step inside to enter the Ghost Zone.").formatted(Formatting.GREEN), false);
+		}
+	}
+
+	/** Throw someone out of the portal (away from it, on whichever side they're on). */
+	public static void fling(ServerPlayerEntity q, Vec3d center, Vec3d front, Direction.Axis axis) {
+		Vec3d normal = axis == Direction.Axis.X ? new Vec3d(0, 0, 1) : new Vec3d(1, 0, 0);
+		double side = q.getPos().subtract(center).dotProduct(normal);
+		if (Math.abs(side) < 0.15) side = front.subtract(center).dotProduct(normal);
+		Vec3d push = normal.multiply(side < 0 ? -1.9 : 1.9).add(0, 0.75, 0);
+		blockTravel(q, 60);
+		q.setVelocity(push);
+		q.velocityModified = true;
+		q.fallDistance = 0;
+		ServerWorld w = q.getServerWorld();
+		w.spawnParticles(GhostPowers.GREEN, q.getX(), q.getY() + 1, q.getZ(), 40, 0.4, 0.8, 0.4, 0.2);
+		w.playSound(null, q.getX(), q.getY(), q.getZ(), SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 0.7f, 1.6f);
+	}
+
+	/**
+	 * Part of a lit portal's frame got broken: the portal shuts off, and the switch pops back in so it can be turned
+	 * on again once the frame is fixed. (The way home from the Ghost Zone never shuts.)
+	 */
+	public static void shutDown(ServerWorld w, BlockPos start) {
+		if (w.getRegistryKey().equals(GHOST_ZONE)) return;
+		BlockState s0 = w.getBlockState(start);
+		if (!s0.isOf(ModBlocks.GHOST_PORTAL)) return;
+		Direction.Axis axis = s0.get(GhostPortalBlock.AXIS);
+		Direction along = axis == Direction.Axis.X ? Direction.EAST : Direction.SOUTH;
+		Set<BlockPos> portal = new HashSet<>();
+		java.util.ArrayDeque<BlockPos> todo = new java.util.ArrayDeque<>();
+		todo.add(start.toImmutable());
+		while (!todo.isEmpty() && portal.size() < MAX_INTERIOR * 2) {
+			BlockPos q = todo.poll();
+			if (portal.contains(q) || !w.getBlockState(q).isOf(ModBlocks.GHOST_PORTAL)) continue;
+			portal.add(q);
+			for (Direction d : new Direction[]{along, along.getOpposite(), Direction.UP, Direction.DOWN}) todo.add(q.offset(d));
+		}
+		BlockPos low = null;
+		for (BlockPos q : portal) {
+			w.setBlockState(q, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+			if (low == null || q.getY() < low.getY() || q.getY() == low.getY()
+					&& (axis == Direction.Axis.X ? q.getX() < low.getX() : q.getZ() < low.getZ())) low = q;
+		}
+		if (low == null) return;
+		if (w.getBlockState(low.down()).isSideSolidFullSquare(w, low.down(), Direction.UP)) {
+			w.setBlockState(low, Blocks.STONE_BUTTON.getDefaultState().with(ButtonBlock.FACE, BlockFace.FLOOR)
+					.with(ButtonBlock.FACING, axis == Direction.Axis.X ? Direction.SOUTH : Direction.EAST), Block.NOTIFY_ALL);
+		}
+		Vec3d c = Vec3d.ofCenter(low);
+		w.playSound(null, c.x, c.y, c.z, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.BLOCKS, 2.0f, 0.6f);
+		w.spawnParticles(net.minecraft.particle.ParticleTypes.SMOKE, c.x, c.y + 1.5, c.z, 40, 0.8, 1.5, 0.8, 0.02);
+		for (ServerPlayerEntity v : w.getPlayers(v -> v.squaredDistanceTo(c) < 24 * 24)) {
+			v.sendMessage(Text.literal("The Ghost Portal's frame broke and it shut down! Fix the frame and press the switch to turn it back on.")
+					.formatted(Formatting.YELLOW), false);
 		}
 	}
 
@@ -356,6 +428,12 @@ public final class PortalLogic {
 		int now = server.getTicks();
 		Integer last = LAST_TRAVEL.get(p.getUuid());
 		if (last != null && now - last < TRAVEL_COOLDOWN) return;
+		Integer blocked = NO_TRAVEL_UNTIL.get(p.getUuid());
+		if (blocked != null) {
+			if (now < blocked) return;
+			NO_TRAVEL_UNTIL.remove(p.getUuid());
+		}
+		if (GhostState.of(server).data(p.getUuid()).cutscene > 0) return;
 		ServerWorld from = p.getServerWorld();
 		BlockState ps = from.getBlockState(portalPos);
 		if (!ps.isOf(ModBlocks.GHOST_PORTAL)) return;

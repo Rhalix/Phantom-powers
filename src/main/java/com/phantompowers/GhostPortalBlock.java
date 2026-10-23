@@ -20,6 +20,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.server.world.ServerWorld;
 import org.joml.Vector3f;
 
 public class GhostPortalBlock extends Block {
@@ -53,6 +55,32 @@ public class GhostPortalBlock extends Block {
 	@Override
 	protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		return VoxelShapes.empty();
+	}
+
+	/** A frame block (or a bit of the portal) next to it went missing: check again next tick, then shut down. */
+	@Override
+	protected BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+		if (!world.isClient() && inPlane(state, direction) && !holds(neighborState)) world.scheduleBlockTick(pos, this, 2);
+		return state;
+	}
+
+	@Override
+	protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+		for (Direction d : Direction.values()) {
+			if (inPlane(state, d) && !holds(world.getBlockState(pos.offset(d)))) {
+				PortalLogic.shutDown(world, pos);
+				return;
+			}
+		}
+	}
+
+	private static boolean inPlane(BlockState state, Direction d) {
+		if (d.getAxis() == Direction.Axis.Y) return true;
+		return d.getAxis() == state.get(AXIS);
+	}
+
+	private static boolean holds(BlockState s) {
+		return s.getBlock() instanceof GhostPortalBlock || s.isOf(ModBlocks.PORTAL_FRAME) || s.isOf(ModBlocks.HAZARD_PLATING);
 	}
 
 	@Override

@@ -7,7 +7,10 @@
     "EntityMixin",
     "LivingEntityMixin",
     "PlayerEntityMixin",
-    "MobEntityMixin"
+    "MobEntityMixin",
+    "ExplosionMixin",
+    "FireBlockMixin",
+    "BlockItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

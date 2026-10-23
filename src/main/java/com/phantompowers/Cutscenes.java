@@ -440,6 +440,13 @@ public final class Cutscenes {
 		}
 		if (d.cutscene <= 0) {
 			d.cutscene = 0;
+			// the portal spits you back out into the lab (not into the Ghost Zone)
+			PortalLogic.blockTravel(p, 60);
+			Vec3d push = look.multiply(1.6).add(0, 0.6, 0);
+			p.setVelocity(push);
+			p.velocityModified = true;
+			p.fallDistance = 0;
+			w.playSound(null, mid.x, mid.y, mid.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 0.7f, 1.6f);
 			d.cutsceneAnchor = null;
 			d.portalCenter = null;
 			GhostPowers.syncNow(p);

@@ -65,12 +65,15 @@ public final class AmityPark {
 		/** Windows, fences and railings joined up to their neighbours (towns built before this fix get it done once). */
 		public boolean connected;
 		public BlockPos center = BlockPos.ORIGIN;
+		/** Blocks players placed in town themselves: those don't grow back when broken. */
+		public final it.unimi.dsi.fastutil.longs.LongOpenHashSet placed = new it.unimi.dsi.fastutil.longs.LongOpenHashSet();
 
 		static State fromNbt(NbtCompound n, RegistryWrapper.WrapperLookup lookup) {
 			State s = new State();
 			s.built = n.getBoolean("built");
 			s.connected = n.getBoolean("connected");
 			s.center = BlockPos.fromLong(n.getLong("center"));
+			for (long l : n.getLongArray("placed")) s.placed.add(l);
 			return s;
 		}
 
@@ -79,6 +82,7 @@ public final class AmityPark {
 			n.putBoolean("built", built);
 			n.putBoolean("connected", connected);
 			n.putLong("center", center.asLong());
+			n.putLongArray("placed", placed.toLongArray());
 			return n;
 		}
 	}
@@ -111,6 +115,7 @@ public final class AmityPark {
 
 	/** Rebuild every building in an existing town (in the background), with the latest designs. Returns false if there's no town yet. */
 	public static boolean rebuild(MinecraftServer server) {
+		TownRepair.clear();
 		State st = state(server);
 		if (!st.built || job != null) return false;
 		job = new Job();
@@ -121,6 +126,19 @@ public final class AmityPark {
 		server.getOverworld().getChunkManager().addTicket(TICKET, job.ticket, TICKET_RADIUS, job.ticket);
 		job.phase = 1;
 		return true;
+	}
+
+	/** Is the town being built or rebuilt right now? */
+	public static boolean building() {
+		return job != null;
+	}
+
+	/** Is this spot part of the built town (the ground it stands on, the lab basement and the buildings)? */
+	public static boolean inTown(State st, BlockPos pos) {
+		if (!st.built) return false;
+		BlockPos c = st.center;
+		return Math.abs(pos.getX() - c.getX()) <= R && Math.abs(pos.getZ() - c.getZ()) <= R
+				&& pos.getY() >= c.getY() - 20 && pos.getY() <= c.getY() + 48;
 	}
 
 	/** Has the town been built? */
@@ -522,6 +540,18 @@ public final class AmityPark {
 
 		void lamp(int x, int y, int z) {
 			set(x, y, z, Blocks.LANTERN.getDefaultState().with(LanternBlock.HANGING, true));
+		}
+
+		/** A wall sign of the given wood with glowing text in the given colour. */
+		void sign(Block wood, DyeColor color, int x, int y, int z, Direction facing, String... lines) {
+			set(x, y, z, wood.getDefaultState().with(WallSignBlock.FACING, facing));
+			if (w.getBlockEntity(c.add(x, y - g, z)) instanceof SignBlockEntity sb) {
+				SignText t = new SignText();
+				for (int i = 0; i < Math.min(4, lines.length); i++) t = t.withMessage(i, Text.literal(lines[i]));
+				t = t.withColor(color).withGlowing(true);
+				sb.setText(t, true);
+				sb.markDirty();
+			}
 		}
 
 		void sign(int x, int y, int z, Direction facing, boolean wall, String... lines) {
@@ -1029,12 +1059,43 @@ public final class AmityPark {
 			fill(x0 + 17, g, z1, x0 + 18, g + 2, z1, trim);
 			fill(x0 + 21, g, z1, x0 + 22, g + 2, z1, trim);
 			fill(x0 + 19, g + 2, z1, x0 + 20, g + 2, z1, Blocks.GLASS.getDefaultState());   // transom window over the doors
-			// lettering across the porch roof
-			fill(x0 + 13, g + 6, z1 + 4, x0 + 26, g + 6, z1 + 4, Blocks.DARK_OAK_PLANKS.getDefaultState());
-			sign(x0 + 18, g + 6, z1 + 5, Direction.SOUTH, true, "", "AMITY", "", "");
-			sign(x0 + 19, g + 6, z1 + 5, Direction.SOUTH, true, "", "HIGH", "", "");
-			sign(x0 + 20, g + 6, z1 + 5, Direction.SOUTH, true, "", "SCHOOL", "", "");
-			sign(x0 + 21, g + 6, z1 + 5, Direction.SOUTH, true, "Home of the", "Ghost", "Hunters!", "");
+			// a proper school sign across the front of the porch: a green board in a white frame, lit lettering
+			BlockState frame = Blocks.SMOOTH_QUARTZ.getDefaultState(), board = Blocks.GREEN_CONCRETE.getDefaultState();
+			fill(x0 + 13, g + 4, z1 + 4, x0 + 26, g + 4, z1 + 4, frame);
+			fill(x0 + 13, g + 5, z1 + 4, x0 + 13, g + 6, z1 + 4, frame);
+			fill(x0 + 26, g + 5, z1 + 4, x0 + 26, g + 6, z1 + 4, frame);
+			fill(x0 + 14, g + 5, z1 + 4, x0 + 25, g + 6, z1 + 4, board);
+			set(x0 + 14, g + 6, z1 + 4, Blocks.SEA_LANTERN.getDefaultState());
+			set(x0 + 25, g + 6, z1 + 4, Blocks.SEA_LANTERN.getDefaultState());
+			fill(x0 + 13, g + 4, z1 + 5, x0 + 26, g + 6, z1 + 5, Blocks.AIR.getDefaultState());
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 18, g + 6, z1 + 5, Direction.SOUTH, "", "AMITY", "", "");
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 19, g + 6, z1 + 5, Direction.SOUTH, "", "HIGH", "", "");
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 20, g + 6, z1 + 5, Direction.SOUTH, "", "SCHOOL", "", "");
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 21, g + 6, z1 + 5, Direction.SOUTH, "", "Est. 1965", "", "");
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.LIME, x0 + 19, g + 5, z1 + 5, Direction.SOUTH, "", "Home of the", "", "");
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.LIME, x0 + 20, g + 5, z1 + 5, Direction.SOUTH, "", "Ghost Hunters!", "", "");
+			// and a brick monument sign on the front lawn, with lamps on its posts and flowers along the bottom
+			int mx = x0 + 10, mz = z1 + 8;
+			fill(mx, g, mz, mx + 6, g, mz, trim);
+			fill(mx, g + 1, mz, mx, g + 3, mz, brick);
+			fill(mx + 6, g + 1, mz, mx + 6, g + 3, mz, brick);
+			fill(mx + 1, g + 1, mz, mx + 5, g + 2, mz, board);
+			fill(mx + 1, g + 3, mz, mx + 5, g + 3, mz, slab(Blocks.STONE_BRICK_SLAB, false));
+			set(mx, g + 4, mz, Blocks.LANTERN.getDefaultState());
+			set(mx + 6, g + 4, mz, Blocks.LANTERN.getDefaultState());
+			for (int side = 0; side < 2; side++) {
+				int sz = side == 0 ? mz + 1 : mz - 1;
+				Direction face = side == 0 ? Direction.SOUTH : Direction.NORTH;
+				int a = side == 0 ? 1 : 5, step = side == 0 ? 1 : -1;   // read left to right from either side
+				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + step, g + 2, sz, face, "", "AMITY", "", "");
+				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + 2 * step, g + 2, sz, face, "", "HIGH", "", "");
+				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + 3 * step, g + 2, sz, face, "", "SCHOOL", "", "");
+				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.LIME, mx + a + 2 * step, g + 1, sz, face, "Go Ghost", "Hunters!", "", "");
+			}
+			for (int x = mx; x <= mx + 6; x++) {
+				set(x, g - 1, mz + 2, Blocks.GRASS_BLOCK.getDefaultState());
+				set(x, g, mz + 2, (x % 2 == 0 ? Blocks.POPPY : Blocks.DANDELION).getDefaultState());
+			}
 			// clock tower over the entrance
 			int t = g + 10;
 			fill(x0 + 17, t, z1 - 5, x0 + 22, t + 5, z1, brick);

@@ -58,6 +58,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 	private Vec3d breathDir = Vec3d.ZERO;
 	/** Who the amulet turned into this wyvern (story mode), shown when it's pulled off. */
 	private String wearer = "";
+	private int wearerLook = TownspersonEntity.PAIGE;
 
 	public RageWyvernEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -100,8 +101,19 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		return getCommandTags().contains(STORY_TAG);
 	}
 
+	@Override
+	public void setCustomName(Text name) {
+		super.setCustomName(name);
+		if (name != null && bossBar != null && !berserk() && !dazed()) bossBar.setName(Text.literal(name.getString() + " (stage 1)").formatted(Formatting.DARK_AQUA));
+	}
+
 	public void setWearer(String name) {
+		setWearer(name, TownspersonEntity.PAIGE);
+	}
+
+	public void setWearer(String name, int look) {
 		this.wearer = name;
+		this.wearerLook = look;
 	}
 
 	@Override
@@ -146,7 +158,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		setTarget(null);
 		breathTicks = 0;
 		diveTicks = 0;
-		bossBar.setName(Text.literal("Princess Dorathea: DAZED (right-click it to pull off the amulet!)").formatted(Formatting.YELLOW, Formatting.BOLD));
+		bossBar.setName(Text.literal(getName().getString() + ": DAZED (right-click it to pull off the amulet!)").formatted(Formatting.YELLOW, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.YELLOW);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ENDER_DRAGON_HURT, SoundCategory.HOSTILE, 1.6f, 1.3f);
 		for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(this) < 48 * 48)) {
@@ -171,14 +183,14 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		if (!wearer.isEmpty()) {
 			TownspersonEntity v = com.phantompowers.ModEntities.TOWNSPERSON.create(w);
 			if (v != null) {
-				v.setVariant(TownspersonEntity.PAIGE);
+				v.setVariant(wearerLook);
 				Vec3d g = BossMoves.ground(w, getPos());
 				v.refreshPositionAndAngles(g.x, g.y, g.z, getYaw(), 0);
 				v.setCustomName(Text.literal(wearer));
 				v.setPersistent();
 				v.addCommandTag("phantom_dance");
 				w.spawnEntity(v);
-				by.sendMessage(Text.literal(wearer + ": \"Ugh... my head. What happened? ...Did I miss the slow dance?\"").formatted(Formatting.LIGHT_PURPLE), false);
+				by.sendMessage(Text.literal(wearer + ": \"Ugh... my head. What happened? ...Did I just ruin the whole dance?\"").formatted(Formatting.LIGHT_PURPLE), false);
 			}
 		}
 		ItemStack amulet = new ItemStack(ModItems.RAGE_AMULET);
@@ -319,7 +331,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		dataTracker.set(BERSERK, true);
 		roarAnim = 30;
 		heal(getMaxHealth() * 0.1f);
-		bossBar.setName(Text.literal("Princess Dorathea: BERSERK (stage 2)").formatted(Formatting.RED, Formatting.BOLD));
+		bossBar.setName(Text.literal(getName().getString() + ": BERSERK (stage 2)").formatted(Formatting.RED, Formatting.BOLD));
 		bossBar.setColor(BossBar.Color.RED);
 		w.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 2.5f, 0.9f);
 		w.spawnParticles(ParticleTypes.FLAME, getX(), getY() + 1, getZ(), 80, 1.5, 1, 1.5, 0.12);
@@ -353,6 +365,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		nbt.putBoolean("Berserk", berserk());
 		nbt.putBoolean("Dazed", dazed());
 		nbt.putString("Wearer", wearer);
+		nbt.putInt("WearerLook", wearerLook);
 	}
 
 	@Override
@@ -361,6 +374,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 		if (nbt.getBoolean("Berserk")) dataTracker.set(BERSERK, true);
 		if (nbt.getBoolean("Dazed")) dataTracker.set(DAZED, true);
 		wearer = nbt.getString("Wearer");
+		if (nbt.contains("WearerLook")) wearerLook = nbt.getInt("WearerLook");
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.phantompowers;
 
+import java.util.UUID;
 import com.phantompowers.entity.AbstractGhostEntity;
 import com.phantompowers.entity.ChefGhoulashEntity;
 import com.phantompowers.entity.RageWyvernEntity;
@@ -183,24 +184,24 @@ public final class Story {
 		if (mission == 3) return switch (path) {
 			case HERO -> new Step[]{
 					s(AMULET, "Something is glowing by the park pond. Go and find it"),
-					s(TALK_PAIGE, "It'd make a great gift... Find Princess Dorathea in the park and ask her to the dance"),
+					s(TALK_PAIGE, "It'd make a perfect necklace for Paulina! Find her by the park gate, give it to her and ask her to the dance"),
 					s(OVERSHADOW, "Your powers got you in trouble at school! Overshadow the teacher outside Amity High to talk your way out of it"),
 					s(TUNIC, "Get dressed up for the dance: wear a leather tunic (any colour)"),
-					s(FOUNTAIN, "Go to the dance at the park fountain (bring the amulet as a gift)"),
-					s(DANCE, "Dance! Stay on the dance floor by the fountain"),
-					s(WYVERN_DAZED, "The amulet turned Princess Dorathea into a Princess Dorathea! Fight it until it's dazed"),
-					s(AMULET_PULLED, "Pull the amulet off the dazed wyvern (right-click it)"),
-					s(CHECK_PAIGE, "Check that Princess Dorathea is okay")};
+					s(FOUNTAIN, "Go to the dance at the park fountain to meet Paulina"),
+					s(DANCE, "Dance with Paulina! Stay on the dance floor by the fountain"),
+					s(WYVERN_DAZED, "Sam put on the necklace, got furious at Paulina and turned into a dragon! Fight her until she's dazed"),
+					s(AMULET_PULLED, "Pull the necklace off the dazed dragon to turn Sam back (right-click it)"),
+					s(CHECK_PAIGE, "Check that Sam is okay")};
 			case EVIL -> new Step[]{
 					s(AMULET, "Something full of rage is glowing by the park pond. Go and take it"),
-					s(SNEAK_PAIGE, "Princess Dorathea is in the park. Turn invisible and sneak up on her"),
+					s(SNEAK_PAIGE, "Paulina is by the park gate. Turn invisible, sneak up on her and slip the necklace into her bag"),
 					s(OVERSHADOW, "Overshadow the teacher outside Amity High and get yourself out of detention"),
 					s(TUNIC, "Crash the dance in style: wear a leather tunic (any colour)"),
-					s(FOUNTAIN, "Crash the dance at the park fountain (bring the amulet)"),
-					s(DANCE, "Make a scene: stay on the dance floor by the fountain"),
-					s(WYVERN_DAZED, "The amulet's rage got loose and made a Princess Dorathea! Beat it until it's dazed"),
-					s(AMULET_PULLED, "Rip the amulet off the wyvern (right-click it). Its power is yours now"),
-					s(CHECK_PAIGE, "Go and see what's left of Princess Dorathea")};
+					s(FOUNTAIN, "Crash the dance at the park fountain"),
+					s(DANCE, "Make a scene: stay on the dance floor and see who ends up with the necklace"),
+					s(WYVERN_DAZED, "Paulina gave the necklace to Sam, and Sam's rage turned her into a dragon! Beat her until she's dazed"),
+					s(AMULET_PULLED, "Rip the necklace off the dragon (right-click it). Its power is yours now"),
+					s(CHECK_PAIGE, "Go and see if Sam is okay")};
 			case HUNTER -> new Step[]{
 					s(AMULET, "Strange ghost readings by the park pond. Find what's causing them"),
 					s(LAB_FLOOR, "Take the amulet to the Ghost Lab basement"),
@@ -208,9 +209,9 @@ public final class Story {
 					s(TUNIC, "You're chaperoning the dance tonight. Wear a leather tunic (any colour)"),
 					s(FOUNTAIN, "Chaperone the dance at the park fountain (bring the amulet)"),
 					s(DANCE, "Keep watch over the dance floor by the fountain"),
-					s(WYVERN_DAZED, "A Princess Dorathea is attacking the dance! Fight it until it's dazed"),
+					s(WYVERN_DAZED, "Paulina swiped the amulet and gave it to Sam, and Sam turned into a dragon! Fight it until it's dazed"),
 					s(AMULET_PULLED, "Pull the amulet off the dazed wyvern (right-click it)"),
-					s(CHECK_PAIGE, "Check that Princess Dorathea is okay")};
+					s(CHECK_PAIGE, "Check that Sam is okay")};
 			default -> new Step[0];
 		};
 		return new Step[0];
@@ -397,17 +398,40 @@ public final class Story {
 				continue;
 			}
 			if (check(p, d)) {
-				d.storyStep++;
-				d.storyCount = 0;
-				st.markDirty();
-				if (d.storyStep >= steps(d.storyPath, d.storyMission).length) complete(p, d);
-				else stepStarted(p, d);
-				send(p, d, false);
+				int mission = d.storyMission, step = d.storyStep;
+				advance(p, d, st);
+				// the whole party finishes the objective together, even if only one of them did it
+				for (UUID id : Party.partyOf(p.getUuid())) {
+					if (id.equals(p.getUuid())) continue;
+					ServerPlayerEntity m = server.getPlayerManager().getPlayer(id);
+					if (m == null) continue;
+					GhostData md = st.data(id);
+					if (md.storyPath == NONE || md.storyMission != mission || md.storyStep != step) continue;
+					m.sendMessage(Text.literal(p.getName().getString() + " finished the objective for your party!").formatted(Formatting.AQUA), true);
+					advance(m, md, st);
+				}
 			} else if (server.getTicks() % 20 == 0) {
 				send(p, d, false);
 			}
 			if (d.storyMission >= 1 && d.storyMission <= MISSIONS) upkeep(p, d, st);
 		}
+	}
+
+	/** Move on to the next objective (or finish the mission). */
+	private static void advance(ServerPlayerEntity p, GhostData d, GhostState st) {
+		String done = goal(d);
+		if ((done.equals(TALK_PAIGE) || done.equals(SNEAK_PAIGE)) && has(p, ModItems.RAGE_AMULET)) {
+			removeOne(p, ModItems.RAGE_AMULET);
+			p.sendMessage(Text.literal(done.equals(TALK_PAIGE)
+					? "You give Paulina the necklace. Paulina: \"Hmm, cute I guess. Fine, I'll go to the dance with you.\""
+					: "You slip the glowing necklace into Paulina's bag. She has no idea.").formatted(Formatting.LIGHT_PURPLE), false);
+		}
+		d.storyStep++;
+		d.storyCount = 0;
+		st.markDirty();
+		if (d.storyStep >= steps(d.storyPath, d.storyMission).length) complete(p, d);
+		else stepStarted(p, d);
+		send(p, d, false);
 	}
 
 	private static boolean has(ServerPlayerEntity p, net.minecraft.item.Item item) {
@@ -447,11 +471,11 @@ public final class Story {
 			case CHEF_DAZED -> d.storyCount > 0 || (near(p, AmityPark.cafeteria(c), 64) && !w.getEntitiesByClass(ChefGhoulashEntity.class,
 					new Box(BlockPos.ofFloored(AmityPark.cafeteria(c))).expand(64), e -> e.storyMode() && e.dazed()).isEmpty());
 			case AMULET -> has(p, ModItems.RAGE_AMULET);
-			case TALK_PAIGE -> npcNear(w, p, "phantom_paige_park", 3.5);
-			case SNEAK_PAIGE -> d.invisible && npcNear(w, p, "phantom_paige_park", 4);
+			case TALK_PAIGE -> npcNear(w, p, "phantom_paige_park", 3.5) && has(p, ModItems.RAGE_AMULET);
+			case SNEAK_PAIGE -> d.invisible && npcNear(w, p, "phantom_paige_park", 4) && has(p, ModItems.RAGE_AMULET);
 			case OVERSHADOW -> d.possessing != null && d.possessing.getCommandTags().contains("phantom_story_teacher");
 			case TUNIC -> p.getEquippedStack(EquipmentSlot.CHEST).isOf(Items.LEATHER_CHESTPLATE);
-			case FOUNTAIN -> near(p, AmityPark.parkFountain(c), 9) && has(p, ModItems.RAGE_AMULET);
+			case FOUNTAIN -> near(p, AmityPark.parkFountain(c), 9) && (d.storyPath != HUNTER || has(p, ModItems.RAGE_AMULET));
 			case DANCE -> d.storyCount >= DANCE_CHECKS;
 			case WYVERN_DAZED -> d.storyCount > 0 || (near(p, AmityPark.parkFountain(c), 64) && !w.getEntitiesByClass(RageWyvernEntity.class,
 					new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(64), e -> e.storyMode() && e.dazed()).isEmpty());
@@ -565,6 +589,10 @@ public final class Story {
 			}
 			case TALK_PAIGE, SNEAK_PAIGE -> {
 				if (t % 60 == 0) spawnPaigeInPark(w, c);
+				if (t % 40 == 0 && !has(p, ModItems.RAGE_AMULET)) {
+					placeAmulet(w, p, AmityPark.parkPond(c));
+					if (near(p, AmityPark.parkGate(c), 8)) p.sendMessage(Text.literal("You need the necklace first! (Lost it? It's back by the park pond.)").formatted(Formatting.YELLOW), true);
+				}
 			}
 			case OVERSHADOW -> {
 				if (t % 60 == 0) spawnTeacher(w, c);
@@ -586,7 +614,7 @@ public final class Story {
 						if (d.storyCount == DANCE_CHECKS / 2) danceLine(p, d);
 					} else if (t % 40 == 0) p.sendMessage(Text.literal("Get back on the dance floor by the fountain!").formatted(Formatting.YELLOW), true);
 				}
-				if (t % 40 == 0 && !has(p, ModItems.RAGE_AMULET)) {
+				if (d.storyPath == HUNTER && t % 40 == 0 && !has(p, ModItems.RAGE_AMULET)) {
 					placeAmulet(w, p, AmityPark.parkPond(c));
 					if (near(p, f, 16)) p.sendMessage(Text.literal("You need the amulet you found! (Lost it? It's back by the park pond.)").formatted(Formatting.YELLOW), true);
 				}
@@ -641,7 +669,7 @@ public final class Story {
 			case CHECK_PAIGE -> {
 				if (t % 60 == 0 && w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(48),
 						v -> v.getCommandTags().contains("phantom_paige_saved")).isEmpty()) {
-					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Princess Dorathea", "phantom_paige_saved", true, TownspersonEntity.PAIGE);
+					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Sam", "phantom_paige_saved", true, TownspersonEntity.LENA);
 				}
 			}
 			default -> {}
@@ -650,9 +678,9 @@ public final class Story {
 
 	private static void danceLine(ServerPlayerEntity p, GhostData d) {
 		String line = switch (d.storyPath) {
-			case HUNTER -> "All quiet so far... but the amulet in your pocket is getting hotter.";
-			case EVIL -> "Everyone's staring at you. Good.";
-			default -> "Princess Dorathea: \"You're actually a pretty good dancer!\"";
+			case HUNTER -> "Paulina is eyeing the glowing amulet in your pocket... and Sam is glaring at Paulina.";
+			case EVIL -> "Paulina found the necklace in her bag. She doesn't want it... and she's walking over to Sam.";
+			default -> "Paulina: \"Ugh, this necklace is SO last season.\" She wanders off towards Sam...";
 		};
 		p.sendMessage(Text.literal(line).formatted(Formatting.LIGHT_PURPLE), false);
 	}
@@ -713,7 +741,7 @@ public final class Story {
 	}
 
 	private static void spawnPaigeInPark(ServerWorld w, BlockPos c) {
-		spawnNpc(w, AmityPark.parkGate(c), "Princess Dorathea", "phantom_paige_park", true, TownspersonEntity.PAIGE);
+		spawnNpc(w, AmityPark.parkGate(c), "Paulina", "phantom_paige_park", true, TownspersonEntity.TIFFANY);
 	}
 
 	/** The glowing amulet waiting by the pond (unless you've got it, or it's already there). */
@@ -731,7 +759,7 @@ public final class Story {
 		Vec3d f = AmityPark.parkFountain(c);
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(64), v -> v.getCommandTags().contains("phantom_paige_park"))) v.discard();
 		if (!w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(24), v -> v.getCommandTags().contains("phantom_dance")).isEmpty()) return;
-		int[] looks = {TownspersonEntity.PAIGE, TownspersonEntity.MARCUS, TownspersonEntity.TIFFANY, TownspersonEntity.LEON, TownspersonEntity.JASMINE, TownspersonEntity.OWEN};
+		int[] looks = {TownspersonEntity.TIFFANY, TownspersonEntity.LENA, TownspersonEntity.MARCUS, TownspersonEntity.LEON, TownspersonEntity.JASMINE, TownspersonEntity.OWEN};
 		for (int i = 0; i < looks.length; i++) {
 			var v = ModEntities.TOWNSPERSON.create(w);
 			if (v == null) continue;
@@ -740,43 +768,37 @@ public final class Story {
 			String[] names = TownspersonEntity.NAMES;
 			double a = i * Math.PI * 2 / looks.length;
 			v.refreshPositionAndAngles(f.x + Math.cos(a) * 7, f.y, f.z + Math.sin(a) * 7, (float) Math.toDegrees(a) + 90f, 0f);
-			v.setCustomName(Text.literal(names[looks[i]]));
-			v.setCustomNameVisible(i == 0);
+			v.setCustomName(Text.literal(i == 0 ? "Paulina" : names[looks[i]]));
+			v.setCustomNameVisible(i < 2);
 			v.setPersistent();
 			v.setAiDisabled(true);
 			v.addCommandTag("phantom_dance");
 			v.addCommandTag("phantom_story_npc");
 			if (i == 0) v.addCommandTag("phantom_dance_date");
+			if (i == 1) v.addCommandTag("phantom_dance_sam");
 			w.spawnEntity(v);
 		}
 	}
 
-	/** You hand over the amulet... and Paige loses her temper. */
+	/** Paulina passes the necklace on to Sam... and Sam loses her temper. */
 	private static void startWyvern(ServerPlayerEntity p, BlockPos c) {
 		ServerWorld w = p.getServerWorld();
-		removeOne(p, ModItems.RAGE_AMULET);
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		if (d.storyPath == HUNTER) removeOne(p, ModItems.RAGE_AMULET);
 		Vec3d at = AmityPark.parkFountain(c).add(4, 1, 0);
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(24),
-				v -> v.getCommandTags().contains("phantom_dance_date"))) {
+				v -> v.getCommandTags().contains("phantom_dance_sam"))) {
 			at = v.getPos();
 			v.discard();
 		}
-		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
 		switch (d.storyPath) {
-			case HUNTER -> {
-				p.sendMessage(Text.literal("Princess Dorathea spots the amulet sticking out of your pocket and grabs it. \"Ooh, pretty!\"").formatted(Formatting.GRAY), false);
-				p.sendMessage(Text.literal("Princess Dorathea: \"Hey! Give that back? It's MINE now! Don't tell me what to do!\"").formatted(Formatting.LIGHT_PURPLE), false);
-			}
-			case EVIL -> {
-				p.sendMessage(Text.literal("You toss the amulet to Princess Dorathea, just to see what happens.").formatted(Formatting.GRAY), false);
-				p.sendMessage(Text.literal("Princess Dorathea: \"What is this? Is this a JOKE? I am so SICK of you!\"").formatted(Formatting.LIGHT_PURPLE), false);
-			}
-			default -> {
-				p.sendMessage(Text.literal("You give Princess Dorathea the amulet. She puts it on...").formatted(Formatting.GRAY), false);
-				p.sendMessage(Text.literal("Princess Dorathea: \"It's beautiful! ...Wait. You stepped on my foot. AGAIN!\"").formatted(Formatting.LIGHT_PURPLE), false);
-			}
+			case HUNTER -> p.sendMessage(Text.literal("Paulina snatches the glowing amulet out of your pocket. \"Ew, it's not even designer.\" She hands it to Sam. \"Here, Goth girl. It matches your attitude.\"").formatted(Formatting.GRAY), false);
+			case EVIL -> p.sendMessage(Text.literal("Paulina pulls the necklace out of her bag and tosses it to Sam. \"Here. Something to go with your gloomy little outfit.\"").formatted(Formatting.GRAY), false);
+			default -> p.sendMessage(Text.literal("Paulina walks over to Sam and drops your necklace in her hand. \"Here, you can have it. It's totally not my style.\"").formatted(Formatting.GRAY), false);
 		}
-		p.sendMessage(Text.literal("The amulet flares red as she gets angrier and angrier...").formatted(Formatting.RED, Formatting.ITALIC), false);
+		p.sendMessage(Text.literal("Sam puts the necklace on.").formatted(Formatting.GRAY), false);
+		p.sendMessage(Text.literal("Sam: \"Oh, so I get your hand-me-downs now, Paulina? You are SO shallow! I am SICK of you!\"").formatted(Formatting.LIGHT_PURPLE), false);
+		p.sendMessage(Text.literal("The necklace flares red as Sam gets angrier and angrier...").formatted(Formatting.RED, Formatting.ITALIC), false);
 		spawnWyvern(w, c, p, at);
 	}
 
@@ -785,7 +807,8 @@ public final class Story {
 		if (wy == null) return;
 		wy.refreshPositionAndAngles(at.x, at.y + 1, at.z, 0f, 0f);
 		wy.addCommandTag(RageWyvernEntity.STORY_TAG);
-		wy.setWearer("Princess Dorathea");
+		wy.setWearer("Sam", TownspersonEntity.LENA);
+		wy.setCustomName(Text.literal("Sam (Dragon)"));
 		wy.setHome(BlockPos.ofFloored(AmityPark.parkFountain(c)).up(4), 26f);
 		wy.setTarget(p);
 		w.spawnEntity(wy);
@@ -793,11 +816,11 @@ public final class Story {
 		w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y + 1, at.z, 120, 1.2, 1.5, 1.2, 0.15);
 		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 2.5f, 1.1f);
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Princess Dorathea").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
-		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("\"NOBODY TELLS ME WHAT TO DO!\"").formatted(Formatting.GRAY)));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Sam turned into a dragon!").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("\"BACK OFF, PAULINA!\"").formatted(Formatting.GRAY)));
 		// the other dancers run for it
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(at)).expand(24),
-				v -> v.getCommandTags().contains("phantom_dance") && !v.getCommandTags().contains("phantom_dance_date"))) {
+				v -> v.getCommandTags().contains("phantom_dance") && !v.getCommandTags().contains("phantom_dance_sam"))) {
 			v.setDancing(false);
 			v.setAiDisabled(false);
 		}
@@ -978,9 +1001,9 @@ public final class Story {
 			if (goal(d).equals(AMULET_PULLED)) d.storyCount = 1;
 			st.markDirty();
 		}
-		// Paige is back (the wyvern spawns her): tag her so "check on Paige" can find her
+		// Sam is back (the dragon spawns her): tag her so "check on Paige" can find her
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, wyvern.getBoundingBox().expand(6), v -> v.getCommandTags().contains("phantom_dance")
-				&& v.getCustomName() != null && v.getCustomName().getString().startsWith("Princess Dorathea"))) {
+				&& v.getCustomName() != null && v.getCustomName().getString().startsWith("Sam"))) {
 			v.addCommandTag("phantom_paige_saved");
 			v.setAiDisabled(true);
 			v.setCustomNameVisible(true);
@@ -1104,7 +1127,7 @@ public final class Story {
 		if (d.storyMission == 3) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "The Amity Park dance is tonight and you're on chaperone duty. But the ghost sensors just picked up something strange in the park...";
 			case EVIL -> "The big dance is tonight. You've got no date and no patience. But something in the park is calling to you: something angry...";
-			default -> "The big dance is tonight and you want to ask Princess Dorathea! You just need the perfect gift... and to stay out of trouble at school.";
+			default -> "The big dance is tonight and you want to ask Paulina, the most popular girl at Amity High! You just need the perfect gift... and to stay out of trouble at school.";
 		}).formatted(Formatting.GRAY), false);
 		if (d.storyMission == 2) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "Ghost sensors are going crazy over at Amity High. Something in the cafeteria is VERY unhappy...";
