@@ -96,7 +96,7 @@ public final class AmityPark {
 	// ------------------------------------------------------------ building in the background
 
 	private static final ChunkTicketType<ChunkPos> TICKET = ChunkTicketType.create("phantom_amity_park", Comparator.comparingLong(ChunkPos::toLong));
-	private static final int TICKET_RADIUS = 11, NEED_RADIUS = 9;   // chunks within NEED_RADIUS of the centre must be loaded
+	private static final int TICKET_RADIUS = 19, NEED_RADIUS = 17;   // chunks within NEED_RADIUS of the centre must be loaded
 	private static Job job;
 
 	/** A town being built a bit at a time: find a site, load the land in the background, then build in small steps. */
@@ -137,7 +137,7 @@ public final class AmityPark {
 	public static boolean inTown(State st, BlockPos pos) {
 		if (!st.built) return false;
 		BlockPos c = st.center;
-		return Math.abs(pos.getX() - c.getX()) <= R && Math.abs(pos.getZ() - c.getZ()) <= R
+		return Math.abs(pos.getX() - c.getX()) <= AmityPark500.HALF && Math.abs(pos.getZ() - c.getZ()) <= AmityPark500.HALF
 				&& pos.getY() >= c.getY() - 20 && pos.getY() <= c.getY() + 48;
 	}
 
@@ -591,46 +591,7 @@ public final class AmityPark {
 
 		/** The town as a list of small jobs, so it can be built a little at a time without freezing the game. */
 		java.util.List<Runnable> plan() {
-			java.util.List<Runnable> t = new java.util.ArrayList<>();
-			int outer = R + BLEND;
-			if (!redo) {
-				t.add(this::pickLawn);
-				for (int x = -outer; x <= outer; x += 3) {
-					final int a = x, b = Math.min(x + 2, outer);
-					t.add(() -> terrain(a, b));
-				}
-			} else {
-				// keep whatever the lawns are already made of
-				BlockState here = get(-R + 2, g - 1, -R + 2);
-				if (here.isOf(Blocks.SAND) || here.isOf(Blocks.RED_SAND) || here.isOf(Blocks.PODZOL) || here.isOf(Blocks.SNOW_BLOCK)) lawn = here;
-			}
-			t.add(this::roads);
-			t.add(() -> labHouse(LAB_X, LAB_Z));
-			t.add(() -> library(62, -44));
-			t.add(() -> school(-98, -98));
-			t.add(() -> schoolExtras(-98, -98));
-			t.add(() -> field(-50, -98));
-			t.add(() -> diner(-48, -30));
-			t.add(() -> store(-24, -28));
-			t.add(() -> townHall(-98, -42));
-			t.add(() -> apartments(-48, 12));
-			t.add(() -> house(-96, 14, 0, false));
-			t.add(() -> park(8, 8));
-			int[] style = {1};
-			for (int lot : new int[]{8, 58}) {
-				int s1 = style[0]++, s2 = style[0]++;
-				t.add(() -> house(lot + 3, -74, s1, true));
-				t.add(() -> house(lot + 24, -74, s2, true));
-			}
-			for (int lot : new int[]{8, 58, -50, -100}) {
-				int s1 = style[0]++, s2 = style[0]++;
-				t.add(() -> house(lot + 3, 60, s1, false));
-				t.add(() -> house(lot + 24, 60, s2, false));
-			}
-			t.add(this::welcome);
-			t.add(this::lamps);
-			t.add(this::connect);
-			return t;
+			return AmityPark500.plan(this);
 		}
 
 		/** Level the town, and slope the edges smoothly into the land around it. */
@@ -743,7 +704,7 @@ public final class AmityPark {
 			fill(x, g, -14, x, g + 3, -14, Blocks.DARK_OAK_LOG.getDefaultState());
 			fill(x, g + 4, -14, x, g + 5, -8, Blocks.SPRUCE_PLANKS.getDefaultState());
 			fill(x, g + 6, -14, x, g + 6, -8, slab(Blocks.SPRUCE_SLAB, false));
-			sign(x + 1, g + 5, -11, Direction.EAST, true, "Welcome to", "AMITY PARK", "a nice quiet town", "(mostly)");
+			sign(x + 1, g + 5, -11, Direction.EAST, true, "Welcome to", "AMITY PARK", "A NICE PLACE TO LIVE", "(mostly)");
 			sign(x + 1, g + 4, -11, Direction.EAST, true, "Pop. 22,000", "and some ghosts", "", "Phantom Menu: `");
 			for (int z = -13; z <= -9; z++) {
 				set(x + 1, g, z, Blocks.LIME_STAINED_GLASS.getDefaultState());
@@ -961,7 +922,7 @@ public final class AmityPark {
 			fill(x0 + 13, g + 7, z1 + 1, x0 + 26, g + 7, z1 + 4, Blocks.SMOOTH_QUARTZ.getDefaultState());
 			fill(x0 + 13, g - 1, z1 + 1, x0 + 26, g - 1, z1 + 4, Blocks.SMOOTH_STONE.getDefaultState());
 			doubleDoor(x0 + 19, g, z1, Direction.SOUTH, Blocks.OAK_DOOR);
-			sign(x0 + 19, g + 6, z1 + 5, Direction.SOUTH, true, "", "AMITY HIGH", "Home of the", "Ghost Hunters!");
+			sign(x0 + 19, g + 6, z1 + 5, Direction.SOUTH, true, "", "CASPER HIGH", "Home of the", "Ghost Hunters!");
 			for (int z = z1 + 5; z <= -57; z++) fill(x0 + 18, g - 1, z, x0 + 21, g - 1, z, Blocks.SMOOTH_STONE.getDefaultState());
 			fill(x0 + 10, g, z1 + 4, x0 + 10, g + 9, z1 + 4, Blocks.IRON_BARS.getDefaultState());
 			fill(x0 + 11, g + 7, z1 + 4, x0 + 12, g + 9, z1 + 4, Blocks.LIME_WOOL.getDefaultState());
@@ -1068,7 +1029,7 @@ public final class AmityPark {
 			set(x0 + 14, g + 6, z1 + 4, Blocks.SEA_LANTERN.getDefaultState());
 			set(x0 + 25, g + 6, z1 + 4, Blocks.SEA_LANTERN.getDefaultState());
 			fill(x0 + 13, g + 4, z1 + 5, x0 + 26, g + 6, z1 + 5, Blocks.AIR.getDefaultState());
-			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 18, g + 6, z1 + 5, Direction.SOUTH, "", "AMITY", "", "");
+			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 18, g + 6, z1 + 5, Direction.SOUTH, "", "CASPER", "", "");
 			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 19, g + 6, z1 + 5, Direction.SOUTH, "", "HIGH", "", "");
 			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 20, g + 6, z1 + 5, Direction.SOUTH, "", "SCHOOL", "", "");
 			sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, x0 + 21, g + 6, z1 + 5, Direction.SOUTH, "", "Est. 1965", "", "");
@@ -1087,7 +1048,7 @@ public final class AmityPark {
 				int sz = side == 0 ? mz + 1 : mz - 1;
 				Direction face = side == 0 ? Direction.SOUTH : Direction.NORTH;
 				int a = side == 0 ? 1 : 5, step = side == 0 ? 1 : -1;   // read left to right from either side
-				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + step, g + 2, sz, face, "", "AMITY", "", "");
+				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + step, g + 2, sz, face, "", "CASPER", "", "");
 				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + 2 * step, g + 2, sz, face, "", "HIGH", "", "");
 				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.WHITE, mx + a + 3 * step, g + 2, sz, face, "", "SCHOOL", "", "");
 				sign(Blocks.DARK_OAK_WALL_SIGN, DyeColor.LIME, mx + a + 2 * step, g + 1, sz, face, "Go Ghost", "Hunters!", "", "");
@@ -1158,7 +1119,7 @@ public final class AmityPark {
 			set(bx + 9, g + 1, bz + 2, Blocks.SEA_LANTERN.getDefaultState());
 			set(bx + 9, g, bz + 1, black);
 			set(bx + 6, g + 1, bz, Blocks.RED_CONCRETE.getDefaultState());   // stop sign arm
-			sign(bx + 4, g + 1, bz + 3, Direction.SOUTH, true, "", "SCHOOL BUS", "Amity High", "");
+			sign(bx + 4, g + 1, bz + 3, Direction.SOUTH, true, "", "SCHOOL BUS", "Casper High", "");
 		}
 
 		/** The sports field next to the school. */
@@ -1206,7 +1167,7 @@ public final class AmityPark {
 			fill(x0 + 7, r0 + 2, z0 + 4, x0 + 14, r0 + 2, z0 + 11, Blocks.LIME_CONCRETE.getDefaultState());
 			fill(x0 + 8, r0 + 3, z0 + 5, x0 + 13, r0 + 3, z0 + 10, Blocks.YELLOW_CONCRETE.getDefaultState());
 			fill(x0 + 8, r0 + 4, z0 + 5, x0 + 13, r0 + 5, z0 + 10, Blocks.ORANGE_TERRACOTTA.getDefaultState());
-			sign(x0 + 9, g + 3, z1 + 1, Direction.SOUTH, true, "", "BURGER BOO", "Open late.", "Very late.");
+			sign(x0 + 9, g + 3, z1 + 1, Direction.SOUTH, true, "", "NASTY BURGER", "Open late.", "Very late.");
 			for (int x = x0 + 2; x < x1 - 1; x += 5) {
 				furn(x, g, z1 + 3, ModBlocks.DINING_TABLE, Direction.NORTH);
 				furn(x, g, z1 + 2, ModBlocks.OAK_CHAIR, Direction.SOUTH);

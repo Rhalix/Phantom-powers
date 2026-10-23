@@ -151,33 +151,33 @@ public final class Story {
 		if (mission == 4) return switch (path) {
 			case HERO -> new Step[]{
 					s(BOX, "It's late, and the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
-					s(ESCAPE, "Something's been watching you... Slucker! He's too strong to fight. Get back to the Ghost Lab house!"),
+					s(ESCAPE, "Something's been watching you... Skulker! He's too strong to fight. Get back to the Ghost Lab house!"),
 					s(NAP, "You were up all night. Take a nap on the couch in the Ghost Lab house (sit on it)"),
 					s(FRIEND, "You flunked your biology test! Find Sam outside Amity High"),
 					s(LIBRARY, "Sam says do an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
 					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
-					s(COLLECTOR_DAZED, "Slucker stole Sam's tablet to upgrade his gear, and now he wants the fox AND you! Fight him until he's dazed"),
-					s(COLLECTOR_TRAPPED, "Trap the Slucker in the Thermos (right-click him with it)"),
+					s(COLLECTOR_DAZED, "Skulker stole Sam's tablet to upgrade his gear, and now he wants the fox AND you! Fight him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Skulker in the Thermos (right-click him with it)"),
 					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
 			case EVIL -> new Step[]{
 					s(BOX, "The Box Ghost is making a mess of YOUR town at the Quick Stop. Teach him a lesson (beat him or trap him)"),
-					s(ESCAPE, "A ghost hunter is stalking you: the Slucker! Not now. Get back to the Ghost Lab house!"),
+					s(ESCAPE, "A ghost hunter is stalking you: the Skulker! Not now. Get back to the Ghost Lab house!"),
 					s(NAP, "Even villains need sleep. Nap on the couch in the Ghost Lab house (sit on it)"),
 					s(FRIEND, "You flunked biology. Annoying. Find Sam outside Amity High"),
 					s(LIBRARY, "Extra credit, ugh. Read up on rare animals in the library (stay inside a while)"),
 					s(FOX, "Find the rare snow fox in the park and study it (stay close to it)"),
-					s(COLLECTOR_DAZED, "Slucker stole Sam's tablet and upgraded his gear. Nobody collects YOU. Beat him until he's dazed"),
-					s(COLLECTOR_TRAPPED, "Trap the Slucker in the Thermos. Your trophy now"),
+					s(COLLECTOR_DAZED, "Skulker stole Sam's tablet and upgraded his gear. Nobody collects YOU. Beat him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Skulker in the Thermos. Your trophy now"),
 					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
 			case HUNTER -> new Step[]{
 					s(BOX, "Night patrol: the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
-					s(ESCAPE, "Ghost readings off the charts... the Slucker wants your suit for his collection! Fall back to the Ghost Lab house!"),
+					s(ESCAPE, "Ghost readings off the charts... the Skulker wants your suit for his collection! Fall back to the Ghost Lab house!"),
 					s(NAP, "You've been on patrol all night. Rest on the couch in the Ghost Lab house (sit on it)"),
 					s(FRIEND, "You flunked your biology test! Find Sam outside Amity High"),
 					s(LIBRARY, "Sam suggests an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
 					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
-					s(COLLECTOR_DAZED, "Slucker stole Sam's tablet to upgrade his gear and he's hunting the fox! Fight him until he's dazed"),
-					s(COLLECTOR_TRAPPED, "Trap the Slucker in the Thermos (right-click him with it)"),
+					s(COLLECTOR_DAZED, "Skulker stole Sam's tablet to upgrade his gear and he's hunting the fox! Fight him until he's dazed"),
+					s(COLLECTOR_TRAPPED, "Trap the Skulker in the Thermos (right-click him with it)"),
 					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
 			default -> new Step[0];
 		};
@@ -870,7 +870,7 @@ public final class Story {
 		w.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 70, 0.6, 1, 0.6, 0.1);
 		w.playSound(null, at.x, at.y, at.z, ModSounds.GHOSTLY_WAIL, SoundCategory.HOSTILE, 2f, 0.6f);
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Slucker").formatted(Formatting.GOLD, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Skulker").formatted(Formatting.GOLD, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(chase ? "\"Such a RARE specimen...\"" : "\"Now, where were we?\"").formatted(Formatting.GRAY)));
 	}
 
@@ -880,7 +880,7 @@ public final class Story {
 			w.spawnParticles(GhostPowers.GREEN, col.getX(), col.getY() + 1, col.getZ(), 60, 0.6, 1, 0.6, 0.1);
 			col.discard();
 		}
-		p.sendMessage(Text.literal("Slucker: \"Hide, then. I can wait. Every hunt ends with a trophy...\"").formatted(Formatting.GOLD), false);
+		p.sendMessage(Text.literal("Skulker: \"Hide, then. I can wait. Every hunt ends with a trophy...\"").formatted(Formatting.GOLD), false);
 	}
 
 	/** The rare snow fox in the park. */
@@ -974,7 +974,7 @@ public final class Story {
 				ItemStack tablet = new ItemStack(Items.MAP);
 				tablet.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("Sam's Tablet"));
 				give(by, tablet);
-				by.sendMessage(Text.literal("Slucker dropped Sam's tablet! You got it back.").formatted(Formatting.GREEN), false);
+				by.sendMessage(Text.literal("Skulker dropped Sam's tablet! You got it back.").formatted(Formatting.GREEN), false);
 			}
 			return;
 		}

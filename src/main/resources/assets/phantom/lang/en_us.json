@@ -171,6 +171,6 @@
   "block.phantom.lab_console": "Lab Console",
   "block.phantom.bookcase": "Bookcase",
   "block.phantom.potted_plant": "Potted Plant",
-  "entity.phantom.collector": "Slucker",
-  "item.phantom.collector_spawn_egg": "Slucker Spawn Egg"
+  "entity.phantom.collector": "Skulker",
+  "item.phantom.collector_spawn_egg": "Skulker Spawn Egg"
 }
