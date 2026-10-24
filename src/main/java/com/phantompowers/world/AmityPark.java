@@ -51,7 +51,7 @@ import net.minecraft.world.gen.noise.NoiseConfig;
  * Amity Park: a whole ghost-haunted town built once in the Overworld, on the flattest dry land the mod can find a
  * few hundred blocks from spawn. The ground slopes gently out into the surrounding land, lawns use whatever the
  * local ground is, and trees at the edges are taken away whole. Inside: Main Street and Elm Avenue with side
- * streets, the Ghost Lab house (family home on top, ghost lab with a Ghost Portal in the basement), Amity High,
+ * streets, the Ghost Lab house (family home on top, ghost lab with a Ghost Portal in the basement), Casper High,
  * the Burger Boo diner, a corner store, the library, the town hall, an apartment block, a big park, and streets of
  * furnished family houses.
  */
@@ -394,12 +394,12 @@ public final class AmityPark {
 		return Vec3d.ofBottomCenter(c.add(Builder.LAB_X + 5, -9 + 3, Builder.LAB_Z + 2)).add(0.5, 0, 0);
 	}
 
-	/** Just outside Amity High's front doors. */
+	/** Just outside Casper High's front doors. */
 	public static Vec3d schoolDoor(BlockPos c) {
 		return new Vec3d(c.getX() - 78, c.getY(), c.getZ() - 66.5);
 	}
 
-	/** The middle of Amity High's cafeteria (ground floor). */
+	/** The middle of Casper High's cafeteria (ground floor). */
 	public static Vec3d cafeteria(BlockPos c) {
 		return new Vec3d(c.getX() - 85.5, c.getY(), c.getZ() - 74.5);
 	}
@@ -914,7 +914,7 @@ public final class AmityPark {
 			}
 		}
 
-		/** Amity High: two floors of classrooms off a locker-lined hall, a cafeteria, an office and a library corner. */
+		/** Casper High: two floors of classrooms off a locker-lined hall, a cafeteria, an office and a library corner. */
 		void school(int x0, int z0) {
 			int x1 = x0 + 39, z1 = z0 + 29;
 			shell(x0, z0, 40, 30, 2, Blocks.BRICKS.getDefaultState(), Blocks.STONE_BRICKS.getDefaultState(),
@@ -993,7 +993,7 @@ public final class AmityPark {
 		}
 
 		/**
-		 * What makes Amity High look like a school from outside: rows of classroom windows, a clock tower over the
+		 * What makes Casper High look like a school from outside: rows of classroom windows, a clock tower over the
 		 * entrance, AMITY HIGH SCHOOL lettering, a yellow school bus in the bus loop, a bike rack, hedges, and trophy
 		 * cases by the front doors.
 		 */

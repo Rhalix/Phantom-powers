@@ -117,7 +117,7 @@ public final class Story {
 		};
 		if (mission == 2) return switch (path) {
 			case HERO -> new Step[]{
-					s(SCHOOL, "Head to Amity High (your new powers keep glitching!)"),
+					s(SCHOOL, "Head to Casper High (your new powers keep glitching!)"),
 					s(FRIEND, "Your friend Sam is starting a petition for a healthy lunch menu. Find her outside school and sign it"),
 					s(CAFETERIA, "The petition worked! Check out the new healthy menu in the school cafeteria"),
 					s(CHEF1, "Lunch Lady hates the new menu! Fight her"),
@@ -127,7 +127,7 @@ public final class Story {
 					s(CHEF_TRAPPED, "Trap Lunch Lady in the Thermos (right-click her with it)"),
 					s(FRIEND, "Tell Sam the cafeteria is safe again")};
 			case EVIL -> new Step[]{
-					s(SCHOOL, "Head to Amity High (your dark powers keep glitching!)"),
+					s(SCHOOL, "Head to Casper High (your dark powers keep glitching!)"),
 					s(FRIEND, "Sam is collecting signatures for a healthy-menu petition outside school. Go and talk to her"),
 					s(CAFETERIA, "The menu changed and somebody's furious. Go and see in the school cafeteria"),
 					s(CHEF1, "Some ghost is haunting YOUR school. Fight her"),
@@ -137,7 +137,7 @@ public final class Story {
 					s(CHEF_TRAPPED, "Trap her in the Thermos. She works for you now"),
 					s(FRIEND, "Let Sam know there's a new boss in town")};
 			case HUNTER -> new Step[]{
-					s(SCHOOL, "Ghost activity at Amity High! Suit up and head there"),
+					s(SCHOOL, "Ghost activity at Casper High! Suit up and head there"),
 					s(FRIEND, "Ask Sam outside school about the ghost sightings"),
 					s(CAFETERIA, "She says the cafeteria's haunted since the menu changed. Investigate"),
 					s(CHEF1, "Ghost! Fight Lunch Lady"),
@@ -153,39 +153,39 @@ public final class Story {
 					s(BOX, "It's late, and the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
 					s(ESCAPE, "Something's been watching you... Skulker! He's too strong to fight. Get back to the Ghost Lab house!"),
 					s(NAP, "You were up all night. Take a nap on the couch in the Ghost Lab house (sit on it)"),
-					s(FRIEND, "You flunked your biology test! Find Sam outside Amity High"),
+					s(FRIEND, "You flunked your biology test! Find Sam outside Casper High"),
 					s(LIBRARY, "Sam says do an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
 					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
 					s(COLLECTOR_DAZED, "Skulker stole Sam's tablet to upgrade his gear, and now he wants the fox AND you! Fight him until he's dazed"),
 					s(COLLECTOR_TRAPPED, "Trap the Skulker in the Thermos (right-click him with it)"),
-					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
+					s(TEACHER, "Hand your report in to Mr. Lancer outside Casper High")};
 			case EVIL -> new Step[]{
 					s(BOX, "The Box Ghost is making a mess of YOUR town at the Quick Stop. Teach him a lesson (beat him or trap him)"),
 					s(ESCAPE, "A ghost hunter is stalking you: the Skulker! Not now. Get back to the Ghost Lab house!"),
 					s(NAP, "Even villains need sleep. Nap on the couch in the Ghost Lab house (sit on it)"),
-					s(FRIEND, "You flunked biology. Annoying. Find Sam outside Amity High"),
+					s(FRIEND, "You flunked biology. Annoying. Find Sam outside Casper High"),
 					s(LIBRARY, "Extra credit, ugh. Read up on rare animals in the library (stay inside a while)"),
 					s(FOX, "Find the rare snow fox in the park and study it (stay close to it)"),
 					s(COLLECTOR_DAZED, "Skulker stole Sam's tablet and upgraded his gear. Nobody collects YOU. Beat him until he's dazed"),
 					s(COLLECTOR_TRAPPED, "Trap the Skulker in the Thermos. Your trophy now"),
-					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
+					s(TEACHER, "Hand your report in to Mr. Lancer outside Casper High")};
 			case HUNTER -> new Step[]{
 					s(BOX, "Night patrol: the Box Ghost is wrecking the Quick Stop! Stop him (beat him, or trap him in the Thermos)"),
 					s(ESCAPE, "Ghost readings off the charts... the Skulker wants your suit for his collection! Fall back to the Ghost Lab house!"),
 					s(NAP, "You've been on patrol all night. Rest on the couch in the Ghost Lab house (sit on it)"),
-					s(FRIEND, "You flunked your biology test! Find Sam outside Amity High"),
+					s(FRIEND, "You flunked your biology test! Find Sam outside Casper High"),
 					s(LIBRARY, "Sam suggests an extra-credit report on a rare animal. Read up in the library (stay inside a while)"),
 					s(FOX, "Observe the rare snow fox in the park for your report (stay close to it)"),
 					s(COLLECTOR_DAZED, "Skulker stole Sam's tablet to upgrade his gear and he's hunting the fox! Fight him until he's dazed"),
 					s(COLLECTOR_TRAPPED, "Trap the Skulker in the Thermos (right-click him with it)"),
-					s(TEACHER, "Hand your report in to Mr. Lancer outside Amity High")};
+					s(TEACHER, "Hand your report in to Mr. Lancer outside Casper High")};
 			default -> new Step[0];
 		};
 		if (mission == 3) return switch (path) {
 			case HERO -> new Step[]{
 					s(AMULET, "Something is glowing by the park pond. Go and find it"),
 					s(TALK_PAIGE, "It'd make a perfect necklace for Paulina! Find her by the park gate, give it to her and ask her to the dance"),
-					s(OVERSHADOW, "Your powers got you in trouble at school! Overshadow the teacher outside Amity High to talk your way out of it"),
+					s(OVERSHADOW, "Your powers got you in trouble at school! Overshadow the teacher outside Casper High to talk your way out of it"),
 					s(TUNIC, "Get dressed up for the dance: wear a leather tunic (any colour)"),
 					s(FOUNTAIN, "Go to the dance at the park fountain to meet Paulina"),
 					s(DANCE, "Dance with Paulina! Stay on the dance floor by the fountain"),
@@ -195,7 +195,7 @@ public final class Story {
 			case EVIL -> new Step[]{
 					s(AMULET, "Something full of rage is glowing by the park pond. Go and take it"),
 					s(SNEAK_PAIGE, "Paulina is by the park gate. Turn invisible, sneak up on her and slip the necklace into her bag"),
-					s(OVERSHADOW, "Overshadow the teacher outside Amity High and get yourself out of detention"),
+					s(OVERSHADOW, "Overshadow the teacher outside Casper High and get yourself out of detention"),
 					s(TUNIC, "Crash the dance in style: wear a leather tunic (any colour)"),
 					s(FOUNTAIN, "Crash the dance at the park fountain"),
 					s(DANCE, "Make a scene: stay on the dance floor and see who ends up with the necklace"),
@@ -1127,11 +1127,11 @@ public final class Story {
 		if (d.storyMission == 3) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "The Amity Park dance is tonight and you're on chaperone duty. But the ghost sensors just picked up something strange in the park...";
 			case EVIL -> "The big dance is tonight. You've got no date and no patience. But something in the park is calling to you: something angry...";
-			default -> "The big dance is tonight and you want to ask Paulina, the most popular girl at Amity High! You just need the perfect gift... and to stay out of trouble at school.";
+			default -> "The big dance is tonight and you want to ask Paulina, the most popular girl at Casper High! You just need the perfect gift... and to stay out of trouble at school.";
 		}).formatted(Formatting.GRAY), false);
 		if (d.storyMission == 2) p.sendMessage(Text.literal(switch (d.storyPath) {
-			case HUNTER -> "Ghost sensors are going crazy over at Amity High. Something in the cafeteria is VERY unhappy...";
-			case EVIL -> "Your new powers keep acting up on their own. Meanwhile, some ghost is throwing a tantrum at Amity High. Nobody haunts YOUR town but you.";
+			case HUNTER -> "Ghost sensors are going crazy over at Casper High. Something in the cafeteria is VERY unhappy...";
+			case EVIL -> "Your new powers keep acting up on their own. Meanwhile, some ghost is throwing a tantrum at Casper High. Nobody haunts YOUR town but you.";
 			default -> "Being half-ghost is harder than it looks: your powers keep going off by themselves! And your friend Sam is trying to change the school lunch menu...";
 		}).formatted(Formatting.GRAY), false);
 		send(p, d, false);
