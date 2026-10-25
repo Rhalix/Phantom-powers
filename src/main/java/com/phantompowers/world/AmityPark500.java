@@ -277,7 +277,7 @@ public final class AmityPark500 {
 		// the Fenton Works ops tower on top of the lab house
 		fill(b, 22, 20, -38, 34, 20, -28, "iron_block");
 		fill(b, 20, 21, -36, 36, 21, -30, "iron_block");
-		b.walls(22, b.g + 21, -36, 34, b.g + 25, -30, s("light_blue_stained_glass_pane"));
+		b.walls(22, b.g + 22, -36, 34, b.g + 25, -30, s("light_blue_stained_glass_pane"));
 		fill(b, 20, 26, -38, 36, 26, -28, "iron_block");
 		fill(b, 26, 27, -35, 30, 28, -31, "gray_concrete");
 		fill(b, 28, 29, -33, 28, 39, -33, "iron_bars");
@@ -286,12 +286,31 @@ public final class AmityPark500 {
 			fill(b, 36 + i * 2, 22 + i, -35, 38 + i * 2, 22 + i, -33, "iron_block");
 		}
 		b.sign(26, b.g + 12, -21, Direction.SOUTH, true, "FENTON", "WORKS", "Ghost Research", "");
-		b.stairsUp(35, -40, b.g + 10, b.stairs(block("oak_stairs"), Direction.SOUTH), s("iron_block"));
-		b.stairsUp(35, -40, b.g + 15, b.stairs(block("oak_stairs"), Direction.SOUTH), s("iron_block"));
-		b.door(34, b.g + 21, -33, Direction.EAST, block("oak_door"));
+		// the way up: stairs from the top floor of the house onto the roof, then a ladder to the tower's balcony
+		b.stairsUp(37, -42, b.g + 5, b.stairs(block("oak_stairs"), Direction.SOUTH), s("oak_planks"));
+		fill(b, 36, 10, -38, 36, 21, -38, "iron_block");
+		for (int y = 10; y <= 21; y++)
+			b.set(36, b.g + y, -37, Blocks.LADDER.getDefaultState().with(net.minecraft.block.LadderBlock.FACING, Direction.SOUTH));
+		fill(b, 36, 22, -36, 36, 24, -36, "air");
+		b.door(34, b.g + 22, -33, Direction.EAST, block("oak_door"));
+		// inside the tower: ghost-watching gear
+		for (int x = 23; x <= 33; x += 2) b.furn(x, b.g + 22, -35, ModBlocks.LAB_CONSOLE, Direction.SOUTH);
+		b.furn(28, b.g + 22, -34, ModBlocks.OAK_CHAIR, Direction.NORTH);
+		b.set(28, b.g + 25, -33, Blocks.SEA_LANTERN.getDefaultState());
 		b.sign(-80, b.g + 7, -68, Direction.SOUTH, true, "CASPER", "HIGH", "SCHOOL", "");
 		b.sign(-41, b.g + 3, -14, Direction.SOUTH, true, "NASTY BURGER", "Burgers & fries", "Open for business", "");
-		// Casper High's third floor
+		thirdFloor(b);
+		danceHall(b);
+		if (!big) return;
+		// the welcome billboard
+		fill(b, -235, 0, 232, -235, 8, 232, "dark_oak_planks");
+		fill(b, -215, 0, 232, -215, 8, 232, "dark_oak_planks");
+		fill(b, -236, 6, 232, -214, 14, 232, "yellow_concrete");
+		b.sign(-227, b.g + 11, 233, Direction.SOUTH, true, "AMITY PARK", "A NICE PLACE", "TO LIVE", "");
+	}
+
+	/** Casper High's third floor: a classroom at the back, and room for the dance hall at the front. */
+	static void thirdFloor(AmityPark.Builder b) {
 		fill(b, -97, 10, -97, -60, 14, -70, "air");
 		b.fill(-98, b.g + 10, -98, -59, b.g + 14, -98, s("bricks"));
 		b.fill(-98, b.g + 10, -69, -59, b.g + 14, -69, s("bricks"));
@@ -309,11 +328,43 @@ public final class AmityPark500 {
 				b.furn(x, b.g + 10, z, ModBlocks.SCHOOL_DESK, Direction.SOUTH);
 				b.furn(x, b.g + 10, z - 1, ModBlocks.OAK_CHAIR, Direction.SOUTH);
 			}
-		if (!big) return;
-		// the welcome billboard
-		fill(b, -235, 0, 232, -235, 8, 232, "dark_oak_planks");
-		fill(b, -215, 0, 232, -215, 8, 232, "dark_oak_planks");
-		fill(b, -236, 6, 232, -214, 14, 232, "yellow_concrete");
-		b.sign(-227, b.g + 11, 233, Direction.SOUTH, true, "AMITY PARK", "A NICE PLACE", "TO LIVE", "");
+	}
+
+	/** The dance hall on Casper High's top floor, with the girls' bathroom at the west end. */
+	static void danceHall(AmityPark.Builder b) {
+		int y = b.g + 10;
+		BlockState wall = s("white_terracotta");
+		// a wall between the classroom and the hall, with a doorway
+		b.fill(-97, y, -82, -60, y + 4, -82, wall);
+		b.fill(-80, y, -82, -78, y + 1, -82, s("air"));
+		// the dance floor: flashing coloured squares
+		String[] tiles = {"magenta_concrete", "light_blue_concrete", "yellow_concrete", "lime_concrete"};
+		for (int x = -84; x <= -68; x++)
+			for (int z = -80; z <= -72; z++) b.set(x, y - 1, z, s(tiles[Math.floorMod((x >> 1) + (z >> 1) * 3, tiles.length)]));
+		for (int x = -84; x <= -68; x += 4) b.set(x, y - 1, -76, s("sea_lantern"));
+		// lights and decorations
+		for (int x = -84; x <= -66; x += 4)
+			for (int z = -80; z <= -72; z += 4) b.set(x, y + 4, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+		for (int x = -86; x <= -64; x++) b.set(x, y + 4, -81, s(Math.floorMod(x, 2) == 0 ? "pink_wool" : "light_blue_wool"));
+		b.sign(Blocks.DARK_OAK_WALL_SIGN, net.minecraft.util.DyeColor.LIME, -77, y + 2, -81, Direction.SOUTH, "", "SCHOOL DANCE", "Tonight!", "");
+		// a DJ table
+		b.set(-66, y, -78, s("note_block"));
+		b.set(-66, y, -77, s("jukebox"));
+		b.set(-66, y, -76, s("note_block"));
+		// the girls' bathroom
+		b.fill(-88, y, -81, -88, y + 3, -71, s("white_concrete"));
+		b.fill(-88, y, -76, -88, y + 1, -75, s("air"));
+		b.sign(Blocks.DARK_OAK_WALL_SIGN, net.minecraft.util.DyeColor.WHITE, -87, y + 2, -77, Direction.EAST, "", "GIRLS", "", "");
+		for (int x = -97; x <= -89; x++)
+			for (int z = -81; z <= -71; z++) b.set(x, y - 1, z, s(Math.floorMod(x + z, 2) == 0 ? "white_concrete" : "light_gray_concrete"));
+		b.fill(-97, y, -81, -89, y + 4, -71, s("air"));
+		for (int z : new int[]{-78, -74}) b.fill(-97, y, z, -95, y + 2, z, s("smooth_quartz"));
+		for (int z : new int[]{-80, -76, -72})
+			b.set(-97, y, z, b.stairs(block("quartz_stairs"), Direction.EAST));
+		for (int z : new int[]{-80, -79, -73, -72}) {
+			b.set(-89, y, z, Blocks.WATER_CAULDRON.getDefaultState().with(net.minecraft.block.LeveledCauldronBlock.LEVEL, 3));
+			b.set(-89, y + 2, z, s("light_blue_stained_glass"));
+		}
+		b.set(-92, y + 4, -76, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
 	}
 }

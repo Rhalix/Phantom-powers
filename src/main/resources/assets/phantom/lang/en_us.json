@@ -172,5 +172,15 @@
   "block.phantom.bookcase": "Bookcase",
   "block.phantom.potted_plant": "Potted Plant",
   "entity.phantom.collector": "Skulker",
-  "item.phantom.collector_spawn_egg": "Skulker Spawn Egg"
+  "item.phantom.collector_spawn_egg": "Skulker Spawn Egg",
+  "item.phantom.lab_jumpsuit_top": "Lab Jumpsuit",
+  "item.phantom.lab_jumpsuit_pants": "Lab Jumpsuit Pants",
+  "item.phantom.lab_jumpsuit_boots": "Lab Jumpsuit Boots",
+  "key.phantom.power_1": "Power Slot 1",
+  "key.phantom.power_2": "Power Slot 2",
+  "key.phantom.power_3": "Power Slot 3",
+  "key.phantom.power_4": "Power Slot 4",
+  "key.phantom.suit_up": "Ghost Hunter Suit on/off (hold: cutscene)",
+  "key.phantom.hunter_radar": "Hunter Radar, suit on (off / ghosts / mobs / both)",
+  "key.phantom.lock_on": "Lock On (target the enemy in front of you)"
 }

@@ -39,6 +39,7 @@ import org.lwjgl.glfw.GLFW;
 public class PhantomClient implements ClientModInitializer {
 	public static final String CATEGORY = "key.category.phantom";
 
+	public static KeyBinding LOCK_ON;
 	public static KeyBinding TRANSFORM;
 	public static KeyBinding BLAST;
 	public static KeyBinding INTANGIBLE;
@@ -142,7 +143,7 @@ public class PhantomClient implements ClientModInitializer {
 		TORNADO = key("tornado", GLFW.GLFW_KEY_UNKNOWN);
 		INVISIBLE = key("invisible", GLFW.GLFW_KEY_UNKNOWN);
 		SKILLS = key("skills", GLFW.GLFW_KEY_K);
-		SUIT = key("suit", GLFW.GLFW_KEY_U);
+		SUIT = key("suit_up", GLFW.GLFW_KEY_B);
 		FROST = key("frost", GLFW.GLFW_KEY_UNKNOWN);
 		FISTS = key("fists", GLFW.GLFW_KEY_UNKNOWN);
 		SHIELD = key("shield", GLFW.GLFW_KEY_UNKNOWN);
@@ -151,12 +152,14 @@ public class PhantomClient implements ClientModInitializer {
 		SPIN = key("spin", GLFW.GLFW_KEY_UNKNOWN);
 		STINGER = key("stinger", GLFW.GLFW_KEY_UNKNOWN);
 		ABSORB = key("absorb", GLFW.GLFW_KEY_UNKNOWN);
-		RADAR = key("radar", GLFW.GLFW_KEY_M);
+		RADAR = key("hunter_radar", GLFW.GLFW_KEY_N);
 		CANNON = key("cannon", GLFW.GLFW_KEY_UNKNOWN);
-		SLOT[0] = key("slot1", GLFW.GLFW_KEY_R);
-		SLOT[1] = key("slot2", GLFW.GLFW_KEY_G);
-		SLOT[2] = key("slot3", GLFW.GLFW_KEY_H);
-		SLOT[3] = key("slot4", GLFW.GLFW_KEY_B);
+		// the four power keys sit right around WASD so you hardly have to move your fingers
+		SLOT[0] = key("power_1", GLFW.GLFW_KEY_R);
+		SLOT[1] = key("power_2", GLFW.GLFW_KEY_C);
+		SLOT[2] = key("power_3", GLFW.GLFW_KEY_X);
+		SLOT[3] = key("power_4", GLFW.GLFW_KEY_Z);
+		LOCK_ON = key("lock_on", GLFW.GLFW_KEY_G);
 		MENU = key("menu", GLFW.GLFW_KEY_GRAVE_ACCENT);
 		CANNON_MODE = key("cannon_mode", GLFW.GLFW_KEY_UNKNOWN);
 
@@ -261,6 +264,8 @@ public class PhantomClient implements ClientModInitializer {
 			if (shieldHeld && !shieldNow) send(GhostPowers.A_SHIELD_RELEASE);
 			shieldHeld = shieldNow;
 			while (SKILLS.wasPressed()) client.setScreen(new GhostSkillsScreen(null));
+			while (LOCK_ON.wasPressed()) LockOn.toggle(client);
+			LockOn.tick(client);
 
 			// Letting go of G lets go of whatever you were holding intangible
 			boolean held = INTANGIBLE.isPressed() && !shadowed(INTANGIBLE);
@@ -520,6 +525,8 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(MissileSight::render);
 		HudRenderCallback.EVENT.register(SkimmerHud::render);
 		HudRenderCallback.EVENT.register(StoryHud::render);
+		HudRenderCallback.EVENT.register(LockOn::render);
+		WorldRenderEvents.START.register(ctx -> LockOn.frame(net.minecraft.client.MinecraftClient.getInstance()));
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutout(), ModBlocks.COFFEE_TABLE, ModBlocks.POTTED_PLANT);
 		DimensionRenderingRegistry.registerDimensionEffects(PhantomMod.id("ghost_zone"), new GhostZoneEffects());

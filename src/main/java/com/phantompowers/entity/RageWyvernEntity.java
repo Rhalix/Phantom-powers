@@ -226,13 +226,10 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 			// hover in place and sweep the fire across the target
 			breathTicks--;
 			setVelocity(getVelocity().multiply(0.7));
-			Vec3d mouth = getEyePos().add(getRotationVec(1f).multiply(1.8));
+			Vec3d mouth = getEyePos().add(getRotationVec(1f).multiply(3.0));
 			Vec3d want = target.getPos().add(0, target.getHeight() * 0.5, 0).subtract(mouth).normalize();
 			breathDir = breathDir.lengthSquared() < 0.01 ? want : breathDir.multiply(0.8).add(want.multiply(0.2)).normalize();
-			for (int i = 0; i < 6; i++) {
-				Vec3d v = breathDir.multiply(0.6 + random.nextDouble() * 0.5).add((random.nextDouble() - 0.5) * 0.25, (random.nextDouble() - 0.5) * 0.25, (random.nextDouble() - 0.5) * 0.25);
-				w.spawnParticles(berserk() ? ParticleTypes.FLAME : ParticleTypes.SOUL_FIRE_FLAME, mouth.x, mouth.y, mouth.z, 0, v.x, v.y, v.z, 1.0);
-			}
+			fancyFlames(w, mouth);
 			if (breathTicks % 5 == 0) {
 				BossMoves.coneHit(w, this, mouth, breathDir, berserk() ? 13 : 10, 0.86, getDamageSources().mobAttack(this), berserk() ? 4f : 3f, 0.2,
 						e -> !(e instanceof AbstractGhostEntity) && !(e instanceof VillagerEntity) && !(e instanceof TownspersonEntity));
@@ -289,6 +286,52 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	/** A long, sweeping stream of ghost-fire. */
+	private static final net.minecraft.particle.DustParticleEffect TEAL = new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.2f, 0.95f, 0.85f), 1.6f),
+			VIOLET = new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.65f, 0.3f, 1.0f), 1.4f),
+			EMBER = new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(1.0f, 0.55f, 0.1f), 1.5f),
+			CRIMSON = new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(1.0f, 0.15f, 0.1f), 1.4f);
+
+	/**
+	 * The breath: a roaring core of fire, two ribbons of coloured flame twisting around it, sparks and embers
+	 * spraying out, a burst of light at the mouth and smoke curling off the end.
+	 */
+	private void fancyFlames(ServerWorld w, Vec3d mouth) {
+		Vec3d dir = breathDir;
+		Vec3d side = dir.crossProduct(new Vec3d(0, 1, 0));
+		if (side.lengthSquared() < 1.0E-4) side = new Vec3d(1, 0, 0);
+		side = side.normalize();
+		Vec3d up = side.crossProduct(dir).normalize();
+		boolean rage = berserk();
+		var core = rage ? ParticleTypes.FLAME : ParticleTypes.SOUL_FIRE_FLAME;
+		// the core stream
+		for (int i = 0; i < 10; i++) {
+			Vec3d v = dir.multiply(0.75 + random.nextDouble() * 0.6).add(side.multiply((random.nextDouble() - 0.5) * 0.3)).add(up.multiply((random.nextDouble() - 0.5) * 0.3));
+			w.spawnParticles(core, mouth.x, mouth.y, mouth.z, 0, v.x, v.y, v.z, 1.0);
+		}
+		// two ribbons spiralling around it
+		double spin = age * 0.9;
+		for (int k = 0; k < 14; k++) {
+			double t = k * 0.85 + 0.6;
+			for (int strand = 0; strand < 2; strand++) {
+				double a = spin + t * 0.9 + strand * Math.PI;
+				double r = 0.3 + t * 0.09;
+				Vec3d pt = mouth.add(dir.multiply(t)).add(side.multiply(Math.cos(a) * r)).add(up.multiply(Math.sin(a) * r));
+				w.spawnParticles(rage ? (strand == 0 ? EMBER : CRIMSON) : (strand == 0 ? TEAL : VIOLET), pt.x, pt.y, pt.z, 1, 0, 0, 0, 0);
+			}
+		}
+		// sparks, embers and smoke
+		for (int i = 0; i < 3; i++) {
+			double t = 2 + random.nextDouble() * 9;
+			Vec3d pt = mouth.add(dir.multiply(t)).add(side.multiply((random.nextDouble() - 0.5) * 1.6)).add(up.multiply((random.nextDouble() - 0.5) * 1.6));
+			w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, pt.x, pt.y, pt.z, 1, 0.1, 0.1, 0.1, 0.08);
+			w.spawnParticles(rage ? ParticleTypes.LAVA : ParticleTypes.SOUL, pt.x, pt.y, pt.z, 1, 0.2, 0.2, 0.2, 0.02);
+		}
+		Vec3d tail = mouth.add(dir.multiply(11));
+		w.spawnParticles(ParticleTypes.LARGE_SMOKE, tail.x, tail.y, tail.z, 2, 0.6, 0.4, 0.6, 0.02);
+		if (age % 4 == 0) w.spawnParticles(ParticleTypes.FLASH, mouth.x, mouth.y, mouth.z, 1, 0, 0, 0, 0);
+		w.spawnParticles(rage ? ParticleTypes.FLAME : ParticleTypes.DRAGON_BREATH, mouth.x, mouth.y, mouth.z, 4, 0.25, 0.25, 0.25, 0.03);
+	}
+
 	public void breathe(ServerWorld w) {
 		breathTicks = 40;
 		breathDir = Vec3d.ZERO;
@@ -296,7 +339,7 @@ public class RageWyvernEntity extends AbstractGhostEntity implements Monster {
 	}
 
 	public void fireballs(ServerWorld w, LivingEntity target, int count) {
-		Vec3d from = getEyePos().add(getRotationVec(1f).multiply(1.8));
+		Vec3d from = getEyePos().add(getRotationVec(1f).multiply(3.0));
 		for (int i = 0; i < count; i++) {
 			WyvernFireballEntity f = new WyvernFireballEntity(ModEntities.WYVERN_FIREBALL, this, w, berserk() ? 6f : 5f);
 			f.setPosition(from.x, from.y, from.z);

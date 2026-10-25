@@ -134,7 +134,7 @@ public final class ModEntities {
 	public static final EntityType<com.phantompowers.entity.RageWyvernEntity> RAGE_WYVERN = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("rage_wyvern"),
 			EntityType.Builder.create(com.phantompowers.entity.RageWyvernEntity::new, SpawnGroup.MONSTER)
-					.dimensions(2.2f, 2.0f).maxTrackingRange(14).trackingTickInterval(1).makeFireImmune().build("rage_wyvern"));
+					.dimensions(3.8f, 3.4f).maxTrackingRange(16).trackingTickInterval(1).makeFireImmune().build("rage_wyvern"));
 
 	public static final EntityType<com.phantompowers.entity.WyvernFireballEntity> WYVERN_FIREBALL = Registry.register(Registries.ENTITY_TYPE,
 			PhantomMod.id("wyvern_fireball"),

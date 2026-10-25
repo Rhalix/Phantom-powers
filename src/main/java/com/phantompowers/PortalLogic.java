@@ -365,7 +365,7 @@ public final class PortalLogic {
 		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("You're half ghost!").formatted(Formatting.GREEN, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Press V to go ghost").formatted(Formatting.WHITE)));
 		p.sendMessage(Text.literal("You came back... different. You have ghost powers!").formatted(Formatting.GREEN), false);
-		p.sendMessage(Text.literal("V = go ghost / go human.  R = Ecto Blast.  G / H / B = new powers you unlock with stat points.").formatted(Formatting.GRAY), false);
+		p.sendMessage(Text.literal("V = go ghost / go human.  R = Ecto Blast.  C / X / Z = new powers you unlock with stat points.  G = lock on.").formatted(Formatting.GRAY), false);
 		p.sendMessage(Text.literal("Stay in ghost form to earn stat points (1 every 30 seconds).").formatted(Formatting.GRAY), false);
 		ServerWorld w = p.getServerWorld();
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM, SoundCategory.PLAYERS, 1.0f, 0.6f);

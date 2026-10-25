@@ -395,6 +395,29 @@ public final class AmityPark {
 	}
 
 	/** Just outside Casper High's front doors. */
+	/** The middle of the dance floor on Casper High's top floor. */
+	public static Vec3d danceFloor(BlockPos c) {
+		return new Vec3d(c.getX() - 75.5, c.getY() + 10, c.getZ() - 75.5);
+	}
+
+	/** Inside the girls' bathroom on Casper High's top floor. */
+	public static Vec3d bathroom(BlockPos c) {
+		return new Vec3d(c.getX() - 92.5, c.getY() + 10, c.getZ() - 75.5);
+	}
+
+	/** Towns built before the dance hall existed get Casper High's top floor and dance hall added now. */
+	public static void ensureDanceHall(MinecraftServer server) {
+		State st = state(server);
+		if (!st.built || building()) return;
+		ServerWorld w = server.getOverworld();
+		BlockPos c = st.center;
+		if (w.getBlockState(c.add(-76, 9, -76)).isOf(Blocks.SEA_LANTERN)) return;
+		Builder b = new Builder(w, c);
+		if (!w.getBlockState(c.add(-97, 9, -97)).isOf(Blocks.OAK_PLANKS)) AmityPark500.thirdFloor(b);
+		AmityPark500.danceHall(b);
+		b.connect();
+	}
+
 	public static Vec3d schoolDoor(BlockPos c) {
 		return new Vec3d(c.getX() - 78, c.getY(), c.getZ() - 66.5);
 	}
@@ -911,6 +934,9 @@ public final class AmityPark {
 				ch.setStack(14, new ItemStack(ModItems.SHIELD_REMOTE));
 				ch.setStack(16, new ItemStack(ModBlocks.SHIELD_EMITTER_ITEM, 4));
 				ch.setStack(22, new ItemStack(ModItems.ACNE_CREAM, 2));
+				ch.setStack(2, new ItemStack(ModItems.JUMPSUIT_TOP));
+				ch.setStack(3, new ItemStack(ModItems.JUMPSUIT_PANTS));
+				ch.setStack(4, new ItemStack(ModItems.JUMPSUIT_BOOTS));
 			}
 		}
 

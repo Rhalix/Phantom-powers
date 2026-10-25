@@ -1116,8 +1116,20 @@ public final class GhostPowers {
 			bar(p, "They're intangible, you can't grab them!", Formatting.RED);
 			return;
 		}
-		stopIntangible(p, d, false);
 		d.energy -= POSSESS_START_COST;
+		beginPossess(p, d, target);
+	}
+
+	/** Overshadow someone straight away (the story uses this when you fly into somebody by accident). */
+	public static void forcePossess(ServerPlayerEntity p, LivingEntity target) {
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		if (d.possessing != null || GhostFlags.HOSTS.contains(target.getUuid())) return;
+		beginPossess(p, d, target);
+		syncNow(p);
+	}
+
+	private static void beginPossess(ServerPlayerEntity p, GhostData d, Entity target) {
+		stopIntangible(p, d, false);
 		d.possessing = target;
 		d.possessTicks = 0;
 		GhostFlags.HOSTS.add(target.getUuid());
@@ -1131,7 +1143,7 @@ public final class GhostPowers {
 		p.teleport(w, target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
 		w.spawnParticles(GREEN, target.getX(), target.getY() + target.getHeight() / 2, target.getZ(), 40, 0.4, 0.6, 0.4, 0);
 		sound(p, SoundEvents.ENTITY_VEX_CHARGE, 1.0f, 0.7f);
-		bar(p, "You possessed " + target.getName().getString() + "! R: " + HostPowers.NAMES[HostPowers.kind(target)] + ". H to leave.", Formatting.GREEN);
+		bar(p, "You possessed " + target.getName().getString() + "! R: " + HostPowers.NAMES[HostPowers.kind(target)] + ". Use Possession again to leave.", Formatting.GREEN);
 		if (target instanceof ServerPlayerEntity tp) {
 			tp.sendMessage(Text.literal("You've been possessed by " + p.getName().getString() + "!").formatted(Formatting.GREEN), true);
 		}

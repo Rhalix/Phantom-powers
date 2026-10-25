@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.item.SwordItem;
@@ -146,6 +147,24 @@ public final class ModItems {
 			new ArmorItem(HUNTER_MATERIAL, ArmorItem.Type.CHESTPLATE,
 					new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(37)).rarity(Rarity.RARE).fireproof()));
 
+	/** The white lab jumpsuit from the Ghost Lab: what you're wearing when the portal turns on. */
+	public static final RegistryEntry<ArmorMaterial> JUMPSUIT_MATERIAL = Registry.registerReference(Registries.ARMOR_MATERIAL,
+			PhantomMod.id("lab_jumpsuit"),
+			new ArmorMaterial(Util.make(new EnumMap<>(ArmorItem.Type.class), m -> {
+				m.put(ArmorItem.Type.BOOTS, 1);
+				m.put(ArmorItem.Type.LEGGINGS, 2);
+				m.put(ArmorItem.Type.CHESTPLATE, 3);
+				m.put(ArmorItem.Type.HELMET, 1);
+				m.put(ArmorItem.Type.BODY, 3);
+			}), 12, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, () -> Ingredient.ofItems(Items.WHITE_WOOL),
+					List.of(new ArmorMaterial.Layer(PhantomMod.id("lab_jumpsuit"))), 0f, 0f));
+	public static final Item JUMPSUIT_TOP = Registry.register(Registries.ITEM, PhantomMod.id("lab_jumpsuit_top"),
+			new ArmorItem(JUMPSUIT_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(10))));
+	public static final Item JUMPSUIT_PANTS = Registry.register(Registries.ITEM, PhantomMod.id("lab_jumpsuit_pants"),
+			new ArmorItem(JUMPSUIT_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Settings().maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(10))));
+	public static final Item JUMPSUIT_BOOTS = Registry.register(Registries.ITEM, PhantomMod.id("lab_jumpsuit_boots"),
+			new ArmorItem(JUMPSUIT_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings().maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(10))));
+
 	public static final Item PANDORAS_BOX = Registry.register(Registries.ITEM, PhantomMod.id("pandoras_box"),
 			new PandorasBoxItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof()));
 	public static final Item CRATE_KING_EGG = Registry.register(Registries.ITEM, PhantomMod.id("crate_king_spawn_egg"),
@@ -213,6 +232,9 @@ public final class ModItems {
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> {
 			e.add(HUNTER_SUIT);
+			e.add(JUMPSUIT_TOP);
+			e.add(JUMPSUIT_PANTS);
+			e.add(JUMPSUIT_BOOTS);
 			e.add(GHOST_BLASTER);
 			e.add(ECTO_SWORD);
 			e.add(GHOST_NET);

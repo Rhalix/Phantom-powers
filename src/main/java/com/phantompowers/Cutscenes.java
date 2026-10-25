@@ -435,7 +435,7 @@ public final class Cutscenes {
 			p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("You're half ghost!").formatted(Formatting.GREEN, Formatting.BOLD)));
 			p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Press V to go ghost / go human").formatted(Formatting.WHITE)));
 			p.sendMessage(Text.literal("The portal's energy rewrote you. You have ghost powers!").formatted(Formatting.GREEN), false);
-			p.sendMessage(Text.literal("V = go ghost / go human.  R = Ecto Blast.  K = Ghost Skills (unlock powers with stat points).").formatted(Formatting.GRAY), false);
+			p.sendMessage(Text.literal("V = go ghost / go human.  R, C, X, Z = your power slots.  G = lock on.  K = Ghost Skills (unlock powers with stat points).").formatted(Formatting.GRAY), false);
 			w.playSound(null, mid.x, mid.y, mid.z, SoundEvents.ENTITY_ALLAY_AMBIENT_WITHOUT_ITEM, SoundCategory.PLAYERS, 1.2f, 0.6f);
 		}
 		if (d.cutscene <= 0) {

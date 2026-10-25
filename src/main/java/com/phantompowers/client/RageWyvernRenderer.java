@@ -17,7 +17,7 @@ public class RageWyvernRenderer extends MobEntityRenderer<RageWyvernEntity, Rage
 	private static final Identifier GLOW = PhantomMod.id("textures/entity/rage_wyvern_glow.png");
 
 	public RageWyvernRenderer(EntityRendererFactory.Context ctx) {
-		super(ctx, new RageWyvernModel(ctx.getPart(RageWyvernModel.LAYER)), 1.2f);
+		super(ctx, new RageWyvernModel(ctx.getPart(RageWyvernModel.LAYER)), 2.0f);
 		this.addFeature(new FeatureRenderer<>(this) {
 			@Override
 			public void render(MatrixStack matrices, VertexConsumerProvider consumers, int light, RageWyvernEntity e,
@@ -35,7 +35,7 @@ public class RageWyvernRenderer extends MobEntityRenderer<RageWyvernEntity, Rage
 
 	@Override
 	protected void scale(RageWyvernEntity e, MatrixStack matrices, float amount) {
-		float s = 1.35f;
+		float s = 2.35f;
 		matrices.scale(s, s, s);
 	}
 

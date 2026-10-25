@@ -44,7 +44,7 @@ public final class Story {
 	 */
 	private static final int MISSIONS = 4, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
 	/** Objective lists got longer in version 2: anyone part-way through a mission from before starts its objectives again. */
-	private static final int VERSION = 2;
+	private static final int VERSION = 3;
 
 	// objective goals
 	private static final String LAB_DOOR = "lab_door", LAB_FLOOR = "lab_floor", CONSOLES = "consoles", SCAN = "scan", POWERS = "powers",
@@ -54,8 +54,9 @@ public final class Story {
 			CHEF_TRAPPED = "chef_trapped", AMULET = "amulet", TALK_PAIGE = "talk_paige", SNEAK_PAIGE = "sneak_paige", OVERSHADOW = "overshadow",
 			TUNIC = "tunic", FOUNTAIN = "fountain", DANCE = "dance", WYVERN_DAZED = "wyvern_dazed", AMULET_PULLED = "amulet_pulled",
 			CHECK_PAIGE = "check_paige", BOX = "box", ESCAPE = "escape", NAP = "nap", LIBRARY = "library", FOX = "fox",
-			COLLECTOR_DAZED = "collector_dazed", COLLECTOR_TRAPPED = "collector_trapped", TEACHER = "teacher";
-	private static final int SCAN_CHECKS = 20, DANCE_CHECKS = 40, NAP_CHECKS = 20, STUDY_CHECKS = 20;   // checks happen twice a second
+			COLLECTOR_DAZED = "collector_dazed", COLLECTOR_TRAPPED = "collector_trapped", TEACHER = "teacher", JUMPSUIT = "jumpsuit", TROUBLE = "trouble", DAD = "dad",
+			LANCER = "lancer", TUCKER = "tucker", ASK_SAM = "ask_sam", BATHROOM = "bathroom";
+	private static final int SCAN_CHECKS = 20, DANCE_CHECKS = 40, NAP_CHECKS = 20, STUDY_CHECKS = 20, LANCER_CHECKS = 8, BATH_CHECKS = 26;   // checks happen twice a second
 
 	private Story() {}
 
@@ -85,6 +86,7 @@ public final class Story {
 					s(LAB_DOOR, "Head to the Ghost Lab house in Amity Park"),
 					s(LAB_FLOOR, "Your parents' Ghost Portal is in the basement. Go down the stairs to the lab"),
 					s(CONSOLES, "Read your parents' notes on the lab consoles (stand at the consoles)"),
+					s(JUMPSUIT, "Safety first! Put on the lab jumpsuit, pants and boots (they're by the consoles, and in the gear locker)"),
 					s(POWERS, "The portal doesn't work... Step inside the Ghost Portal and press the switch"),
 					s(TRANSFORMED, "Something's different about you. Go ghost! (press V)"),
 					s(INTANGIBLE, "Your molecules got rearranged! Try going intangible and pass through a wall"),
@@ -108,7 +110,7 @@ public final class Story {
 					s(LAB_FLOOR, "Go down the stairs to the basement lab"),
 					s(CONSOLES, "Read the hunter suit blueprints on the lab consoles"),
 					s(SUIT_ITEM, "Build your own Ghost Hunter Suit: craft it from 7 iron, 2 white wool and 1 ectoplasm (there's ectoplasm in the lab's gear locker)"),
-					s(SUIT_ON, "Wear the suit (chest slot) and suit up! (press U)"),
+					s(SUIT_ON, "Wear the suit (chest slot) and suit up! (press B)"),
 					s(KILL3, "Ghosts broke out of the portal! Destroy them"),
 					s(THERMOS, "Grab a Thermos from the lab's gear locker"),
 					s(TRAP_ANY, "One more ghost slipped out! Trap it in the Thermos (right-click it)"),
@@ -121,7 +123,10 @@ public final class Story {
 					s(FRIEND, "Your friend Sam is starting a petition for a healthy lunch menu. Find her outside school and sign it"),
 					s(CAFETERIA, "The petition worked! Check out the new healthy menu in the school cafeteria"),
 					s(CHEF1, "Lunch Lady hates the new menu! Fight her"),
-					s(THERMOS, "She got away! Get a Thermos from the Ghost Lab gear locker"),
+					s(TROUBLE, "Mr. Lancer blames YOU for wrecking the cafeteria and called your dad in! Meet your dad outside Casper High"),
+					s(DAD, "Your dad is about to talk to Mr. Lancer! Go ghost and fly at your dad to stop him"),
+					s(LANCER, "Whoa, you're INSIDE your dad! Walk his body over to Mr. Lancer and talk your way out of trouble"),
+					s(THERMOS, "Lunch Lady's still out there! Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "She'll be back for lunch. Get back to the cafeteria"),
 					s(CHEF_DAZED, "Round two! Fight Lunch Lady until she's dazed"),
 					s(CHEF_TRAPPED, "Trap Lunch Lady in the Thermos (right-click her with it)"),
@@ -131,7 +136,10 @@ public final class Story {
 					s(FRIEND, "Sam is collecting signatures for a healthy-menu petition outside school. Go and talk to her"),
 					s(CAFETERIA, "The menu changed and somebody's furious. Go and see in the school cafeteria"),
 					s(CHEF1, "Some ghost is haunting YOUR school. Fight her"),
-					s(THERMOS, "She ran off! Get a Thermos from the Ghost Lab gear locker"),
+					s(TROUBLE, "Mr. Lancer blames you for the cafeteria mess and called your dad in. Meet your dad outside Casper High"),
+					s(DAD, "Can't have Dad talking to Lancer. Go ghost and fly at your dad"),
+					s(LANCER, "You're inside your dad's body! Walk him over to Mr. Lancer and make this problem go away"),
+					s(THERMOS, "Lunch Lady ran off. Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "She'll be back for lunch. Wait for her in the cafeteria"),
 					s(CHEF_DAZED, "Show Lunch Lady who's in charge: beat her until she's dazed"),
 					s(CHEF_TRAPPED, "Trap her in the Thermos. She works for you now"),
@@ -185,21 +193,25 @@ public final class Story {
 			case HERO -> new Step[]{
 					s(AMULET, "Something is glowing by the park pond. Go and find it"),
 					s(TALK_PAIGE, "It'd make a perfect necklace for Paulina! Find her by the park gate, give it to her and ask her to the dance"),
-					s(OVERSHADOW, "Your powers got you in trouble at school! Overshadow the teacher outside Casper High to talk your way out of it"),
+					s(TUCKER, "Tucker wants to ask Sam to the dance but he's too scared. Overshadow him outside Casper High (go ghost, look at him, use Possession)"),
+					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance for him"),
 					s(TUNIC, "Get dressed up for the dance: wear a leather tunic (any colour)"),
-					s(FOUNTAIN, "Go to the dance at the park fountain to meet Paulina"),
-					s(DANCE, "Dance with Paulina! Stay on the dance floor by the fountain"),
-					s(WYVERN_DAZED, "Sam put on the necklace, got furious at Paulina and turned into a dragon! Fight her until she's dazed"),
+					s(FOUNTAIN, "Go to the school dance on the top floor of Casper High to meet Paulina"),
+					s(DANCE, "Dance with Paulina! Stay on the dance floor"),
+					s(BATHROOM, "Paulina and Sam both went into the girls' bathroom... Turn invisible and sneak in to listen"),
+					s(WYVERN_DAZED, "Sam got so angry she turned into a dragon and smashed out of the school! Fight her until she's dazed"),
 					s(AMULET_PULLED, "Pull the necklace off the dazed dragon to turn Sam back (right-click it)"),
 					s(CHECK_PAIGE, "Check that Sam is okay")};
 			case EVIL -> new Step[]{
 					s(AMULET, "Something full of rage is glowing by the park pond. Go and take it"),
 					s(SNEAK_PAIGE, "Paulina is by the park gate. Turn invisible, sneak up on her and slip the necklace into her bag"),
-					s(OVERSHADOW, "Overshadow the teacher outside Casper High and get yourself out of detention"),
+					s(TUCKER, "Tucker's too scared to ask Sam to the dance. Overshadow him outside Casper High and do it for him"),
+					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance (this should be fun)"),
 					s(TUNIC, "Crash the dance in style: wear a leather tunic (any colour)"),
-					s(FOUNTAIN, "Crash the dance at the park fountain"),
-					s(DANCE, "Make a scene: stay on the dance floor and see who ends up with the necklace"),
-					s(WYVERN_DAZED, "Paulina gave the necklace to Sam, and Sam's rage turned her into a dragon! Beat her until she's dazed"),
+					s(FOUNTAIN, "Crash the school dance on the top floor of Casper High"),
+					s(DANCE, "Make a scene: stay on the dance floor"),
+					s(BATHROOM, "Paulina and Sam went into the girls' bathroom. Go invisible and eavesdrop"),
+					s(WYVERN_DAZED, "Sam's rage turned her into a dragon and she smashed out of the school! Beat her until she's dazed"),
 					s(AMULET_PULLED, "Rip the necklace off the dragon (right-click it). Its power is yours now"),
 					s(CHECK_PAIGE, "Go and see if Sam is okay")};
 			case HUNTER -> new Step[]{
@@ -207,9 +219,10 @@ public final class Story {
 					s(LAB_FLOOR, "Take the amulet to the Ghost Lab basement"),
 					s(SCAN, "Scan the amulet at the lab consoles (stay there while it scans)"),
 					s(TUNIC, "You're chaperoning the dance tonight. Wear a leather tunic (any colour)"),
-					s(FOUNTAIN, "Chaperone the dance at the park fountain (bring the amulet)"),
-					s(DANCE, "Keep watch over the dance floor by the fountain"),
-					s(WYVERN_DAZED, "Paulina swiped the amulet and gave it to Sam, and Sam turned into a dragon! Fight it until it's dazed"),
+					s(FOUNTAIN, "Chaperone the school dance on the top floor of Casper High (bring the amulet)"),
+					s(DANCE, "Keep watch over the dance floor"),
+					s(BATHROOM, "Paulina swiped the amulet from your pocket! Your scanner tracks it to the girls' bathroom. Check it out"),
+					s(WYVERN_DAZED, "Sam put on the amulet and turned into a dragon, and she smashed out of the school! Fight it until it's dazed"),
 					s(AMULET_PULLED, "Pull the amulet off the dazed wyvern (right-click it)"),
 					s(CHECK_PAIGE, "Check that Sam is okay")};
 			default -> new Step[0];
@@ -287,8 +300,7 @@ public final class Story {
 		boolean ready = AmityPark.request(p.getServer());
 		BlockPos c = AmityPark.state(p.getServer()).center;
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(missionTitle(path, 1).replace(" (Dark Side)", "")).formatted(path == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
-		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Head for Amity Park").formatted(Formatting.GRAY)));
+		showMissionTitle(p, path, 1);
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
 		if (ready) p.sendMessage(Text.literal("Amity Park is at " + c.getX() + ", " + c.getZ() + " in the Overworld. The tracker shows the way, or fast travel there from the Phantom Menu (Story Mode).")
 				.formatted(Formatting.AQUA), false);
@@ -340,11 +352,13 @@ public final class Story {
 	private static Vec3d destination(GhostData d, BlockPos c) {
 		return switch (goal(d)) {
 			case LAB_DOOR, LAB_FLOOR, CONSOLES, SCAN, THERMOS -> AmityPark.labHouseDoor(c);
-			case SCHOOL, FRIEND, OVERSHADOW -> AmityPark.schoolDoor(c);
+			case SCHOOL, FRIEND, OVERSHADOW, TROUBLE, DAD, LANCER, TUCKER, ASK_SAM, WYVERN_DAZED, CHECK_PAIGE -> AmityPark.schoolDoor(c);
+			case JUMPSUIT -> AmityPark.labConsoles(c);
+			case BATHROOM -> AmityPark.bathroom(c);
 			case CAFETERIA -> AmityPark.cafeteria(c);
 			case AMULET -> AmityPark.parkPond(c);
 			case TALK_PAIGE, SNEAK_PAIGE -> AmityPark.parkGate(c);
-			case FOUNTAIN, DANCE, CHECK_PAIGE -> AmityPark.parkFountain(c);
+			case FOUNTAIN, DANCE -> AmityPark.danceFloor(c);
 			case BOX -> AmityPark.store(c);
 			case ESCAPE, NAP -> AmityPark.labHouseDoor(c);
 			case LIBRARY -> AmityPark.library(c);
@@ -426,6 +440,11 @@ public final class Story {
 					? "You give Paulina the necklace. Paulina: \"Hmm, cute I guess. Fine, I'll go to the dance with you.\""
 					: "You slip the glowing necklace into Paulina's bag. She has no idea.").formatted(Formatting.LIGHT_PURPLE), false);
 		}
+		if (done.equals(ASK_SAM)) {
+			p.sendMessage(Text.literal("You (as Tucker): \"Uh, hey Sam... wanna go to the dance with me? As friends?\"").formatted(Formatting.LIGHT_PURPLE), false);
+			p.sendMessage(Text.literal("Sam: \"...Sure, Tucker. As friends. Why are your eyes glowing green?\"").formatted(Formatting.LIGHT_PURPLE), false);
+		}
+		if ((done.equals(ASK_SAM) || done.equals(LANCER)) && d.possessing != null) GhostPowers.stopPossess(p, d, false);
 		d.storyStep++;
 		d.storyCount = 0;
 		st.markDirty();
@@ -475,10 +494,18 @@ public final class Story {
 			case SNEAK_PAIGE -> d.invisible && npcNear(w, p, "phantom_paige_park", 4) && has(p, ModItems.RAGE_AMULET);
 			case OVERSHADOW -> d.possessing != null && d.possessing.getCommandTags().contains("phantom_story_teacher");
 			case TUNIC -> p.getEquippedStack(EquipmentSlot.CHEST).isOf(Items.LEATHER_CHESTPLATE);
-			case FOUNTAIN -> near(p, AmityPark.parkFountain(c), 9) && (d.storyPath != HUNTER || has(p, ModItems.RAGE_AMULET));
+			case FOUNTAIN -> near(p, AmityPark.danceFloor(c), 8) && (d.storyPath != HUNTER || has(p, ModItems.RAGE_AMULET));
+			case JUMPSUIT -> p.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.JUMPSUIT_TOP) && p.getEquippedStack(EquipmentSlot.LEGS).isOf(ModItems.JUMPSUIT_PANTS)
+					&& p.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.JUMPSUIT_BOOTS);
+			case TROUBLE -> npcNear(w, p, "phantom_story_dad", 4);
+			case DAD -> possessingTag(d, "phantom_story_dad");
+			case LANCER -> d.storyCount >= LANCER_CHECKS;
+			case TUCKER -> possessingTag(d, "phantom_story_tucker");
+			case ASK_SAM -> possessingTag(d, "phantom_story_tucker") && npcNear(w, p, "phantom_story_friend", 3.5);
+			case BATHROOM -> d.storyCount >= BATH_CHECKS;
 			case DANCE -> d.storyCount >= DANCE_CHECKS;
-			case WYVERN_DAZED -> d.storyCount > 0 || (near(p, AmityPark.parkFountain(c), 64) && !w.getEntitiesByClass(RageWyvernEntity.class,
-					new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(64), e -> e.storyMode() && e.dazed()).isEmpty());
+			case WYVERN_DAZED -> d.storyCount > 0 || (near(p, AmityPark.schoolDoor(c), 80) && !w.getEntitiesByClass(RageWyvernEntity.class,
+					new Box(BlockPos.ofFloored(AmityPark.schoolDoor(c))).expand(80), e -> e.storyMode() && e.dazed()).isEmpty());
 			case CHECK_PAIGE -> npcNear(w, p, "phantom_paige_saved", 4);
 			case BOX, COLLECTOR_TRAPPED -> d.storyCount > 0;
 			case ESCAPE -> near(p, AmityPark.labHouseDoor(c), 10);
@@ -489,6 +516,10 @@ public final class Story {
 			case TEACHER -> npcNear(w, p, "phantom_story_teacher", 3.5);
 			default -> false;
 		};
+	}
+
+	private static boolean possessingTag(GhostData d, String tag) {
+		return d.possessing != null && d.possessing.getCommandTags().contains(tag);
 	}
 
 	private static boolean npcNear(ServerWorld w, ServerPlayerEntity p, String tag, double r) {
@@ -515,7 +546,29 @@ public final class Story {
 			case CHEF1 -> spawnChef(p, true, true);
 			case CHEF_DAZED -> spawnChef(p, true, false);
 			case TALK_PAIGE, SNEAK_PAIGE -> spawnPaigeInPark(w, c);
-			case FOUNTAIN -> spawnDance(w, c);
+			case FOUNTAIN -> {
+				AmityPark.ensureDanceHall(p.getServer());
+				spawnDance(w, c);
+			}
+			case JUMPSUIT -> placeJumpsuit(w, p, c);
+			case TROUBLE -> {
+				p.sendMessage(Text.literal("Mr. Lancer: \"Mr. Fenton... er, YOUR father will be here shortly to discuss your... behaviour.\"").formatted(Formatting.LIGHT_PURPLE), false);
+				spawnDad(w, c);
+				spawnTeacher(w, c);
+			}
+			case DAD -> p.sendMessage(Text.literal("If your dad talks to Mr. Lancer you're grounded for life! Go ghost and fly at him... maybe you can stop him?").formatted(Formatting.GRAY), false);
+			case TUCKER -> {
+				learn(p, d, GhostPowers.POSSESS, "Overshadowing (Possession)", "Go ghost, look at someone and use it to take them over.");
+				spawnTucker(w, c);
+				spawnFriend(w, c);
+			}
+			case ASK_SAM -> spawnFriend(w, c);
+			case BATHROOM -> {
+				if (d.storyPath == HUNTER) removeOne(p, ModItems.RAGE_AMULET);
+				p.sendMessage(Text.literal(d.storyPath == HUNTER ? "Paulina bumps into you on the dance floor... and the amulet is gone from your pocket!"
+						: "Paulina: \"I have to go powder my nose.\" She heads for the girls' bathroom. A moment later, Sam follows her in...").formatted(Formatting.GRAY), false);
+				spawnBathroom(w, c);
+			}
 			case WYVERN_DAZED -> startWyvern(p, c);
 			case BOX -> spawnBoxGhost(p, c);
 			case ESCAPE -> spawnCollector(p, c, true);
@@ -598,31 +651,93 @@ public final class Story {
 				if (t % 60 == 0) spawnTeacher(w, c);
 			}
 			case FOUNTAIN, DANCE -> {
-				Vec3d f = AmityPark.parkFountain(c);
+				Vec3d f = AmityPark.danceFloor(c);
 				if (near(p, f, 48)) {
 					if (t % 20 == 0) spawnDance(w, c);
 					for (int i = 0; i < 3; i++) {
 						double a = w.random.nextDouble() * Math.PI * 2;
-						w.spawnParticles(ParticleTypes.NOTE, f.x + Math.cos(a) * 7, f.y + 2.2, f.z + Math.sin(a) * 7, 0, w.random.nextDouble(), 0, 0, 1);
+						w.spawnParticles(ParticleTypes.NOTE, f.x + Math.cos(a) * 4, f.y + 2.2, f.z + Math.sin(a) * 4, 0, w.random.nextDouble(), 0, 0, 1);
 					}
 				}
 				if (g.equals(DANCE)) {
-					if (near(p, f, 9)) {
+					if (near(p, f, 7)) {
 						d.storyCount++;
 						st.markDirty();
 						if (d.storyCount % 8 == 0) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), SoundCategory.RECORDS, 0.8f, 0.8f + w.random.nextFloat() * 0.6f);
 						if (d.storyCount == DANCE_CHECKS / 2) danceLine(p, d);
-					} else if (t % 40 == 0) p.sendMessage(Text.literal("Get back on the dance floor by the fountain!").formatted(Formatting.YELLOW), true);
+					} else if (t % 40 == 0) p.sendMessage(Text.literal("Get back on the dance floor!").formatted(Formatting.YELLOW), true);
 				}
 				if (d.storyPath == HUNTER && t % 40 == 0 && !has(p, ModItems.RAGE_AMULET)) {
 					placeAmulet(w, p, AmityPark.parkPond(c));
 					if (near(p, f, 16)) p.sendMessage(Text.literal("You need the amulet you found! (Lost it? It's back by the park pond.)").formatted(Formatting.YELLOW), true);
 				}
 			}
+			case JUMPSUIT -> {
+				if (t % 40 == 0) placeJumpsuit(w, p, c);
+			}
+			case TROUBLE -> {
+				if (t % 60 == 0) {
+					spawnDad(w, c);
+					spawnTeacher(w, c);
+				}
+			}
+			case DAD -> {
+				if (t % 60 == 0) {
+					spawnDad(w, c);
+					spawnTeacher(w, c);
+				}
+				if (d.possessing == null) {
+					for (TownspersonEntity dad : w.getEntitiesByClass(TownspersonEntity.class, p.getBoundingBox().expand(1.6), v -> v.getCommandTags().contains("phantom_story_dad"))) {
+						if (!d.transformed) {
+							if (t % 40 == 0) p.sendMessage(Text.literal("Go ghost first! (press V)").formatted(Formatting.YELLOW), true);
+							break;
+						}
+						// you fly right into him... and you're overshadowing your dad
+						learn(p, d, GhostPowers.POSSESS, "Overshadowing (Possession)", "Go ghost, look at someone and use it to take them over.");
+						GhostPowers.forcePossess(p, dad);
+						p.sendMessage(Text.literal("WHOA! You flew right INTO your dad... and now you're controlling him! You just learned to overshadow people!").formatted(Formatting.GREEN), false);
+						break;
+					}
+				}
+			}
+			case LANCER -> {
+				if (t % 60 == 0) spawnTeacher(w, c);
+				if (!possessingTag(d, "phantom_story_dad")) {
+					for (TownspersonEntity dad : w.getEntitiesByClass(TownspersonEntity.class, p.getBoundingBox().expand(1.6), v -> v.getCommandTags().contains("phantom_story_dad"))) {
+						if (d.transformed && d.possessing == null) GhostPowers.forcePossess(p, dad);
+						break;
+					}
+					if (!possessingTag(d, "phantom_story_dad") && t % 40 == 0)
+						p.sendMessage(Text.literal("You slipped out of your dad! Go ghost and fly back into him (or use Possession on him).").formatted(Formatting.YELLOW), true);
+				} else if (npcNear(w, p, "phantom_story_teacher", 3.5)) {
+					d.storyCount++;
+					st.markDirty();
+					lancerLine(p, d.storyCount);
+				}
+			}
+			case TUCKER, ASK_SAM -> {
+				if (t % 60 == 0) {
+					spawnTucker(w, c);
+					spawnFriend(w, c);
+				}
+			}
+			case BATHROOM -> {
+				Vec3d b = AmityPark.bathroom(c);
+				if (t % 40 == 0) spawnBathroom(w, c);
+				if (near(p, b, 5)) {
+					if (d.storyPath != HUNTER && !d.invisible) {
+						if (t % 40 == 0) p.sendMessage(Text.literal("Paulina: \"EW! Get OUT! This is the GIRLS' bathroom!\" (Turn invisible to listen in.)").formatted(Formatting.LIGHT_PURPLE), true);
+					} else {
+						d.storyCount++;
+						st.markDirty();
+						bathroomLine(p, d);
+					}
+				}
+			}
 			case WYVERN_DAZED -> {
-				if (t % 40 == 0 && d.storyCount == 0 && near(p, AmityPark.parkFountain(c), 40)
-						&& w.getEntitiesByClass(RageWyvernEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(80), RageWyvernEntity::storyMode).isEmpty())
-					spawnWyvern(w, c, p, AmityPark.parkFountain(c).add(4, 3, 0));
+				if (t % 40 == 0 && d.storyCount == 0 && near(p, AmityPark.schoolDoor(c), 48)
+						&& w.getEntitiesByClass(RageWyvernEntity.class, new Box(BlockPos.ofFloored(AmityPark.schoolDoor(c))).expand(80), RageWyvernEntity::storyMode).isEmpty())
+					spawnWyvern(w, c, p, AmityPark.schoolDoor(c).add(0, 8, 12));
 			}
 			case BOX -> {
 				if (t % 40 == 0 && d.storyCount == 0 && near(p, AmityPark.store(c), 40) && w.getEntitiesByClass(com.phantompowers.entity.CrateKingEntity.class,
@@ -667,9 +782,9 @@ public final class Story {
 						new Box(BlockPos.ofFloored(AmityPark.parkMeadow(c))).expand(80), e -> e.storyMode() && !e.chasing()).isEmpty()) spawnCollector(p, c, false);
 			}
 			case CHECK_PAIGE -> {
-				if (t % 60 == 0 && w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(48),
+				if (t % 60 == 0 && w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.schoolDoor(c))).expand(64),
 						v -> v.getCommandTags().contains("phantom_paige_saved")).isEmpty()) {
-					spawnNpc(w, AmityPark.parkFountain(c).add(3, 0, 3), "Sam", "phantom_paige_saved", true, TownspersonEntity.LENA);
+					spawnNpc(w, AmityPark.schoolDoor(c).add(3, 0, 8), "Sam", "phantom_paige_saved", true, TownspersonEntity.LENA);
 				}
 			}
 			default -> {}
@@ -679,8 +794,8 @@ public final class Story {
 	private static void danceLine(ServerPlayerEntity p, GhostData d) {
 		String line = switch (d.storyPath) {
 			case HUNTER -> "Paulina is eyeing the glowing amulet in your pocket... and Sam is glaring at Paulina.";
-			case EVIL -> "Paulina found the necklace in her bag. She doesn't want it... and she's walking over to Sam.";
-			default -> "Paulina: \"Ugh, this necklace is SO last season.\" She wanders off towards Sam...";
+			case EVIL -> "Paulina found the necklace in her bag. She's acting weird... and Sam is glaring at her.";
+			default -> "Paulina keeps checking her phone and yawning. Sam is glaring at her from across the room...";
 		};
 		p.sendMessage(Text.literal(line).formatted(Formatting.LIGHT_PURPLE), false);
 	}
@@ -721,6 +836,7 @@ public final class Story {
 		var v = ModEntities.TOWNSPERSON.create(w);
 		if (v == null) return null;
 		v.setVariant(look);
+		at = clearSpot(w, at);
 		v.refreshPositionAndAngles(at.x, at.y, at.z, w.random.nextFloat() * 360f, 0f);
 		v.setCustomName(Text.literal(name));
 		v.setCustomNameVisible(showName);
@@ -732,12 +848,91 @@ public final class Story {
 		return v;
 	}
 
+	/** The nearest spot to stand on (solid ground, two blocks of room) so people don't end up inside trees or walls. */
+	private static Vec3d clearSpot(ServerWorld w, Vec3d at) {
+		BlockPos base = BlockPos.ofFloored(at);
+		for (int r = 0; r <= 5; r++)
+			for (int dx = -r; dx <= r; dx++)
+				for (int dz = -r; dz <= r; dz++) {
+					if (Math.max(Math.abs(dx), Math.abs(dz)) != r) continue;
+					for (int dy : new int[]{0, 1, -1}) {
+						BlockPos q = base.add(dx, dy, dz);
+						if (w.getBlockState(q).getCollisionShape(w, q).isEmpty() && w.getBlockState(q.up()).getCollisionShape(w, q.up()).isEmpty()
+								&& w.getBlockState(q).getFluidState().isEmpty() && !w.getBlockState(q.down()).getCollisionShape(w, q.down()).isEmpty()
+								&& !(w.getBlockState(q.down()).getBlock() instanceof net.minecraft.block.LeavesBlock))
+							return new Vec3d(q.getX() + (r == 0 ? at.x - Math.floor(at.x) : 0.5), q.getY(), q.getZ() + (r == 0 ? at.z - Math.floor(at.z) : 0.5));
+					}
+				}
+		return at;
+	}
+
 	private static void spawnFriend(ServerWorld w, BlockPos c) {
 		spawnNpc(w, AmityPark.schoolDoor(c).add(-4, 0, 1.5), "Sam (your friend)", "phantom_story_friend", true, TownspersonEntity.LENA);
 	}
 
 	private static void spawnTeacher(ServerWorld w, BlockPos c) {
 		spawnNpc(w, AmityPark.schoolDoor(c).add(0, 0, 2), "Mr. Lancer (teacher)", "phantom_story_teacher", true, TownspersonEntity.PEMBERTON);
+	}
+
+	private static void spawnDad(ServerWorld w, BlockPos c) {
+		spawnNpc(w, AmityPark.schoolDoor(c).add(7, 0, 6), "Dad", "phantom_story_dad", true, TownspersonEntity.OWEN);
+	}
+
+	private static void spawnTucker(ServerWorld w, BlockPos c) {
+		spawnNpc(w, AmityPark.schoolDoor(c).add(4, 0, 5), "Tucker", "phantom_story_tucker", true, TownspersonEntity.LEON);
+	}
+
+	/** Paulina and Sam in the girls' bathroom (they leave the dance floor). */
+	private static void spawnBathroom(ServerWorld w, BlockPos c) {
+		Vec3d f = AmityPark.danceFloor(c);
+		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(12),
+				v -> v.getCommandTags().contains("phantom_dance_date") || v.getCommandTags().contains("phantom_dance_sam"))) v.discard();
+		Vec3d b = AmityPark.bathroom(c);
+		spawnNpc(w, b.add(1, 0, -2), "Paulina", "phantom_bath_paulina", true, TownspersonEntity.TIFFANY);
+		var sam = spawnNpc(w, b.add(1, 0, 2), "Sam", "phantom_bath_sam", true, TownspersonEntity.LENA);
+		if (sam != null) sam.addCommandTag("phantom_dance_sam");
+	}
+
+	/** The lab jumpsuit hangs by the consoles until you've got all of it. */
+	private static void placeJumpsuit(ServerWorld w, ServerPlayerEntity p, BlockPos c) {
+		Vec3d at = AmityPark.labConsoles(c).add(0, 0, -1.5);
+		if (!near(p, at, 48)) return;
+		net.minecraft.item.Item[] parts = {ModItems.JUMPSUIT_TOP, ModItems.JUMPSUIT_PANTS, ModItems.JUMPSUIT_BOOTS};
+		for (int i = 0; i < parts.length; i++) {
+			net.minecraft.item.Item part = parts[i];
+			if (has(p, part) || p.getInventory().armor.stream().anyMatch(st -> st.isOf(part))) continue;
+			if (!w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new Box(BlockPos.ofFloored(at)).expand(6), e -> e.getStack().isOf(part)).isEmpty()) continue;
+			var item = new net.minecraft.entity.ItemEntity(w, at.x + i - 1, at.y + 0.3, at.z, new ItemStack(part), 0, 0, 0);
+			item.setNeverDespawn();
+			item.setGlowing(true);
+			w.spawnEntity(item);
+		}
+	}
+
+	private static void lancerLine(ServerPlayerEntity p, int n) {
+		String line = switch (n) {
+			case 1 -> "Mr. Lancer: \"Ah, Mr. Fenton. Your child has been... disruptive. Food everywhere! Walls with holes in them!\"";
+			case 3 -> "You (as your dad): \"MY kid? Nah! Best kid in Amity Park! Probably a ghost did it. Give 'em another chance!\"";
+			case 5 -> "Mr. Lancer: \"Hmm. You ARE very... enthusiastic. Very well. No detention. THIS time.\"";
+			case 7 -> "Mr. Lancer walks off. You slip out of your dad's body. He blinks: \"...Why am I at the school?\"";
+			default -> null;
+		};
+		if (line != null) p.sendMessage(Text.literal(line).formatted(n == 7 ? Formatting.GRAY : Formatting.LIGHT_PURPLE), false);
+	}
+
+	/** What you overhear in the girls' bathroom. */
+	private static void bathroomLine(ServerPlayerEntity p, GhostData d) {
+		String date = d.storyPath == HUNTER ? "Dash" : p.getName().getString();
+		String line = switch (d.storyCount) {
+			case 2 -> "Paulina: \"Ugh, this dance is SO lame. And I came with " + date + ". Can you believe it?\"";
+			case 6 -> "Sam: \"Then why did you even say yes?\"";
+			case 10 -> "Paulina: \"For the necklace, duh! I was going to dump " + date + " right after the slow dance.\"";
+			case 14 -> "Sam: \"You were going to WHAT? That's so cruel! You are SO shallow!\"";
+			case 18 -> "Paulina: \"Whatever. Here, you can have this tacky necklace. It's SO not my style.\"";
+			case 22 -> "Sam puts on the necklace. Sam: \"Fine! I'll keep it. And YOU can keep your stupid... SHALLOW... ATTITUDE!\"";
+			default -> null;
+		};
+		if (line != null) p.sendMessage(Text.literal(line).formatted(d.storyCount == 22 ? Formatting.RED : Formatting.LIGHT_PURPLE), false);
 	}
 
 	private static void spawnPaigeInPark(ServerWorld w, BlockPos c) {
@@ -756,10 +951,10 @@ public final class Story {
 
 	/** The dance around the park fountain: your date and a few classmates. */
 	private static void spawnDance(ServerWorld w, BlockPos c) {
-		Vec3d f = AmityPark.parkFountain(c);
+		Vec3d f = AmityPark.danceFloor(c);
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(64), v -> v.getCommandTags().contains("phantom_paige_park"))) v.discard();
 		if (!w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(f)).expand(24), v -> v.getCommandTags().contains("phantom_dance")).isEmpty()) return;
-		int[] looks = {TownspersonEntity.TIFFANY, TownspersonEntity.LENA, TownspersonEntity.MARCUS, TownspersonEntity.LEON, TownspersonEntity.JASMINE, TownspersonEntity.OWEN};
+		int[] looks = {TownspersonEntity.TIFFANY, TownspersonEntity.LENA, TownspersonEntity.LEON, TownspersonEntity.MARCUS, TownspersonEntity.JASMINE, TownspersonEntity.OWEN};
 		for (int i = 0; i < looks.length; i++) {
 			var v = ModEntities.TOWNSPERSON.create(w);
 			if (v == null) continue;
@@ -767,9 +962,9 @@ public final class Story {
 			v.setDancing(true);
 			String[] names = TownspersonEntity.NAMES;
 			double a = i * Math.PI * 2 / looks.length;
-			v.refreshPositionAndAngles(f.x + Math.cos(a) * 7, f.y, f.z + Math.sin(a) * 7, (float) Math.toDegrees(a) + 90f, 0f);
-			v.setCustomName(Text.literal(i == 0 ? "Paulina" : names[looks[i]]));
-			v.setCustomNameVisible(i < 2);
+			v.refreshPositionAndAngles(f.x + Math.cos(a) * 3.5, f.y, f.z + Math.sin(a) * 3.5, (float) Math.toDegrees(a) + 90f, 0f);
+			v.setCustomName(Text.literal(i == 0 ? "Paulina" : i == 2 ? "Tucker" : names[looks[i]]));
+			v.setCustomNameVisible(i < 3);
 			v.setPersistent();
 			v.setAiDisabled(true);
 			v.addCommandTag("phantom_dance");
@@ -780,26 +975,21 @@ public final class Story {
 		}
 	}
 
-	/** Paulina passes the necklace on to Sam... and Sam loses her temper. */
+	/** Sam loses her temper in the girls' bathroom... and the dragon smashes out of the school. */
 	private static void startWyvern(ServerPlayerEntity p, BlockPos c) {
 		ServerWorld w = p.getServerWorld();
-		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
-		if (d.storyPath == HUNTER) removeOne(p, ModItems.RAGE_AMULET);
-		Vec3d at = AmityPark.parkFountain(c).add(4, 1, 0);
-		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkFountain(c))).expand(24),
+		Vec3d from = AmityPark.bathroom(c);
+		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(from)).expand(32),
 				v -> v.getCommandTags().contains("phantom_dance_sam"))) {
-			at = v.getPos();
+			from = v.getPos();
 			v.discard();
 		}
-		switch (d.storyPath) {
-			case HUNTER -> p.sendMessage(Text.literal("Paulina snatches the glowing amulet out of your pocket. \"Ew, it's not even designer.\" She hands it to Sam. \"Here, Goth girl. It matches your attitude.\"").formatted(Formatting.GRAY), false);
-			case EVIL -> p.sendMessage(Text.literal("Paulina pulls the necklace out of her bag and tosses it to Sam. \"Here. Something to go with your gloomy little outfit.\"").formatted(Formatting.GRAY), false);
-			default -> p.sendMessage(Text.literal("Paulina walks over to Sam and drops your necklace in her hand. \"Here, you can have it. It's totally not my style.\"").formatted(Formatting.GRAY), false);
-		}
-		p.sendMessage(Text.literal("Sam puts the necklace on.").formatted(Formatting.GRAY), false);
-		p.sendMessage(Text.literal("Sam: \"Oh, so I get your hand-me-downs now, Paulina? You are SO shallow! I am SICK of you!\"").formatted(Formatting.LIGHT_PURPLE), false);
-		p.sendMessage(Text.literal("The necklace flares red as Sam gets angrier and angrier...").formatted(Formatting.RED, Formatting.ITALIC), false);
-		spawnWyvern(w, c, p, at);
+		p.sendMessage(Text.literal("The necklace flares red as Sam gets angrier and angrier... and she TRANSFORMS!").formatted(Formatting.RED, Formatting.ITALIC), false);
+		p.sendMessage(Text.literal("CRASH! A huge dragon bursts out of the bathroom and smashes its way outside the school!").formatted(Formatting.RED), false);
+		w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, from.x, from.y + 1, from.z, 1, 0, 0, 0, 0);
+		w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, from.x, from.y + 1, from.z, 80, 1.2, 1.2, 1.2, 0.2);
+		w.playSound(null, from.x, from.y, from.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.HOSTILE, 2f, 0.8f);
+		spawnWyvern(w, c, p, AmityPark.schoolDoor(c).add(0, 8, 12));
 	}
 
 	private static void spawnWyvern(ServerWorld w, BlockPos c, ServerPlayerEntity p, Vec3d at) {
@@ -809,15 +999,15 @@ public final class Story {
 		wy.addCommandTag(RageWyvernEntity.STORY_TAG);
 		wy.setWearer("Sam", TownspersonEntity.LENA);
 		wy.setCustomName(Text.literal("Sam (Dragon)"));
-		wy.setHome(BlockPos.ofFloored(AmityPark.parkFountain(c)).up(4), 26f);
+		wy.setHome(BlockPos.ofFloored(AmityPark.schoolDoor(c).add(0, 0, 14)).up(6), 26f);
 		wy.setTarget(p);
 		w.spawnEntity(wy);
 		w.spawnParticles(ParticleTypes.FLASH, at.x, at.y + 1, at.z, 1, 0, 0, 0, 0);
 		w.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, at.x, at.y + 1, at.z, 120, 1.2, 1.5, 1.2, 0.15);
 		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.HOSTILE, 2.5f, 1.1f);
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Sam turned into a dragon!").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
-		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("\"BACK OFF, PAULINA!\"").formatted(Formatting.GRAY)));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("DRAGON!").formatted(Formatting.DARK_AQUA, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Sam turned into a dragon!").formatted(Formatting.GRAY)));
 		// the other dancers run for it
 		for (var v : w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(at)).expand(24),
 				v -> v.getCommandTags().contains("phantom_dance") && !v.getCommandTags().contains("phantom_dance_sam"))) {
@@ -1035,7 +1225,7 @@ public final class Story {
 		int mission = d.storyMission;
 		ServerWorld w = p.getServerWorld();
 		p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 80, 20));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Mission Complete!").formatted(Formatting.GOLD, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("Complete!").formatted(Formatting.GOLD, Formatting.BOLD)));
 		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(missionTitle(d.storyPath, mission).replace(" (Dark Side)", "")).formatted(Formatting.GRAY)));
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 1f, 1f);
 		give(p, new ItemStack(ModItems.ECTOPLASM, 16));
@@ -1112,12 +1302,20 @@ public final class Story {
 		announce(p, d);
 	}
 
+	/** "Mission 2" big, with the mission's name underneath (the whole title in big letters doesn't fit on screen). */
+	private static void showMissionTitle(ServerPlayerEntity p, int path, int mission) {
+		String full = missionTitle(path, mission).replace(" (Dark Side)", "");
+		int colon = full.indexOf(':');
+		String big = colon > 0 ? full.substring(0, colon) : full, small = colon > 0 ? full.substring(colon + 1).trim() : "";
+		if (path == EVIL) small += " (Dark Side)";
+		p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(big).formatted(path == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(small).formatted(Formatting.WHITE)));
+	}
+
 	/** Show a mission's title and intro. */
 	private static void announce(ServerPlayerEntity p, GhostData d) {
-		p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(missionTitle(d.storyPath, d.storyMission).replace(" (Dark Side)", ""))
-				.formatted(d.storyPath == EVIL ? Formatting.LIGHT_PURPLE : Formatting.GREEN, Formatting.BOLD)));
-		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(objective(d)).formatted(Formatting.GRAY)));
+		showMissionTitle(p, d.storyPath, d.storyMission);
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
 		if (d.storyMission == 4) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "Another long night on ghost patrol... and you've got a biology test in the morning. Somewhere out there, a ghost hunter is hunting YOU.";
