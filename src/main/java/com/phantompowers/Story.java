@@ -787,10 +787,19 @@ public final class Story {
 				}
 			}
 			case FOX -> {
-				var foxes = w.getEntitiesByClass(net.minecraft.entity.passive.FoxEntity.class, new Box(BlockPos.ofFloored(AmityPark.parkMeadow(c))).expand(80),
+				Vec3d meadow = AmityPark.parkMeadow(c);
+				var foxes = w.getEntitiesByClass(net.minecraft.entity.passive.FoxEntity.class, new Box(BlockPos.ofFloored(meadow)).expand(160),
 						f -> f.getCommandTags().contains("phantom_story_fox"));
+				if (!foxes.isEmpty() && foxes.get(0).squaredDistanceTo(meadow) > 14 * 14) {
+					// the fox ran off: it trots back to the meadow
+					Vec3d back = clearSpot(w, meadow);
+					foxes.get(0).refreshPositionAndAngles(back.x, back.y, back.z, 0f, 0f);
+					foxes.get(0).getNavigation().stop();
+				}
+				if (!foxes.isEmpty()) foxes.get(0).setGlowing(true);
 				if (foxes.isEmpty()) {
 					if (t % 40 == 0) spawnFox(w, c);
+					if (t % 40 == 0 && near(p, meadow, 40)) p.sendMessage(Text.literal("Look for the glowing snow fox in the park meadow!").formatted(Formatting.AQUA), true);
 				} else if (p.squaredDistanceTo(foxes.get(0)) < 7 * 7) {
 					d.storyCount++;
 					st.markDirty();
@@ -1104,7 +1113,9 @@ public final class Story {
 		var fox = net.minecraft.entity.EntityType.FOX.create(w);
 		if (fox == null) return;
 		fox.setVariant(net.minecraft.entity.passive.FoxEntity.Type.SNOW);
+		at = clearSpot(w, at);
 		fox.refreshPositionAndAngles(at.x, at.y, at.z, 0f, 0f);
+		fox.setGlowing(true);   // easy to spot, even at night
 		fox.setCustomName(Text.literal("Rare Snow Fox"));
 		fox.setCustomNameVisible(true);
 		fox.setPersistent();
