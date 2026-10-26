@@ -401,7 +401,13 @@ public final class Cutscenes {
 		Vec3d a = d.cutsceneAnchor == null ? p.getPos() : d.cutsceneAnchor;
 		Vec3d look = Vec3d.fromPolar(0, p.getYaw());
 		Vec3d want = a.add(look.multiply(originForward(e))).add(0, originLift(e), 0);
-		if (p.getPos().squaredDistanceTo(want) > 9) p.requestTeleport(want.x, want.y, want.z);
+		if (e < ORIGIN_BLAST && p.getPos().squaredDistanceTo(want) > 9) p.requestTeleport(want.x, want.y, want.z);
+		if (e == ORIGIN_BLAST || e == ORIGIN_BLAST + 2) {
+			// the portal blasts you out: a real launch, so you fly across the lab (and stop if you hit something)
+			PortalLogic.blockTravel(p, ORIGIN_TICKS);
+			p.setVelocity(look.multiply(2.4).add(0, 0.85, 0));
+			p.velocityModified = true;
+		}
 		p.fallDistance = 0;
 		Vec3d mid = p.getPos().add(0, 1, 0);
 		if (e < 18) {
@@ -440,13 +446,8 @@ public final class Cutscenes {
 		}
 		if (d.cutscene <= 0) {
 			d.cutscene = 0;
-			// the portal spits you back out into the lab (not into the Ghost Zone)
 			PortalLogic.blockTravel(p, 60);
-			Vec3d push = look.multiply(1.6).add(0, 0.6, 0);
-			p.setVelocity(push);
-			p.velocityModified = true;
 			p.fallDistance = 0;
-			w.playSound(null, mid.x, mid.y, mid.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 0.7f, 1.6f);
 			d.cutsceneAnchor = null;
 			d.portalCenter = null;
 			GhostPowers.syncNow(p);

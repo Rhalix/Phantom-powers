@@ -109,6 +109,10 @@ public final class ClientCutscene {
 			boolean dark = ClientGhost.cutsceneKind == 5;
 			int total = dark ? com.phantompowers.Cutscenes.DARK_TICKS : com.phantompowers.Cutscenes.ORIGIN_TICKS;
 			int el = Math.max(0, total - ClientGhost.cutscene);
+			if (!dark && el >= com.phantompowers.Cutscenes.ORIGIN_BLAST) {   // blasted out of the portal: let the launch carry you
+				pl.fallDistance = 0;
+				return;
+			}
 			var want = dark ? anchor.add(0, com.phantompowers.Cutscenes.darkLift(el), 0)
 					: anchor.add(look0.multiply(com.phantompowers.Cutscenes.originForward(el))).add(0, com.phantompowers.Cutscenes.originLift(el), 0);
 			var next = pl.getPos().lerp(want, 0.5);
