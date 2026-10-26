@@ -191,8 +191,8 @@ public final class Story {
 					s(TROUBLE, "Your powers glitched in class and Mr. Lancer blames YOU! He called your dad in. Meet your dad outside Casper High"),
 					s(DAD, "If Dad talks to Mr. Lancer you'll miss the dance! Go ghost and fly at your dad to stop him"),
 					s(LANCER, "Whoa, you're INSIDE your dad! Walk his body over to Mr. Lancer and talk your way out of trouble"),
-					s(TUCKER, "Tucker wants to ask Sam to the dance but he's too scared. Overshadow him outside Casper High (go ghost, look at him, use Possession)"),
-					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance for him"),
+					s(TUCKER, "Sam has nobody to go to the dance with. Ask Tucker outside Casper High to take her, as a favor to you"),
+					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance yourself, in his body"),
 					s(TUNIC, "Get dressed up for the dance: put on your suit, tie and dress shoes (they're laid out at home, by the Ghost Lab house door)"),
 					s(FOUNTAIN, "Go to the school dance on the top floor of Casper High to meet Paulina"),
 					s(DANCE, "Dance with Paulina! Stay on the dance floor"),
@@ -206,8 +206,8 @@ public final class Story {
 					s(TROUBLE, "Your powers glitched in class and Mr. Lancer blames you. He called your dad in. Meet your dad outside Casper High"),
 					s(DAD, "Can't have Dad talking to Lancer, not before the dance. Go ghost and fly at your dad"),
 					s(LANCER, "You're inside your dad's body! Walk him over to Mr. Lancer and make this problem go away"),
-					s(TUCKER, "Tucker's too scared to ask Sam to the dance. Overshadow him outside Casper High and do it for him"),
-					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance (this should be fun)"),
+					s(TUCKER, "Sam's got no date for the dance. Go and ask Tucker outside Casper High to take her, as a favor"),
+					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance in his body (this should be fun)"),
 					s(TUNIC, "Crash the dance in style: put on the suit, tie and dress shoes laid out by the Ghost Lab house door"),
 					s(FOUNTAIN, "Crash the school dance on the top floor of Casper High"),
 					s(DANCE, "Make a scene: stay on the dance floor"),
@@ -252,6 +252,9 @@ public final class Story {
 			case LIBRARY, FOX -> o += " (" + Math.min(100, d.storyCount * 100 / STUDY_CHECKS) + "%)";
 			case NAP -> o += " (" + Math.max(0, (NAP_CHECKS - d.storyCount) / 2) + "s)";
 			case DANCE -> o += " (" + Math.max(0, (DANCE_CHECKS - d.storyCount) / 2) + "s left)";
+			case TUCKER -> {
+				if (d.storyCount > 0) o = "Tucker said no! Fine... overshadow him and do it yourself (go ghost, look at him, use Possession)";
+			}
 			default -> {}
 		}
 		return o;
@@ -445,6 +448,7 @@ public final class Story {
 		if (done.equals(ASK_SAM)) {
 			p.sendMessage(Text.literal("You (as Tucker): \"Uh, hey Sam... wanna go to the dance with me? As friends?\"").formatted(Formatting.LIGHT_PURPLE), false);
 			p.sendMessage(Text.literal("Sam: \"...Sure, Tucker. As friends. Why are your eyes glowing green?\"").formatted(Formatting.LIGHT_PURPLE), false);
+			p.sendMessage(Text.literal("You slip out of Tucker. Tucker: \"Wait... did I just ask Sam to the dance?!\"").formatted(Formatting.GRAY), false);
 		}
 		if ((done.equals(ASK_SAM) || done.equals(LANCER)) && d.possessing != null) GhostPowers.stopPossess(p, d, false);
 		d.storyStep++;
@@ -726,6 +730,14 @@ public final class Story {
 				if (t % 60 == 0) {
 					spawnTucker(w, c);
 					spawnFriend(w, c);
+				}
+				if (g.equals(TUCKER) && d.storyCount == 0 && d.possessing == null && npcNear(w, p, "phantom_story_tucker", 3.5)) {
+					d.storyCount = 1;
+					st.markDirty();
+					p.sendMessage(Text.literal("You: \"Tucker, can you do me a favor? Take Sam to the dance so she's not stuck at home.\"").formatted(Formatting.LIGHT_PURPLE), false);
+					p.sendMessage(Text.literal("Tucker: \"No way, dude! Me and Sam at a dance? She'd make me eat tofu all night. Ask her yourself!\"").formatted(Formatting.LIGHT_PURPLE), false);
+					p.sendMessage(Text.literal("He won't do it... but you could always do it FOR him. Go ghost and overshadow him!").formatted(Formatting.GRAY), false);
+					send(p, d, false);
 				}
 			}
 			case BATHROOM -> {
