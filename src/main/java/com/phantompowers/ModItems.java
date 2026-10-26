@@ -165,6 +165,24 @@ public final class ModItems {
 	public static final Item JUMPSUIT_BOOTS = Registry.register(Registries.ITEM, PhantomMod.id("lab_jumpsuit_boots"),
 			new ArmorItem(JUMPSUIT_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings().maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(10))));
 
+	/** A suit and tie for the school dance. */
+	public static final RegistryEntry<ArmorMaterial> DANCE_SUIT_MATERIAL = Registry.registerReference(Registries.ARMOR_MATERIAL,
+			PhantomMod.id("dance_suit"),
+			new ArmorMaterial(Util.make(new EnumMap<>(ArmorItem.Type.class), m -> {
+				m.put(ArmorItem.Type.BOOTS, 1);
+				m.put(ArmorItem.Type.LEGGINGS, 2);
+				m.put(ArmorItem.Type.CHESTPLATE, 2);
+				m.put(ArmorItem.Type.HELMET, 1);
+				m.put(ArmorItem.Type.BODY, 2);
+			}), 15, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, () -> Ingredient.ofItems(Items.BLACK_WOOL),
+					List.of(new ArmorMaterial.Layer(PhantomMod.id("dance_suit"))), 0f, 0f));
+	public static final Item DANCE_JACKET = Registry.register(Registries.ITEM, PhantomMod.id("dance_suit_jacket"),
+			new ArmorItem(DANCE_SUIT_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(8))));
+	public static final Item DANCE_PANTS = Registry.register(Registries.ITEM, PhantomMod.id("dance_suit_pants"),
+			new ArmorItem(DANCE_SUIT_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Settings().maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(8))));
+	public static final Item DANCE_SHOES = Registry.register(Registries.ITEM, PhantomMod.id("dance_suit_shoes"),
+			new ArmorItem(DANCE_SUIT_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings().maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(8))));
+
 	public static final Item PANDORAS_BOX = Registry.register(Registries.ITEM, PhantomMod.id("pandoras_box"),
 			new PandorasBoxItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).fireproof()));
 	public static final Item CRATE_KING_EGG = Registry.register(Registries.ITEM, PhantomMod.id("crate_king_spawn_egg"),
@@ -235,6 +253,9 @@ public final class ModItems {
 			e.add(JUMPSUIT_TOP);
 			e.add(JUMPSUIT_PANTS);
 			e.add(JUMPSUIT_BOOTS);
+			e.add(DANCE_JACKET);
+			e.add(DANCE_PANTS);
+			e.add(DANCE_SHOES);
 			e.add(GHOST_BLASTER);
 			e.add(ECTO_SWORD);
 			e.add(GHOST_NET);

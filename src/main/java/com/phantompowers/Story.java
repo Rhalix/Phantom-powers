@@ -195,7 +195,7 @@ public final class Story {
 					s(TALK_PAIGE, "It'd make a perfect necklace for Paulina! Find her by the park gate, give it to her and ask her to the dance"),
 					s(TUCKER, "Tucker wants to ask Sam to the dance but he's too scared. Overshadow him outside Casper High (go ghost, look at him, use Possession)"),
 					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance for him"),
-					s(TUNIC, "Get dressed up for the dance: wear a leather tunic (any colour)"),
+					s(TUNIC, "Get dressed up for the dance: put on your suit, tie and dress shoes (they're laid out at home, by the Ghost Lab house door)"),
 					s(FOUNTAIN, "Go to the school dance on the top floor of Casper High to meet Paulina"),
 					s(DANCE, "Dance with Paulina! Stay on the dance floor"),
 					s(BATHROOM, "Paulina and Sam both went into the girls' bathroom... Turn invisible and sneak in to listen"),
@@ -207,7 +207,7 @@ public final class Story {
 					s(SNEAK_PAIGE, "Paulina is by the park gate. Turn invisible, sneak up on her and slip the necklace into her bag"),
 					s(TUCKER, "Tucker's too scared to ask Sam to the dance. Overshadow him outside Casper High and do it for him"),
 					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance (this should be fun)"),
-					s(TUNIC, "Crash the dance in style: wear a leather tunic (any colour)"),
+					s(TUNIC, "Crash the dance in style: put on the suit, tie and dress shoes laid out by the Ghost Lab house door"),
 					s(FOUNTAIN, "Crash the school dance on the top floor of Casper High"),
 					s(DANCE, "Make a scene: stay on the dance floor"),
 					s(BATHROOM, "Paulina and Sam went into the girls' bathroom. Go invisible and eavesdrop"),
@@ -218,7 +218,7 @@ public final class Story {
 					s(AMULET, "Strange ghost readings by the park pond. Find what's causing them"),
 					s(LAB_FLOOR, "Take the amulet to the Ghost Lab basement"),
 					s(SCAN, "Scan the amulet at the lab consoles (stay there while it scans)"),
-					s(TUNIC, "You're chaperoning the dance tonight. Wear a leather tunic (any colour)"),
+					s(TUNIC, "You're chaperoning the dance tonight. Put on the suit, tie and dress shoes laid out by the Ghost Lab house door"),
 					s(FOUNTAIN, "Chaperone the school dance on the top floor of Casper High (bring the amulet)"),
 					s(DANCE, "Keep watch over the dance floor"),
 					s(BATHROOM, "Paulina swiped the amulet from your pocket! Your scanner tracks it to the girls' bathroom. Check it out"),
@@ -354,6 +354,7 @@ public final class Story {
 			case LAB_DOOR, LAB_FLOOR, CONSOLES, SCAN, THERMOS -> AmityPark.labHouseDoor(c);
 			case SCHOOL, FRIEND, OVERSHADOW, TROUBLE, DAD, LANCER, TUCKER, ASK_SAM, WYVERN_DAZED, CHECK_PAIGE -> AmityPark.schoolDoor(c);
 			case JUMPSUIT -> AmityPark.labConsoles(c);
+			case TUNIC -> AmityPark.labHouseDoor(c);
 			case BATHROOM -> AmityPark.bathroom(c);
 			case CAFETERIA -> AmityPark.cafeteria(c);
 			case AMULET -> AmityPark.parkPond(c);
@@ -493,7 +494,8 @@ public final class Story {
 			case TALK_PAIGE -> npcNear(w, p, "phantom_paige_park", 3.5) && has(p, ModItems.RAGE_AMULET);
 			case SNEAK_PAIGE -> d.invisible && npcNear(w, p, "phantom_paige_park", 4) && has(p, ModItems.RAGE_AMULET);
 			case OVERSHADOW -> d.possessing != null && d.possessing.getCommandTags().contains("phantom_story_teacher");
-			case TUNIC -> p.getEquippedStack(EquipmentSlot.CHEST).isOf(Items.LEATHER_CHESTPLATE);
+			case TUNIC -> p.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.DANCE_JACKET) && p.getEquippedStack(EquipmentSlot.LEGS).isOf(ModItems.DANCE_PANTS)
+					&& p.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.DANCE_SHOES);
 			case FOUNTAIN -> near(p, AmityPark.danceFloor(c), 8) && (d.storyPath != HUNTER || has(p, ModItems.RAGE_AMULET));
 			case JUMPSUIT -> p.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.JUMPSUIT_TOP) && p.getEquippedStack(EquipmentSlot.LEGS).isOf(ModItems.JUMPSUIT_PANTS)
 					&& p.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.JUMPSUIT_BOOTS);
@@ -551,6 +553,7 @@ public final class Story {
 				spawnDance(w, c);
 			}
 			case JUMPSUIT -> placeJumpsuit(w, p, c);
+			case TUNIC -> placeOutfit(w, p, AmityPark.labHouseDoor(c).add(0, 0, -2), ModItems.DANCE_JACKET, ModItems.DANCE_PANTS, ModItems.DANCE_SHOES);
 			case TROUBLE -> {
 				p.sendMessage(Text.literal("Mr. Lancer: \"Mr. Fenton... er, YOUR father will be here shortly to discuss your... behaviour.\"").formatted(Formatting.LIGHT_PURPLE), false);
 				spawnDad(w, c);
@@ -674,6 +677,9 @@ public final class Story {
 			}
 			case JUMPSUIT -> {
 				if (t % 40 == 0) placeJumpsuit(w, p, c);
+			}
+			case TUNIC -> {
+				if (t % 40 == 0) placeOutfit(w, p, AmityPark.labHouseDoor(c).add(0, 0, -2), ModItems.DANCE_JACKET, ModItems.DANCE_PANTS, ModItems.DANCE_SHOES);
 			}
 			case TROUBLE -> {
 				if (t % 60 == 0) {
@@ -895,14 +901,18 @@ public final class Story {
 
 	/** The lab jumpsuit hangs by the consoles until you've got all of it. */
 	private static void placeJumpsuit(ServerWorld w, ServerPlayerEntity p, BlockPos c) {
-		Vec3d at = AmityPark.labConsoles(c).add(0, 0, -1.5);
+		placeOutfit(w, p, AmityPark.labConsoles(c).add(0, 0, -1.5), ModItems.JUMPSUIT_TOP, ModItems.JUMPSUIT_PANTS, ModItems.JUMPSUIT_BOOTS);
+	}
+
+	/** Glowing clothes waiting at a spot until you've picked up (or put on) all of them. */
+	private static void placeOutfit(ServerWorld w, ServerPlayerEntity p, Vec3d at, net.minecraft.item.Item... parts) {
 		if (!near(p, at, 48)) return;
-		net.minecraft.item.Item[] parts = {ModItems.JUMPSUIT_TOP, ModItems.JUMPSUIT_PANTS, ModItems.JUMPSUIT_BOOTS};
+		at = clearSpot(w, at);
 		for (int i = 0; i < parts.length; i++) {
 			net.minecraft.item.Item part = parts[i];
 			if (has(p, part) || p.getInventory().armor.stream().anyMatch(st -> st.isOf(part))) continue;
 			if (!w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new Box(BlockPos.ofFloored(at)).expand(6), e -> e.getStack().isOf(part)).isEmpty()) continue;
-			var item = new net.minecraft.entity.ItemEntity(w, at.x + i - 1, at.y + 0.3, at.z, new ItemStack(part), 0, 0, 0);
+			var item = new net.minecraft.entity.ItemEntity(w, at.x + (i - 1) * 0.6, at.y + 0.3, at.z, new ItemStack(part), 0, 0, 0);
 			item.setNeverDespawn();
 			item.setGlowing(true);
 			w.spawnEntity(item);

@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "phantom:item/dance_suit_jacket"
+ }
+}

@@ -182,5 +182,8 @@
   "key.phantom.power_4": "Power Slot 4",
   "key.phantom.suit_up": "Ghost Hunter Suit on/off (hold: cutscene)",
   "key.phantom.hunter_radar": "Hunter Radar, suit on (off / ghosts / mobs / both)",
-  "key.phantom.lock_on": "Lock On (target the enemy in front of you)"
+  "key.phantom.lock_on": "Lock On (target the enemy in front of you)",
+  "item.phantom.dance_suit_jacket": "Suit Jacket and Tie",
+  "item.phantom.dance_suit_pants": "Suit Pants",
+  "item.phantom.dance_suit_shoes": "Dress Shoes"
 }
