@@ -75,6 +75,7 @@ public final class Cutscenes {
 	public static boolean startDark(ServerPlayerEntity p, GhostData d) {
 		if (!(d.dark && d.darkMode) || d.transformed) return false;
 		d.cutscene = DARK_TICKS;
+		if (p.isUsingItem()) p.stopUsingItem();
 		d.cutsceneKind = 5;
 		d.cutsceneToGhost = true;
 		d.cutsceneAnchor = p.getPos();
@@ -152,6 +153,7 @@ public final class Cutscenes {
 	/** The hero's own transformation: a calm, building aura, then "I'M GOING GHOST!" and the rings. */
 	public static void startHero(ServerPlayerEntity p, GhostData d) {
 		d.cutscene = HERO_TICKS;
+		if (p.isUsingItem()) p.stopUsingItem();
 		d.cutsceneKind = 7;
 		d.cutsceneToGhost = true;
 		d.cutsceneAnchor = p.getPos();
@@ -205,6 +207,7 @@ public final class Cutscenes {
 	/** Suiting up: the pack hums to life on your back, then armour plates unfold out of it and lock on around you. */
 	public static void startSuit(ServerPlayerEntity p, GhostData d) {
 		d.cutscene = SUIT_TICKS;
+		if (p.isUsingItem()) p.stopUsingItem();
 		d.cutsceneKind = 8;
 		d.cutsceneToGhost = true;
 		d.cutsceneAnchor = p.getPos();
@@ -266,6 +269,7 @@ public final class Cutscenes {
 
 	private static void begin(ServerPlayerEntity p, GhostData d, int ticks, int kind) {
 		d.cutscene = ticks;
+		if (p.isUsingItem()) p.stopUsingItem();
 		d.cutsceneKind = kind;
 		d.cutsceneToGhost = false;
 		d.cutsceneAnchor = p.getPos();
@@ -386,6 +390,7 @@ public final class Cutscenes {
 		float yaw = (float) (Math.toDegrees(Math.atan2(-out.x, out.z)));
 		p.networkHandler.requestTeleport(stand.x, stand.y, stand.z, yaw, 0f);
 		d.cutscene = ORIGIN_TICKS;
+		if (p.isUsingItem()) p.stopUsingItem();
 		d.cutsceneKind = 6;
 		d.cutsceneToGhost = true;
 		d.cutsceneAnchor = stand;

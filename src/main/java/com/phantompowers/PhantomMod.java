@@ -189,7 +189,7 @@ public class PhantomMod implements ModInitializer {
 			GhostPowers.onJoin(handler.player);
 			server.execute(() -> {
 				GhostData sd = GhostState.of(server).data(handler.player.getUuid());
-				if (sd.storyPath != Story.NONE) Story.send(handler.player, sd, false);
+				if (sd.storyPath != Story.NONE) Story.fix(handler.player, false);   // tidy up anything a crash left behind
 				else handler.player.sendMessage(net.minecraft.text.Text.literal("Type /story to start Story Mode!").formatted(net.minecraft.util.Formatting.GREEN), false);
 			});
 		});

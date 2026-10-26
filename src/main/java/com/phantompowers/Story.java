@@ -6,6 +6,7 @@ import com.phantompowers.entity.ChefGhoulashEntity;
 import com.phantompowers.entity.RageWyvernEntity;
 import com.phantompowers.network.StoryPayload;
 import com.phantompowers.world.AmityPark;
+import com.phantompowers.world.AmityPark500;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
@@ -1303,6 +1304,45 @@ public final class Story {
 				v.discard();
 			}
 		});
+	}
+
+	/**
+	 * Un-stick the story: let go of anyone you were overshadowing, clear away story characters that got left in the
+	 * wrong place (they come straight back where they belong), and set the current objective up again.
+	 * {@code full} also restarts the objective's timer and re-runs its scene (/story fix).
+	 */
+	public static void fix(ServerPlayerEntity p, boolean full) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		if (d.storyPath == NONE || d.storyMission < 1 || d.storyMission > MISSIONS) return;
+		if (d.possessing != null) GhostPowers.stopPossess(p, d, false);
+		if (AmityPark.ready(p.getServer())) {
+			ServerWorld ow = p.getServer().getOverworld();
+			BlockPos c = AmityPark.state(p.getServer()).center;
+			for (var v : ow.getEntitiesByClass(TownspersonEntity.class, new Box(c).expand(AmityPark500.HALF, 64, AmityPark500.HALF),
+					v -> (v.getCommandTags().contains("phantom_story_npc") || v.getCommandTags().contains("phantom_dance"))
+							&& !v.getCommandTags().contains("phantom_paige_saved"))) v.discard();
+		}
+		if (full) {
+			d.storyCount = 0;
+			st.markDirty();
+			stepStarted(p, d);
+			p.sendMessage(Text.literal("Story fixed! Your objective has been set up again: " + objective(d)).formatted(Formatting.GREEN), false);
+		}
+		send(p, d, false);
+	}
+
+	/** Skip the current objective (for when something's gone wrong and it can't be finished). */
+	public static void skip(ServerPlayerEntity p) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		if (d.storyPath == NONE || d.storyMission < 1 || d.storyMission > MISSIONS) {
+			p.sendMessage(Text.literal("You're not on a story mission right now.").formatted(Formatting.YELLOW), false);
+			return;
+		}
+		p.sendMessage(Text.literal("Skipped: " + objective(d)).formatted(Formatting.YELLOW), false);
+		if (d.possessing != null) GhostPowers.stopPossess(p, d, false);
+		advance(p, d, st);
 	}
 
 	private static void startMission(ServerPlayerEntity p, GhostData d, int mission) {

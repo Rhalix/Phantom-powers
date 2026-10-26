@@ -86,6 +86,14 @@ public final class PhantomCommands {
 				.then(CommandManager.literal("travel").executes(ctx -> {
 					Story.fastTravel(ctx.getSource().getPlayerOrThrow());
 					return 1;
+				}))
+				.then(CommandManager.literal("fix").executes(ctx -> {
+					Story.fix(ctx.getSource().getPlayerOrThrow(), true);
+					return 1;
+				}))
+				.then(CommandManager.literal("skip").executes(ctx -> {
+					Story.skip(ctx.getSource().getPlayerOrThrow());
+					return 1;
 				})));
 		dispatcher.register(CommandManager.literal("phantom")
 				.requires(src -> src.hasPermissionLevel(2))

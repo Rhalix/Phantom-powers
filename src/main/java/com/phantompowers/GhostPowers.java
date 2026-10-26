@@ -284,6 +284,8 @@ public final class GhostPowers {
 			bar(p, "You don't have ghost powers yet. Activate a Ghost Portal!", Formatting.RED);
 			return;
 		}
+		// changing form stops whatever you were doing with your hands (eating, drinking, blocking...)
+		if (p.isUsingItem()) p.stopUsingItem();
 		if (d.transformed) {
 			endForm(p, d);
 			if (rings) sendRings(p, 20, 4);
