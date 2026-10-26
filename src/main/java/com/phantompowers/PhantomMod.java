@@ -133,6 +133,8 @@ public class PhantomMod implements ModInitializer {
 
 		// a half-built town doesn't carry over into a different world
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> com.phantompowers.world.AmityPark.reset());
+		// Amity Park starts going up as soon as the world loads, so it's ready by the time you want it
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> com.phantompowers.world.AmityPark.request(server));
 
 		// Ticking
 		ServerTickEvents.END_SERVER_TICK.register(server -> {

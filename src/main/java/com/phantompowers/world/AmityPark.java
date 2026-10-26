@@ -233,7 +233,7 @@ public final class AmityPark {
 			finish(w);
 			return;
 		}
-		long until = System.nanoTime() + 12_000_000L;   // about a quarter of a tick
+		long until = System.nanoTime() + 25_000_000L;   // half a tick: quick, but the game keeps running smoothly
 		switch (job.phase) {
 			case 0 -> {
 				ChunkGenerator gen = w.getChunkManager().getChunkGenerator();
