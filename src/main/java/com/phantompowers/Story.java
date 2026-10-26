@@ -456,6 +456,7 @@ public final class Story {
 		st.markDirty();
 		if (d.storyStep >= steps(d.storyPath, d.storyMission).length) complete(p, d);
 		else stepStarted(p, d);
+		dismissExtras(p.getServer());
 		send(p, d, false);
 	}
 
@@ -1335,6 +1336,7 @@ public final class Story {
 					v -> (v.getCommandTags().contains("phantom_story_npc") || v.getCommandTags().contains("phantom_dance"))
 							&& !v.getCommandTags().contains("phantom_paige_saved"))) v.discard();
 		}
+		dismissExtras(p.getServer());
 		if (full) {
 			d.storyCount = 0;
 			st.markDirty();
@@ -1342,6 +1344,43 @@ public final class Story {
 			p.sendMessage(Text.literal("Story fixed! Your objective has been set up again: " + objective(d)).formatted(Formatting.GREEN), false);
 		}
 		send(p, d, false);
+	}
+
+	/** The story characters an objective needs in town (everyone else goes home). */
+	private static java.util.Set<String> castFor(String goal) {
+		return switch (goal) {
+			case FRIEND -> java.util.Set.of("phantom_story_friend");
+			case TEACHER, OVERSHADOW -> java.util.Set.of("phantom_story_teacher");
+			case TROUBLE, DAD, LANCER -> java.util.Set.of("phantom_story_dad", "phantom_story_teacher");
+			case TUCKER, ASK_SAM -> java.util.Set.of("phantom_story_tucker", "phantom_story_friend");
+			case TALK_PAIGE, SNEAK_PAIGE -> java.util.Set.of("phantom_paige_park");
+			case FOUNTAIN, DANCE -> java.util.Set.of("phantom_dance");
+			case BATHROOM -> java.util.Set.of("phantom_bath_paulina", "phantom_bath_sam");
+			case WYVERN_DAZED, AMULET_PULLED, CHECK_PAIGE -> java.util.Set.of("phantom_paige_saved");
+			default -> java.util.Set.of();
+		};
+	}
+
+	/** After an objective: story characters nobody's current objective needs leave town (with a puff). */
+	private static void dismissExtras(MinecraftServer server) {
+		if (!AmityPark.ready(server)) return;
+		GhostState st = GhostState.of(server);
+		java.util.Set<String> keep = new java.util.HashSet<>();
+		for (ServerPlayerEntity q : server.getPlayerManager().getPlayerList()) {
+			GhostData qd = st.data(q.getUuid());
+			if (qd.storyPath != NONE && qd.storyMission >= 1 && qd.storyMission <= MISSIONS) keep.addAll(castFor(goal(qd)));
+		}
+		ServerWorld ow = server.getOverworld();
+		BlockPos c = AmityPark.state(server).center;
+		for (var v : ow.getEntitiesByClass(TownspersonEntity.class, new Box(c).expand(AmityPark500.HALF, 64, AmityPark500.HALF),
+				v -> v.getCommandTags().contains("phantom_story_npc") || v.getCommandTags().contains("phantom_dance"))) {
+			if (GhostFlags.HOSTS.contains(v.getUuid())) continue;   // someone's inside them right now
+			boolean needed = false;
+			for (String tag : v.getCommandTags()) if (keep.contains(tag)) { needed = true; break; }
+			if (needed) continue;
+			ow.spawnParticles(ParticleTypes.POOF, v.getX(), v.getY() + 1, v.getZ(), 8, 0.3, 0.5, 0.3, 0.02);
+			v.discard();
+		}
 	}
 
 	/** Skip the current objective (for when something's gone wrong and it can't be finished). */

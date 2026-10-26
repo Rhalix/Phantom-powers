@@ -439,6 +439,7 @@ public class PhantomClient implements ClientModInitializer {
 			if (renderer instanceof PlayerEntityRenderer playerRenderer) {
 				helper.register(new BackpackFeature(playerRenderer, ctx.getPart(BackpackFeature.LAYER)));
 				helper.register(new GuitarFeature(playerRenderer));
+				helper.register(new DanceSuitFeature(playerRenderer));
 				helper.register(new GhostTail(playerRenderer, ctx.getPart(GhostTail.LAYER)));
 				helper.register(new DarkCapeFeature(playerRenderer, ctx.getPart(DarkCapeFeature.LAYER)));
 				helper.register(new CannonFeature(playerRenderer, ctx.getPart(CannonFeature.LAYER)));
