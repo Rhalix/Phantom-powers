@@ -44,7 +44,7 @@ public final class Story {
 	 */
 	private static final int MISSIONS = 4, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
 	/** Objective lists got longer in version 2: anyone part-way through a mission from before starts its objectives again. */
-	private static final int VERSION = 3;
+	private static final int VERSION = 4;
 
 	// objective goals
 	private static final String LAB_DOOR = "lab_door", LAB_FLOOR = "lab_floor", CONSOLES = "consoles", SCAN = "scan", POWERS = "powers",
@@ -123,10 +123,7 @@ public final class Story {
 					s(FRIEND, "Your friend Sam is starting a petition for a healthy lunch menu. Find her outside school and sign it"),
 					s(CAFETERIA, "The petition worked! Check out the new healthy menu in the school cafeteria"),
 					s(CHEF1, "Lunch Lady hates the new menu! Fight her"),
-					s(TROUBLE, "Mr. Lancer blames YOU for wrecking the cafeteria and called your dad in! Meet your dad outside Casper High"),
-					s(DAD, "Your dad is about to talk to Mr. Lancer! Go ghost and fly at your dad to stop him"),
-					s(LANCER, "Whoa, you're INSIDE your dad! Walk his body over to Mr. Lancer and talk your way out of trouble"),
-					s(THERMOS, "Lunch Lady's still out there! Get a Thermos from the Ghost Lab gear locker"),
+					s(THERMOS, "She got away! Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "She'll be back for lunch. Get back to the cafeteria"),
 					s(CHEF_DAZED, "Round two! Fight Lunch Lady until she's dazed"),
 					s(CHEF_TRAPPED, "Trap Lunch Lady in the Thermos (right-click her with it)"),
@@ -136,10 +133,7 @@ public final class Story {
 					s(FRIEND, "Sam is collecting signatures for a healthy-menu petition outside school. Go and talk to her"),
 					s(CAFETERIA, "The menu changed and somebody's furious. Go and see in the school cafeteria"),
 					s(CHEF1, "Some ghost is haunting YOUR school. Fight her"),
-					s(TROUBLE, "Mr. Lancer blames you for the cafeteria mess and called your dad in. Meet your dad outside Casper High"),
-					s(DAD, "Can't have Dad talking to Lancer. Go ghost and fly at your dad"),
-					s(LANCER, "You're inside your dad's body! Walk him over to Mr. Lancer and make this problem go away"),
-					s(THERMOS, "Lunch Lady ran off. Get a Thermos from the Ghost Lab gear locker"),
+					s(THERMOS, "She ran off! Get a Thermos from the Ghost Lab gear locker"),
 					s(CAFETERIA, "She'll be back for lunch. Wait for her in the cafeteria"),
 					s(CHEF_DAZED, "Show Lunch Lady who's in charge: beat her until she's dazed"),
 					s(CHEF_TRAPPED, "Trap her in the Thermos. She works for you now"),
@@ -193,6 +187,9 @@ public final class Story {
 			case HERO -> new Step[]{
 					s(AMULET, "Something is glowing by the park pond. Go and find it"),
 					s(TALK_PAIGE, "It'd make a perfect necklace for Paulina! Find her by the park gate, give it to her and ask her to the dance"),
+					s(TROUBLE, "Your powers glitched in class and Mr. Lancer blames YOU! He called your dad in. Meet your dad outside Casper High"),
+					s(DAD, "If Dad talks to Mr. Lancer you'll miss the dance! Go ghost and fly at your dad to stop him"),
+					s(LANCER, "Whoa, you're INSIDE your dad! Walk his body over to Mr. Lancer and talk your way out of trouble"),
 					s(TUCKER, "Tucker wants to ask Sam to the dance but he's too scared. Overshadow him outside Casper High (go ghost, look at him, use Possession)"),
 					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance for him"),
 					s(TUNIC, "Get dressed up for the dance: put on your suit, tie and dress shoes (they're laid out at home, by the Ghost Lab house door)"),
@@ -205,6 +202,9 @@ public final class Story {
 			case EVIL -> new Step[]{
 					s(AMULET, "Something full of rage is glowing by the park pond. Go and take it"),
 					s(SNEAK_PAIGE, "Paulina is by the park gate. Turn invisible, sneak up on her and slip the necklace into her bag"),
+					s(TROUBLE, "Your powers glitched in class and Mr. Lancer blames you. He called your dad in. Meet your dad outside Casper High"),
+					s(DAD, "Can't have Dad talking to Lancer, not before the dance. Go ghost and fly at your dad"),
+					s(LANCER, "You're inside your dad's body! Walk him over to Mr. Lancer and make this problem go away"),
 					s(TUCKER, "Tucker's too scared to ask Sam to the dance. Overshadow him outside Casper High and do it for him"),
 					s(ASK_SAM, "Walk Tucker over to Sam and ask her to the dance (this should be fun)"),
 					s(TUNIC, "Crash the dance in style: put on the suit, tie and dress shoes laid out by the Ghost Lab house door"),
@@ -555,7 +555,7 @@ public final class Story {
 			case JUMPSUIT -> placeJumpsuit(w, p, c);
 			case TUNIC -> placeOutfit(w, p, AmityPark.labHouseDoor(c).add(0, 0, -2), ModItems.DANCE_JACKET, ModItems.DANCE_PANTS, ModItems.DANCE_SHOES);
 			case TROUBLE -> {
-				p.sendMessage(Text.literal("Mr. Lancer: \"Mr. Fenton... er, YOUR father will be here shortly to discuss your... behaviour.\"").formatted(Formatting.LIGHT_PURPLE), false);
+				p.sendMessage(Text.literal("Mr. Lancer: \"Your father will be here shortly to discuss your... behaviour. And if this keeps up, you can forget about the dance!\"").formatted(Formatting.LIGHT_PURPLE), false);
 				spawnDad(w, c);
 				spawnTeacher(w, c);
 			}
@@ -921,7 +921,7 @@ public final class Story {
 
 	private static void lancerLine(ServerPlayerEntity p, int n) {
 		String line = switch (n) {
-			case 1 -> "Mr. Lancer: \"Ah, Mr. Fenton. Your child has been... disruptive. Food everywhere! Walls with holes in them!\"";
+			case 1 -> "Mr. Lancer: \"Ah, Mr. Fenton. Your child has been... disruptive. Desks floating! Walls with holes in them!\"";
 			case 3 -> "You (as your dad): \"MY kid? Nah! Best kid in Amity Park! Probably a ghost did it. Give 'em another chance!\"";
 			case 5 -> "Mr. Lancer: \"Hmm. You ARE very... enthusiastic. Very well. No detention. THIS time.\"";
 			case 7 -> "Mr. Lancer walks off. You slip out of your dad's body. He blinks: \"...Why am I at the school?\"";
