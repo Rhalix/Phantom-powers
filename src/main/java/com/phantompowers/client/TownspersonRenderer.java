@@ -14,7 +14,7 @@ import net.minecraft.util.math.MathHelper;
 
 /** Amity Park locals: player-shaped people with their own skins (slim arms for the girls), who bop along when dancing. */
 public class TownspersonRenderer extends MobEntityRenderer<TownspersonEntity, TownspersonRenderer.Model> {
-	private final Model wide, slim, sam, lancer, princess;
+	private final Model wide, slim, sam, lancer, princess, paulina, paulinaDance, samDance, tucker;
 
 	public TownspersonRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx, new Model(ctx.getPart(EntityModelLayers.PLAYER), false), 0.5f);
@@ -23,17 +23,21 @@ public class TownspersonRenderer extends MobEntityRenderer<TownspersonEntity, To
 		this.sam = new Model(SamModelData.getTexturedModelData().createModel(), true);
 		this.lancer = new Model(LancerModelData.getTexturedModelData().createModel(), false);
 		this.princess = new Model(PrincessModelData.getTexturedModelData().createModel(), true);
+		this.paulina = new Model(PaulinaModelData.getTexturedModelData().createModel(), true);
+		this.paulinaDance = new Model(PaulinaDanceModelData.getTexturedModelData().createModel(), true);
+		this.samDance = new Model(SamDanceModelData.getTexturedModelData().createModel(), true);
+		this.tucker = new Model(TuckerModelData.getTexturedModelData().createModel(), false);
 	}
 
 	@Override
 	public void render(TownspersonEntity e, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider consumers, int light) {
-		this.model = SamModelSelector.select(e, wide, slim, sam, lancer, princess);
+		this.model = DanceWardrobe.select(e, SamModelSelector.select(e, wide, slim, sam, lancer, princess, paulina, tucker), paulinaDance, samDance);
 		super.render(e, yaw, tickDelta, matrices, consumers, light);
 	}
 
 	@Override
 	public Identifier getTexture(TownspersonEntity e) {
-		return PhantomMod.id("textures/entity/townsperson/" + TownspersonEntity.SKINS[e.variant()] + ".png");
+		return DanceWardrobe.texture(e, PhantomMod.id("textures/entity/townsperson/" + TownspersonEntity.SKINS[e.variant()] + ".png"));
 	}
 
 	@Override

@@ -861,6 +861,10 @@ public final class Story {
 
 	/** A story character (standing still until the story lets them move). Only one per tag. */
 	private static TownspersonEntity spawnNpc(ServerWorld w, Vec3d at, String name, String tag, boolean showName, int look) {
+		return DanceWardrobeState.initialize(spawnNpcBeforeWardrobe(w, at, name, tag, showName, look), tag);
+	}
+
+	private static TownspersonEntity spawnNpcBeforeWardrobe(ServerWorld w, Vec3d at, String name, String tag, boolean showName, int look) {
 		if (!w.getEntitiesByClass(TownspersonEntity.class, new Box(BlockPos.ofFloored(at)).expand(64), v -> v.getCommandTags().contains(tag)).isEmpty()) return null;
 		var v = ModEntities.TOWNSPERSON.create(w);
 		if (v == null) return null;

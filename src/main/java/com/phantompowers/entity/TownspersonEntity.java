@@ -30,6 +30,7 @@ public class TownspersonEntity extends PathAwareEntity {
 	public static final String[] NAMES = {"Sam", "Mr. Lancer", "Princess Dorathea", "Marcus", "Tiffany", "Leon", "Jasmine", "Owen"};
 	private static final TrackedData<Integer> VARIANT = DataTracker.registerData(TownspersonEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Boolean> DANCING = DataTracker.registerData(TownspersonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	private static final TrackedData<Boolean> FORMAL_OUTFIT = DataTracker.registerData(TownspersonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
 	public TownspersonEntity(EntityType<? extends PathAwareEntity> type, World world) {
 		super(type, world);
@@ -46,6 +47,7 @@ public class TownspersonEntity extends PathAwareEntity {
 		super.initDataTracker(builder);
 		builder.add(VARIANT, 0);
 		builder.add(DANCING, false);
+		builder.add(FORMAL_OUTFIT, false);
 	}
 
 	@Override
@@ -77,6 +79,16 @@ public class TownspersonEntity extends PathAwareEntity {
 
 	public void setDancing(boolean d) {
 		dataTracker.set(DANCING, d);
+		com.phantompowers.DanceWardrobeState.mark(this, d);
+	}
+
+	/** Dressed up for the dance (Sam and Paulina get their dance outfits). */
+	public boolean isFormalOutfit() {
+		return dataTracker.get(FORMAL_OUTFIT);
+	}
+
+	public void setFormalOutfit(boolean formal) {
+		dataTracker.set(FORMAL_OUTFIT, formal);
 	}
 
 	@Override
@@ -90,6 +102,7 @@ public class TownspersonEntity extends PathAwareEntity {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putInt("Variant", variant());
 		nbt.putBoolean("Dancing", dancing());
+		nbt.putBoolean("FormalDanceOutfit", isFormalOutfit());
 	}
 
 	@Override
@@ -97,5 +110,6 @@ public class TownspersonEntity extends PathAwareEntity {
 		super.readCustomDataFromNbt(nbt);
 		setVariant(nbt.getInt("Variant"));
 		setDancing(nbt.getBoolean("Dancing"));
+		setFormalOutfit(nbt.getBoolean("FormalDanceOutfit") | dancing());
 	}
 }
