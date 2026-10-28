@@ -164,6 +164,8 @@ public class PhantomMod implements ModInitializer {
 			return GhostPowers.allowDamage(entity, source);
 		});
 
+		// story ghosts can't be finished off until they're worn out (then you trap them)
+		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> Story.allowDeath(entity));
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (entity instanceof ServerPlayerEntity p) GhostPowers.onDeath(p);
 			GhostPowers.onAnyDeath(entity);
@@ -216,6 +218,8 @@ public class PhantomMod implements ModInitializer {
 				if (a.value() == 0) Story.open(p);
 				else if (a.value() == 1) Story.restart(p);
 				else if (a.value() == 2) Story.fastTravel(p);
+				else if (a.value() == 9) Story.quitSpecial(p);
+				else if (a.value() >= 10) Story.startSpecial(p, a.value() - 10);
 			}
 			case 2 -> {
 				GhostData d = GhostState.of(p.getServer()).data(p.getUuid());

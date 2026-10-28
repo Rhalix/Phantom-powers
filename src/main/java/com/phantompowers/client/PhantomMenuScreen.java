@@ -6,7 +6,7 @@ import net.minecraft.text.Text;
 
 /** The Phantom Menu: story mode, party, power slots and ghost skills, all in one ghostly place. */
 public class PhantomMenuScreen extends Screen {
-	private int left, top, w = 220, h = 196;
+	private int left, top, w = 220, h = 222;
 
 	public PhantomMenuScreen() {
 		super(Text.literal("Phantom Menu"));
@@ -22,7 +22,8 @@ public class PhantomMenuScreen extends Screen {
 		addDrawableChild(new GhostlyUi.GhostButton(bx, y + 52, bw, 20, Text.literal("Power Slots"), b -> client.setScreen(new SlotsScreen(this)), GhostlyUi.GREEN));
 		var skills = addDrawableChild(new GhostlyUi.GhostButton(bx, y + 78, bw, 20, Text.literal("Ghost Skills"), b -> client.setScreen(new GhostSkillsScreen(this)), GhostlyUi.GREEN));
 		skills.active = ClientGhost.powers;
-		addDrawableChild(new GhostlyUi.GhostButton(bx, y + 112, bw, 20, Text.literal("Close"), b -> close(), 0x8899AA));
+		addDrawableChild(new GhostlyUi.GhostButton(bx, y + 104, bw, 20, Text.literal("Movies & Specials"), b -> client.setScreen(new SpecialsScreen(this)), GhostlyUi.CYAN));
+		addDrawableChild(new GhostlyUi.GhostButton(bx, y + 138, bw, 20, Text.literal("Close"), b -> close(), 0x8899AA));
 	}
 
 	@Override

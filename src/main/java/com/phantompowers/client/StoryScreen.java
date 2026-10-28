@@ -47,10 +47,12 @@ public class StoryScreen extends Screen {
 	/** Story already running: mission, objective, fast travel, restart. */
 	private void initInfo() {
 		cw = Math.min(300, width - 20);
-		ch = 170;
+		ch = 196;
 		left = (width - cw) / 2;
 		top = (height - ch) / 2;
 		int acc = COLOR[StoryHud.path() - 1] & 0xFFFFFF;
+		addDrawableChild(new GhostlyUi.GhostButton(left + 14, top + ch - 82, cw - 28, 20, Text.literal("Movies & Specials"),
+				b -> client.setScreen(new SpecialsScreen(this)), GhostlyUi.CYAN));
 		addDrawableChild(new GhostlyUi.GhostButton(left + 14, top + ch - 56, cw - 28, 20, Text.literal("Fast travel to Amity Park"),
 				b -> { MenuNet.send(1, 2, ""); close(); }, acc));
 		addDrawableChild(new GhostlyUi.GhostButton(left + 14, top + ch - 30, 130, 20,

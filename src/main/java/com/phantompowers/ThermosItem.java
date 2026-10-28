@@ -70,6 +70,7 @@ public class ThermosItem extends Item {
 	}
 
 	public static boolean canTrap(Entity e) {
+		if (e.getCommandTags().contains("phantom_ep_boss")) return e.getCommandTags().contains("phantom_ep_dazed");
 		// A boss tangled in a Ghost Net can be sucked up no matter how healthy it is
 		if (FrostLogic.isBoss(e) && com.phantompowers.entity.GhostNetTrapEntity.isNetted(e)) return true;
 		if (e instanceof GhostJailerEntity j) return j.getHealth() < j.getMaxHealth() * 0.3f;

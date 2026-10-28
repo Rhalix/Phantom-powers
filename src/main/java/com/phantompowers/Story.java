@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.damage.DamageSource;
 import com.phantompowers.entity.TownspersonEntity;
 import net.minecraft.item.ItemStack;
@@ -43,7 +44,7 @@ public final class Story {
 	 * storyMission is 1..MISSIONS while playing; 98 + n means "finished mission n and it was the last one at the time".
 	 * When new missions are added, those players move straight on to the next one.
 	 */
-	private static final int MISSIONS = 4, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
+	private static final int MISSIONS = Episodes.LAST, LEGACY_DONE = 99, DONE = 98 + MISSIONS;
 	/** Objective lists got longer in version 2: anyone part-way through a mission from before starts its objectives again. */
 	private static final int VERSION = 4;
 
@@ -69,7 +70,10 @@ public final class Story {
 
 	public static String missionTitle(int path, int mission) {
 		if (path == NONE) return "";
+		Episodes.Ep ep = Episodes.get(mission);
+		if (Episodes.special(mission)) return "Special: " + ep.title();
 		if (mission >= LEGACY_DONE) return "Mission complete!";
+		if (ep != null) return "Mission " + mission + ": " + ep.title() + (path == EVIL ? " (Dark Side)" : "");
 		if (mission == 2) return path == EVIL ? "Mission 2: Lunch Rush (Dark Side)" : "Mission 2: Lunch Rush";
 		if (mission == 3) return path == EVIL ? "Mission 3: Dance Disaster (Dark Side)" : "Mission 3: Dance Disaster";
 		if (mission == 4) return path == EVIL ? "Mission 4: Rare Catch (Dark Side)" : "Mission 4: Rare Catch";
@@ -82,6 +86,12 @@ public final class Story {
 
 	/** The objectives of a mission for each path. */
 	private static Step[] steps(int path, int mission) {
+		Episodes.Ep ep = Episodes.get(mission);
+		if (ep != null) {
+			Step[] out = new Step[ep.steps().length];
+			for (int i = 0; i < out.length; i++) out[i] = new Step(ep.steps()[i].kind(), epText(path, ep.steps()[i]));
+			return out;
+		}
 		if (mission == 1) return switch (path) {
 			case HERO -> new Step[]{
 					s(LAB_DOOR, "Head to the Ghost Lab house in Amity Park"),
@@ -242,7 +252,7 @@ public final class Story {
 	}
 
 	public static String objective(GhostData d) {
-		if (d.storyMission >= LEGACY_DONE) return "More missions coming soon! (/story restart to play another path)";
+		if (d.storyMission >= LEGACY_DONE && !Episodes.special(d.storyMission)) return "You've finished the whole story! Replay the movies and specials from Story Mode (or /story restart to play another path)";
 		Step st = current(d);
 		if (st == null) return "";
 		String o = st.text();
@@ -252,6 +262,14 @@ public final class Story {
 			case LIBRARY, FOX -> o += " (" + Math.min(100, d.storyCount * 100 / STUDY_CHECKS) + "%)";
 			case NAP -> o += " (" + Math.max(0, (NAP_CHECKS - d.storyCount) / 2) + "s)";
 			case DANCE -> o += " (" + Math.max(0, (DANCE_CHECKS - d.storyCount) / 2) + "s left)";
+			case Episodes.STAY -> {
+				Episodes.S es = Episodes.step(d.storyMission, d.storyStep);
+				if (es != null) o += " (" + Math.min(100, d.storyCount * 100 / Math.max(1, es.n())) + "%)";
+			}
+			case Episodes.KILL -> {
+				Episodes.S es = Episodes.step(d.storyMission, d.storyStep);
+				if (es != null) o += " (" + Math.min(es.n(), d.storyCount) + "/" + es.n() + ")";
+			}
 			case TUCKER -> {
 				if (d.storyCount > 0) o = "Tucker said no! Fine... overshadow him and do it yourself (go ghost, look at him, use Possession)";
 			}
@@ -354,6 +372,8 @@ public final class Story {
 
 	/** Where the current objective wants you to go (for the tracker), or null. */
 	private static Vec3d destination(GhostData d, BlockPos c) {
+		Episodes.S es = Episodes.step(d.storyMission, d.storyStep);
+		if (es != null) return es.kind().equals(Episodes.TRAP) || es.kind().equals(Episodes.POWER) ? null : place(es.place(), c);
 		return switch (goal(d)) {
 			case LAB_DOOR, LAB_FLOOR, CONSOLES, SCAN, THERMOS -> AmityPark.labHouseDoor(c);
 			case SCHOOL, FRIEND, OVERSHADOW, TROUBLE, DAD, LANCER, TUCKER, ASK_SAM, WYVERN_DAZED, CHECK_PAIGE -> AmityPark.schoolDoor(c);
@@ -395,8 +415,8 @@ public final class Story {
 		GhostState st = GhostState.of(server);
 		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 			GhostData d = st.data(p.getUuid());
-			if (d.storyPath == NONE || d.storyMission >= DONE) continue;
-			if (d.storyMission >= LEGACY_DONE) {   // finished what was the last mission at the time: on to the next one
+			if (d.storyPath == NONE || (d.storyMission >= DONE && !Episodes.special(d.storyMission))) continue;
+			if (d.storyMission >= LEGACY_DONE && !Episodes.special(d.storyMission)) {   // finished what was the last mission at the time: on to the next one
 				d.storyVersion = VERSION;
 				startMission(p, d, d.storyMission - 98 + 1);
 				st.markDirty();
@@ -432,7 +452,7 @@ public final class Story {
 			} else if (server.getTicks() % 20 == 0) {
 				send(p, d, false);
 			}
-			if (d.storyMission >= 1 && d.storyMission <= MISSIONS) upkeep(p, d, st);
+			if (active(d)) upkeep(p, d, st);
 		}
 	}
 
@@ -451,12 +471,16 @@ public final class Story {
 			p.sendMessage(Text.literal("You slip out of Tucker. Tucker: \"Wait... did I just ask Sam to the dance?!\"").formatted(Formatting.GRAY), false);
 		}
 		if ((done.equals(ASK_SAM) || done.equals(LANCER)) && d.possessing != null) GhostPowers.stopPossess(p, d, false);
+		Episodes.S finished = Episodes.step(d.storyMission, d.storyStep);
+		if (finished != null && finished.kind().equals(Episodes.TALK))
+			for (String line : finished.lines()) p.sendMessage(Text.literal(line).formatted(Formatting.LIGHT_PURPLE), false);
 		d.storyStep++;
 		d.storyCount = 0;
 		st.markDirty();
 		if (d.storyStep >= steps(d.storyPath, d.storyMission).length) complete(p, d);
 		else stepStarted(p, d);
 		dismissExtras(p.getServer());
+		epTidy(p, d);
 		send(p, d, false);
 	}
 
@@ -522,6 +546,8 @@ public final class Story {
 			case COLLECTOR_DAZED -> d.storyCount > 0 || (near(p, AmityPark.parkMeadow(c), 80) && !w.getEntitiesByClass(com.phantompowers.entity.CollectorEntity.class,
 					new Box(BlockPos.ofFloored(AmityPark.parkMeadow(c))).expand(80), e -> e.storyMode() && !e.chasing() && e.dazed()).isEmpty());
 			case TEACHER -> npcNear(w, p, "phantom_story_teacher", 3.5);
+			case Episodes.GO, Episodes.ZONE, Episodes.TALK, Episodes.BOSS, Episodes.TRAP, Episodes.KILL, Episodes.ITEM, Episodes.STAY,
+					Episodes.POWER -> epCheck(p, d, c);
 			default -> false;
 		};
 	}
@@ -559,6 +585,8 @@ public final class Story {
 				spawnDance(w, c);
 			}
 			case JUMPSUIT -> placeJumpsuit(w, p, c);
+			case Episodes.GO, Episodes.ZONE, Episodes.TALK, Episodes.BOSS, Episodes.TRAP, Episodes.KILL, Episodes.ITEM, Episodes.STAY,
+					Episodes.POWER -> epStarted(p, d, c);
 			case TUNIC -> placeOutfit(w, p, AmityPark.labHouseDoor(c).add(0, 0, -2), ModItems.DANCE_JACKET, ModItems.DANCE_PANTS, ModItems.DANCE_SHOES);
 			case TROUBLE -> {
 				p.sendMessage(Text.literal("Mr. Lancer: \"Your father will be here shortly to discuss your... behaviour. And if this keeps up, you can forget about the dance!\"").formatted(Formatting.LIGHT_PURPLE), false);
@@ -684,6 +712,8 @@ public final class Story {
 			case JUMPSUIT -> {
 				if (t % 40 == 0) placeJumpsuit(w, p, c);
 			}
+			case Episodes.GO, Episodes.ZONE, Episodes.TALK, Episodes.BOSS, Episodes.TRAP, Episodes.KILL, Episodes.ITEM, Episodes.STAY,
+					Episodes.POWER -> epUpkeep(p, d, st, c, t);
 			case TUNIC -> {
 				if (t % 40 == 0) placeOutfit(w, p, AmityPark.labHouseDoor(c).add(0, 0, -2), ModItems.DANCE_JACKET, ModItems.DANCE_PANTS, ModItems.DANCE_SHOES);
 			}
@@ -1175,6 +1205,17 @@ public final class Story {
 
 	/** Something got sucked into a Thermos. */
 	public static void onTrapped(ServerWorld w, ServerPlayerEntity by, Entity ghost) {
+		if (ghost.getCommandTags().contains("phantom_ep_boss")) {
+			GhostState st = GhostState.of(w.getServer());
+			for (ServerPlayerEntity p : w.getPlayers(sp -> sp == by || sp.squaredDistanceTo(ghost) < 64 * 64)) {
+				GhostData d = st.data(p.getUuid());
+				if (goal(d).equals(Episodes.BOSS) || goal(d).equals(Episodes.TRAP)) {
+					d.storyCount = 1;
+					st.markDirty();
+				}
+			}
+			return;
+		}
 		if (ghost instanceof ChefGhoulashEntity chef && chef.storyMode()) {
 			GhostState st = GhostState.of(w.getServer());
 			for (ServerPlayerEntity p : w.getPlayers(sp -> sp == by || sp.squaredDistanceTo(ghost) < 48 * 48)) {
@@ -1241,6 +1282,19 @@ public final class Story {
 
 	/** Ghost kills count for "destroy the ghosts" objectives. */
 	public static void onDeath(LivingEntity victim, DamageSource source) {
+		if (victim.getCommandTags().contains("phantom_ep_minion") && victim.getWorld() instanceof ServerWorld ew) {
+			GhostState st = GhostState.of(ew.getServer());
+			for (ServerPlayerEntity p : ew.getPlayers(sp -> sp.squaredDistanceTo(victim) < 64 * 64 || sp == source.getAttacker())) {
+				GhostData d = st.data(p.getUuid());
+				if (!goal(d).equals(Episodes.KILL)) continue;
+				d.storyCount++;
+				st.markDirty();
+				Episodes.S es = Episodes.step(d.storyMission, d.storyStep);
+				if (es != null) p.sendMessage(Text.literal("Defeated: " + Math.min(es.n(), d.storyCount) + "/" + es.n()).formatted(Formatting.AQUA), true);
+				send(p, d, false);
+			}
+			return;
+		}
 		if (!(victim instanceof AbstractGhostEntity)) return;
 		Entity killer = source.getAttacker();
 		if (victim.getCommandTags().contains("phantom_story_box") && victim.getWorld() instanceof ServerWorld w) {
@@ -1256,6 +1310,356 @@ public final class Story {
 			p.sendMessage(Text.literal("Ghosts destroyed: " + Math.min(3, d.storyCount) + "/3").formatted(Formatting.AQUA), true);
 			send(p, d, false);
 		}
+	}
+
+	// ------------------------------------------------------------ episodes (missions 5+, and the specials)
+
+	/** On a mission right now (a story mission or a special)? */
+	static boolean active(GhostData d) {
+		return (d.storyMission >= 1 && d.storyMission <= MISSIONS) || Episodes.special(d.storyMission);
+	}
+
+	/** Ghost hunters have no ghost powers: power objectives become "suit up" for them. */
+	private static String epText(int path, Episodes.S s) {
+		if (path == HUNTER && s.kind().equals(Episodes.POWER))
+			return s.id().equals(Episodes.HUMAN) ? "Take the suit off (press B) and blend in" : "Suit up! (press B)";
+		return s.text();
+	}
+
+	private static boolean inZone(ServerPlayerEntity p) {
+		return p.getWorld().getRegistryKey().equals(PortalLogic.GHOST_ZONE);
+	}
+
+	/** A spot in Amity Park (the bigger buildings are out in the new neighbourhoods). */
+	static Vec3d place(Episodes.P where, BlockPos c) {
+		return switch (where) {
+			case LAB_DOOR -> AmityPark.labHouseDoor(c);
+			case LAB -> Vec3d.ofBottomCenter(AmityPark.lab(c));
+			case CONSOLES -> AmityPark.labConsoles(c);
+			case TOWER -> new Vec3d(c.getX() + 30.5, c.getY() + 22, c.getZ() - 33.5);
+			case SCHOOL -> AmityPark.schoolDoor(c);
+			case CAFETERIA -> AmityPark.cafeteria(c);
+			case DANCE_HALL -> AmityPark.danceFloor(c);
+			case PARK_GATE -> AmityPark.parkGate(c);
+			case FOUNTAIN -> AmityPark.parkFountain(c);
+			case POND -> AmityPark.parkPond(c);
+			case MEADOW -> AmityPark.parkMeadow(c);
+			case STORE -> AmityPark.store(c);
+			case LIBRARY -> AmityPark.library(c);
+			case DINER -> new Vec3d(c.getX() - 37.5, c.getY(), c.getZ() - 12.5);
+			case TOWN_HALL -> new Vec3d(c.getX() - 79.5, c.getY(), c.getZ() - 11.5);
+			case APARTMENTS -> new Vec3d(c.getX() - 31.5, c.getY(), c.getZ() + 9.5);
+			case ENTRANCE -> AmityPark.entrance(c);
+			case MANSION -> new Vec3d(c.getX() - 197.5, c.getY(), c.getZ() - 178.5);
+			case VLADCO -> new Vec3d(c.getX() + 26.5, c.getY(), c.getZ() - 178.5);
+			case AXION -> new Vec3d(c.getX() + 138.5, c.getY(), c.getZ() - 178.5);
+			case HOSPITAL -> new Vec3d(c.getX() - 135.5, c.getY(), c.getZ() - 178.5);
+			case MUSEUM -> new Vec3d(c.getX() - 197.5, c.getY(), c.getZ() - 66.5);
+			case MALL -> new Vec3d(c.getX() - 78.5, c.getY(), c.getZ() - 178.5);
+			case CINEMA -> new Vec3d(c.getX() + 138.5, c.getY(), c.getZ() - 118.5);
+			case LAKE -> new Vec3d(c.getX() + 200.5, c.getY(), c.getZ() + 138.5);
+			case GARDENS -> new Vec3d(c.getX() + 200.5, c.getY(), c.getZ() + 200.5);
+			case WAREHOUSE -> new Vec3d(c.getX() - 197.5, c.getY(), c.getZ() - 118.5);
+			case POOL -> new Vec3d(c.getX() - 197.5, c.getY(), c.getZ() + 45.5);
+			case FIRE_STATION -> new Vec3d(c.getX() + 200.5, c.getY(), c.getZ() - 178.5);
+			default -> null;
+		};
+	}
+
+	/** Is the player at this objective's spot (the Ghost Zone counts anywhere in it; "anywhere" always does)? */
+	private static boolean atPlace(ServerPlayerEntity p, Episodes.P where, BlockPos c, double r) {
+		if (where == Episodes.P.ZONE) return inZone(p);
+		if (where == Episodes.P.ANY) return true;
+		Vec3d at = place(where, c);
+		return at != null && near(p, at, r);
+	}
+
+	/** Where to put things for this objective: its spot, or near the player in the Ghost Zone / anywhere. */
+	private static Vec3d spawnSpot(ServerPlayerEntity p, Episodes.P where, BlockPos c, double ahead) {
+		if (where == Episodes.P.ZONE || where == Episodes.P.ANY || place(where, c) == null) {
+			Vec3d look = Vec3d.fromPolar(0, p.getYaw());
+			return p.getPos().add(look.multiply(ahead));
+		}
+		return place(where, c).add(0, 0, 3);
+	}
+
+	private static java.util.List<Entity> epTagged(ServerWorld w, Vec3d around, String tag, double r) {
+		return w.getEntitiesByClass(Entity.class, new Box(BlockPos.ofFloored(around)).expand(r), e -> e.getCommandTags().contains(tag) && e.isAlive());
+	}
+
+	private static boolean epCheck(ServerPlayerEntity p, GhostData d, BlockPos c) {
+		Episodes.S s = Episodes.step(d.storyMission, d.storyStep);
+		if (s == null) return false;
+		return switch (s.kind()) {
+			case Episodes.GO -> atPlace(p, s.place(), c, 10);
+			case Episodes.ZONE -> inZone(p);
+			case Episodes.TALK -> !epTagged(p.getServerWorld(), p.getPos(), "phantom_ep_npc", 3.5).isEmpty();
+			case Episodes.BOSS, Episodes.TRAP -> d.storyCount > 0;
+			case Episodes.KILL, Episodes.STAY -> d.storyCount >= s.n();
+			case Episodes.ITEM -> hasNamed(p, s.name());
+			case Episodes.POWER -> d.storyPath == HUNTER
+					? (s.id().equals(Episodes.HUMAN) ? !d.suitOn : d.suitOn)
+					: switch (s.id()) {
+						case Episodes.HUMAN -> !d.transformed;
+						case Episodes.INVISIBLE -> d.invisible;
+						case Episodes.INTANGIBLE -> d.intangible;
+						case Episodes.FLY -> d.transformed && p.getAbilities().flying;
+						default -> d.transformed;
+					};
+			default -> false;
+		};
+	}
+
+	private static boolean hasNamed(ServerPlayerEntity p, String name) {
+		for (int i = 0; i < p.getInventory().size(); i++) {
+			ItemStack st = p.getInventory().getStack(i);
+			if (!st.isEmpty() && st.contains(net.minecraft.component.DataComponentTypes.CUSTOM_NAME) && st.getName().getString().equals(name)) return true;
+		}
+		return false;
+	}
+
+	private static void epStarted(ServerPlayerEntity p, GhostData d, BlockPos c) {
+		Episodes.S s = Episodes.step(d.storyMission, d.storyStep);
+		if (s == null) return;
+		ServerWorld w = p.getServerWorld();
+		switch (s.kind()) {
+			case Episodes.TALK -> {
+				for (Entity e : epTagged(p.getServer().getOverworld(), Vec3d.ofCenter(c), "phantom_ep_npc", 300)) e.discard();
+				for (Entity e : epTagged(w, p.getPos(), "phantom_ep_npc", 200)) e.discard();
+				epNpc(p, s, c);
+			}
+			case Episodes.BOSS -> {
+				// whoever you fought before slips away
+				for (Entity e : epTagged(w, p.getPos(), "phantom_ep_boss", 160)) {
+					w.spawnParticles(ParticleTypes.POOF, e.getX(), e.getY() + 1, e.getZ(), 12, 0.4, 0.6, 0.4, 0.02);
+					e.discard();
+				}
+				if (atPlace(p, s.place(), c, 40)) spawnEpBoss(p, s, c);
+			}
+			case Episodes.KILL -> {
+				if (atPlace(p, s.place(), c, 30)) spawnEpMinions(p, s, c, s.n());
+			}
+			case Episodes.ITEM -> placeEpItem(p, s, c);
+			case Episodes.TRAP -> p.sendMessage(Text.literal(d.storyPath == HUNTER || has(p, ModItems.THERMOS)
+					? "Aim the Thermos at the weakened ghost and right-click!"
+					: "You need a Thermos! There's one in the Ghost Lab gear locker.").formatted(Formatting.AQUA), true);
+			default -> {}
+		}
+	}
+
+	private static void epUpkeep(ServerPlayerEntity p, GhostData d, GhostState st, BlockPos c, int t) {
+		Episodes.S s = Episodes.step(d.storyMission, d.storyStep);
+		if (s == null) return;
+		ServerWorld w = p.getServerWorld();
+		switch (s.kind()) {
+			case Episodes.TALK -> {
+				if (t % 60 == 0) epNpc(p, s, c);
+			}
+			case Episodes.BOSS -> {
+				var bosses = epTagged(w, p.getPos(), "phantom_ep_boss", 96);
+				if (bosses.isEmpty()) {
+					if (t % 40 == 0 && d.storyCount == 0 && atPlace(p, s.place(), c, 40)) spawnEpBoss(p, s, c);
+				} else if (bosses.get(0) instanceof LivingEntity boss) {
+					if (!boss.getCommandTags().contains("phantom_ep_dazed") && boss.getHealth() <= boss.getMaxHealth() * 0.25f) dazeBoss(boss);
+					if (boss.getCommandTags().contains("phantom_ep_dazed") && d.storyCount == 0) {
+						d.storyCount = 1;
+						st.markDirty();
+					}
+				}
+			}
+			case Episodes.TRAP -> {
+				if (t % 20 == 0 && d.storyCount == 0 && epTagged(w, p.getPos(), "phantom_ep_boss", 96).isEmpty()) {
+					d.storyCount = 1;   // it's gone (trapped by someone else, or finished off)
+					st.markDirty();
+				}
+			}
+			case Episodes.KILL -> {
+				if (t % 40 == 0 && d.storyCount < s.n() && atPlace(p, s.place(), c, 30)
+						&& epTagged(w, p.getPos(), "phantom_ep_minion", 48).isEmpty()) spawnEpMinions(p, s, c, s.n() - d.storyCount);
+			}
+			case Episodes.ITEM -> {
+				if (t % 40 == 0) placeEpItem(p, s, c);
+			}
+			case Episodes.STAY -> {
+				if (atPlace(p, s.place(), c, 7)) {
+					d.storyCount++;
+					st.markDirty();
+					if (d.storyCount % 4 == 0) w.spawnParticles(GhostPowers.GREEN, p.getX(), p.getY() + 1, p.getZ(), 6, 0.4, 0.6, 0.4, 0.01);
+				} else if (t % 40 == 0 && atPlace(p, s.place(), c, 30)) {
+					p.sendMessage(Text.literal("Get a little closer!").formatted(Formatting.YELLOW), true);
+				}
+			}
+			default -> {}
+		}
+	}
+
+	private static void epNpc(ServerPlayerEntity p, Episodes.S s, BlockPos c) {
+		ServerWorld w = s.place() == Episodes.P.ZONE || s.place() == Episodes.P.ANY ? p.getServerWorld() : p.getServer().getOverworld();
+		if (s.place() == Episodes.P.ZONE && !inZone(p)) return;
+		Vec3d at = spawnSpot(p, s.place(), c, 4);
+		if (!epTagged(w, at, "phantom_ep_npc", 64).isEmpty()) return;
+		var v = spawnNpc(w, at, s.name(), "phantom_ep_npc", true, s.look());
+		if (v != null) v.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES, p.getEyePos());
+	}
+
+	/** Create one of the mod's (or Minecraft's) creatures by id. */
+	private static Entity epCreate(ServerWorld w, String id) {
+		var type = net.minecraft.registry.Registries.ENTITY_TYPE.get(net.minecraft.util.Identifier.of(id));
+		return type == null ? null : type.create(w);
+	}
+
+	private static void spawnEpBoss(ServerPlayerEntity p, Episodes.S s, BlockPos c) {
+		ServerWorld w = p.getServerWorld();
+		if (!epTagged(w, p.getPos(), "phantom_ep_boss", 96).isEmpty()) return;
+		Entity e = epCreate(w, s.id());
+		if (!(e instanceof LivingEntity boss)) return;
+		Vec3d at = clearSpot(w, spawnSpot(p, s.place(), c, 7));
+		boss.refreshPositionAndAngles(at.x, at.y + (boss instanceof AbstractGhostEntity ? 1 : 0), at.z, p.getYaw() + 180f, 0f);
+		var hp = boss.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH);
+		if (hp != null) hp.setBaseValue(s.n());
+		boss.setHealth(boss.getMaxHealth());
+		boss.setCustomName(Text.literal(s.name()));
+		boss.setCustomNameVisible(true);
+		boss.addCommandTag("phantom_ep_boss");
+		if (boss instanceof MobEntity m) {
+			m.setPersistent();
+			m.setTarget(p);
+		}
+		if (boss instanceof AbstractGhostEntity g) g.setHome(BlockPos.ofFloored(at), 24f);
+		w.spawnEntity(boss);
+		w.spawnParticles(ParticleTypes.FLASH, at.x, at.y + 1, at.z, 1, 0, 0, 0, 0);
+		w.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 60, 0.8, 1.2, 0.8, 0.1);
+		w.playSound(null, at.x, at.y, at.z, SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.HOSTILE, 0.6f, 1.4f);
+		p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 40, 10));
+		p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(s.name()).formatted(Formatting.RED, Formatting.BOLD)));
+		p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("Weaken it, then trap it!").formatted(Formatting.GRAY)));
+	}
+
+	private static void spawnEpMinions(ServerPlayerEntity p, Episodes.S s, BlockPos c, int n) {
+		ServerWorld w = p.getServerWorld();
+		Vec3d base = spawnSpot(p, s.place(), c, 6);
+		for (int i = 0; i < n; i++) {
+			Entity e = epCreate(w, s.id());
+			if (e == null) continue;
+			double a = i * Math.PI * 2 / Math.max(1, n) + w.random.nextDouble();
+			Vec3d at = clearSpot(w, base.add(Math.cos(a) * 4, 0, Math.sin(a) * 4));
+			e.refreshPositionAndAngles(at.x, at.y + (e instanceof AbstractGhostEntity ? 1 : 0), at.z, 0f, 0f);
+			e.addCommandTag("phantom_ep_minion");
+			if (s.name() != null) e.setCustomName(Text.literal(s.name()));
+			if (e instanceof MobEntity m) {
+				m.setPersistent();
+				m.setTarget(p);
+			}
+			w.spawnEntity(e);
+			w.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 20, 0.4, 0.6, 0.4, 0.05);
+		}
+		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON, SoundCategory.HOSTILE, 1f, 1.2f);
+	}
+
+	private static void placeEpItem(ServerPlayerEntity p, Episodes.S s, BlockPos c) {
+		if (hasNamed(p, s.name())) return;
+		ServerWorld w = p.getServerWorld();
+		if (s.place() == Episodes.P.ZONE ? !inZone(p) : !atPlace(p, s.place(), c, 64)) return;
+		Vec3d at = clearSpot(w, spawnSpot(p, s.place(), c, 3));
+		if (!w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new Box(BlockPos.ofFloored(at)).expand(16),
+				e -> e.getStack().getName().getString().equals(s.name())).isEmpty()) return;
+		var type = net.minecraft.registry.Registries.ITEM.get(net.minecraft.util.Identifier.of(s.id()));
+		ItemStack stack = new ItemStack(type);
+		stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal(s.name()).formatted(Formatting.GREEN));
+		var item = new net.minecraft.entity.ItemEntity(w, at.x, at.y + 0.3, at.z, stack, 0, 0, 0);
+		item.setNeverDespawn();
+		item.setGlowing(true);
+		w.spawnEntity(item);
+	}
+
+	/** An episode ghost has had enough: it slows right down and can be trapped. */
+	private static void dazeBoss(LivingEntity boss) {
+		boss.addCommandTag("phantom_ep_dazed");
+		boss.setHealth(Math.max(1f, Math.min(boss.getHealth(), boss.getMaxHealth() * 0.2f)));
+		boss.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.SLOWNESS, 20 * 600, 4, false, true));
+		boss.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.WEAKNESS, 20 * 600, 2, false, true));
+		boss.setGlowing(true);
+		if (boss instanceof MobEntity m) m.setTarget(null);
+		boss.setCustomName(Text.literal((boss.getCustomName() == null ? boss.getName().getString() : boss.getCustomName().getString()) + " (weak!)"));
+		if (boss.getWorld() instanceof ServerWorld w) {
+			w.spawnParticles(ParticleTypes.WAX_ON, boss.getX(), boss.getY() + boss.getHeight(), boss.getZ(), 20, 0.5, 0.3, 0.5, 0.05);
+			for (ServerPlayerEntity p : w.getPlayers(p -> p.squaredDistanceTo(boss) < 64 * 64))
+				p.sendMessage(Text.literal(boss.getName().getString() + " is worn out!").formatted(Formatting.YELLOW), true);
+		}
+	}
+
+	/** Episode ghosts can't be finished off before they're weakened (then they can be trapped). */
+	public static boolean allowDeath(LivingEntity e) {
+		if (!e.getCommandTags().contains("phantom_ep_boss") || e.getCommandTags().contains("phantom_ep_dazed")) return true;
+		dazeBoss(e);
+		return false;
+	}
+
+	/** Clear away episode creatures nobody's current objective needs. */
+	private static void epTidy(ServerPlayerEntity p, GhostData d) {
+		String g = goal(d);
+		ServerWorld w = p.getServerWorld();
+		if (!g.equals(Episodes.BOSS) && !g.equals(Episodes.TRAP))
+			for (Entity e : epTagged(w, p.getPos(), "phantom_ep_boss", 200)) e.discard();
+		if (!g.equals(Episodes.KILL))
+			for (Entity e : epTagged(w, p.getPos(), "phantom_ep_minion", 200)) e.discard();
+		if (!g.equals(Episodes.TALK))
+			for (Entity e : epTagged(w, p.getPos(), "phantom_ep_npc", 300)) e.discard();
+	}
+
+	private static void epRewards(ServerPlayerEntity p, GhostData d, int mission) {
+		give(p, new ItemStack(ModItems.SPECTRAL_SHARD, 2));
+		give(p, new ItemStack(d.storyPath == HUNTER ? ModItems.GHOST_CORE : ModItems.ESSENCES[d.storyPath == EVIL ? GhostPowers.ESS_SHADE : GhostPowers.ESS_FRIENDLY]));
+		Episodes.Ep ep = Episodes.get(mission);
+		boolean big = ep != null && (Episodes.special(mission) || ep.title().contains("Part 2") || mission == Episodes.LAST);
+		if (big) {
+			give(p, new ItemStack(ModItems.PHANTOM_HEART));
+			give(p, new ItemStack(ModItems.GHOST_CORE, 2));
+		}
+	}
+
+	/** Play one of the TV movies or specials (your story waits until you're done). */
+	public static void startSpecial(ServerPlayerEntity p, int index) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		if (index < 0 || index >= Episodes.SPECIALS.size()) return;
+		if (d.storyPath == NONE) {
+			p.sendMessage(Text.literal("Pick a story path first (Story Mode), then you can play the movies and specials.").formatted(Formatting.YELLOW), false);
+			return;
+		}
+		if (Episodes.special(d.storyMission)) {
+			p.sendMessage(Text.literal("You're already playing a special. Finish it or leave it first.").formatted(Formatting.YELLOW), false);
+			return;
+		}
+		if (d.possessing != null) GhostPowers.stopPossess(p, d, false);
+		d.storyResumeMission = d.storyMission;
+		d.storyResumeStep = d.storyStep;
+		d.storyMission = Episodes.SPECIAL_BASE + index;
+		d.storyStep = 0;
+		d.storyCount = 0;
+		st.markDirty();
+		dismissExtras(p.getServer());
+		epTidy(p, d);
+		announce(p, d);
+		stepStarted(p, d);
+		send(p, d, false);
+	}
+
+	/** Leave a special early and go back to your story. */
+	public static void quitSpecial(ServerPlayerEntity p) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		if (!Episodes.special(d.storyMission)) return;
+		d.storyMission = d.storyResumeMission;
+		d.storyStep = d.storyResumeStep;
+		d.storyCount = 0;
+		d.storyResumeMission = 0;
+		st.markDirty();
+		epTidy(p, d);
+		dismissExtras(p.getServer());
+		p.sendMessage(Text.literal("You left the special. Back to your story!").formatted(Formatting.YELLOW), false);
+		if (active(d)) stepStarted(p, d);
+		send(p, d, false);
 	}
 
 	// ------------------------------------------------------------ the end
@@ -1305,7 +1709,23 @@ public final class Story {
 				}
 			}
 		}
+		if (mission >= Episodes.FIRST) epRewards(p, d, mission);
 		cleanUpNpcs(w, p);
+		epTidy(p, d);
+		if (Episodes.special(mission)) {
+			p.sendMessage(Text.literal("Special complete! You got some rewards. Back to your story...").formatted(Formatting.GOLD), false);
+			d.storyMission = d.storyResumeMission;
+			d.storyStep = d.storyResumeStep;
+			d.storyCount = 0;
+			d.storyResumeMission = 0;
+			java.util.UUID id = p.getUuid();
+			MinecraftServer server = p.getServer();
+			com.phantompowers.entity.BossMoves.later(120, () -> {
+				ServerPlayerEntity sp = server.getPlayerManager().getPlayer(id);
+				if (sp != null) send(sp, GhostState.of(server).data(id), false);
+			});
+			return;
+		}
 		if (mission < MISSIONS) {
 			p.sendMessage(Text.literal("Mission complete! You got some rewards. The next mission starts in a moment...").formatted(Formatting.GOLD), false);
 			d.storyMission = mission + 1;
@@ -1319,7 +1739,7 @@ public final class Story {
 			});
 		} else {
 			d.storyMission = DONE;
-			p.sendMessage(Text.literal("Mission complete! You got some rewards. More missions are coming in a future update.").formatted(Formatting.GOLD), false);
+			p.sendMessage(Text.literal("You finished the whole story! The world knows Danny Phantom... and you saved it. Replay the movies and specials any time from Story Mode.").formatted(Formatting.GOLD), false);
 		}
 	}
 
@@ -1342,7 +1762,7 @@ public final class Story {
 	public static void fix(ServerPlayerEntity p, boolean full) {
 		GhostState st = GhostState.of(p.getServer());
 		GhostData d = st.data(p.getUuid());
-		if (d.storyPath == NONE || d.storyMission < 1 || d.storyMission > MISSIONS) return;
+		if (d.storyPath == NONE || !active(d)) return;
 		if (d.possessing != null) GhostPowers.stopPossess(p, d, false);
 		if (AmityPark.ready(p.getServer())) {
 			ServerWorld ow = p.getServer().getOverworld();
@@ -1372,6 +1792,7 @@ public final class Story {
 			case FOUNTAIN, DANCE -> java.util.Set.of("phantom_dance");
 			case BATHROOM -> java.util.Set.of("phantom_bath_paulina", "phantom_bath_sam");
 			case WYVERN_DAZED, AMULET_PULLED, CHECK_PAIGE -> java.util.Set.of("phantom_paige_saved");
+			case Episodes.TALK -> java.util.Set.of("phantom_ep_npc");
 			default -> java.util.Set.of();
 		};
 	}
@@ -1383,7 +1804,7 @@ public final class Story {
 		java.util.Set<String> keep = new java.util.HashSet<>();
 		for (ServerPlayerEntity q : server.getPlayerManager().getPlayerList()) {
 			GhostData qd = st.data(q.getUuid());
-			if (qd.storyPath != NONE && qd.storyMission >= 1 && qd.storyMission <= MISSIONS) keep.addAll(castFor(goal(qd)));
+			if (qd.storyPath != NONE && active(qd)) keep.addAll(castFor(goal(qd)));
 		}
 		ServerWorld ow = server.getOverworld();
 		BlockPos c = AmityPark.state(server).center;
@@ -1402,7 +1823,7 @@ public final class Story {
 	public static void skip(ServerPlayerEntity p) {
 		GhostState st = GhostState.of(p.getServer());
 		GhostData d = st.data(p.getUuid());
-		if (d.storyPath == NONE || d.storyMission < 1 || d.storyMission > MISSIONS) {
+		if (d.storyPath == NONE || !active(d)) {
 			p.sendMessage(Text.literal("You're not on a story mission right now.").formatted(Formatting.YELLOW), false);
 			return;
 		}
@@ -1432,6 +1853,8 @@ public final class Story {
 	/** Show a mission's title and intro. */
 	private static void announce(ServerPlayerEntity p, GhostData d) {
 		showMissionTitle(p, d.storyPath, d.storyMission);
+		Episodes.Ep ep = Episodes.get(d.storyMission);
+		if (ep != null) p.sendMessage(Text.literal(ep.code() + ": " + ep.intro()).formatted(Formatting.GRAY), false);
 		p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.8f, 1.2f);
 		if (d.storyMission == 4) p.sendMessage(Text.literal(switch (d.storyPath) {
 			case HUNTER -> "Another long night on ghost patrol... and you've got a biology test in the morning. Somewhere out there, a ghost hunter is hunting YOU.";
@@ -1469,7 +1892,7 @@ public final class Story {
 		if (!ServerPlayNetworking.canSend(p, StoryPayload.ID)) return;
 		Step[] s = steps(d.storyPath, d.storyMission);
 		String obj = objective(d);
-		if (d.storyPath != NONE && d.storyMission < LEGACY_DONE)
+		if (d.storyPath != NONE && active(d))
 			obj += AmityPark.ready(p.getServer()) ? direction(p, d) : " (Amity Park is being built: " + AmityPark.progress(p.getServer()) + "%)";
 		ServerPlayNetworking.send(p, new StoryPayload(openPicker, d.storyPath, missionTitle(d.storyPath, d.storyMission), obj,
 				Math.min(d.storyStep, s.length), s.length));

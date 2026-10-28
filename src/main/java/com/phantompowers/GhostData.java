@@ -60,6 +60,8 @@ public class GhostData {
 	public int storyPath, storyMission, storyStep, storyCount;
 	/** Which version of the story's objective lists this progress was saved with (they got longer in version 2). Saved. */
 	public int storyVersion;
+	/** While playing a special: the story mission and objective to go back to. */
+	public int storyResumeMission, storyResumeStep;
 	public int missileCooldown, cannonCooldown;
 	/** Which Thermos cell this player is locked in (saved). */
 	public BlockPos thermosCell;
@@ -124,6 +126,8 @@ public class GhostData {
 		n.putInt("storyStep", storyStep);
 		n.putInt("storyCount", storyCount);
 		n.putInt("storyVersion", storyVersion);
+		n.putInt("storyResumeMission", storyResumeMission);
+		n.putInt("storyResumeStep", storyResumeStep);
 		n.putInt("acne", acneTicks);
 		if (respawnDim != null && respawnPos != null) {
 			n.putString("respawnDim", respawnDim);
@@ -167,6 +171,8 @@ public class GhostData {
 		d.storyStep = n.getInt("storyStep");
 		d.storyCount = n.getInt("storyCount");
 		d.storyVersion = n.getInt("storyVersion");
+		d.storyResumeMission = n.getInt("storyResumeMission");
+		d.storyResumeStep = n.getInt("storyResumeStep");
 		d.acneTicks = n.getInt("acne");
 		d.energy = n.contains("energy") ? n.getFloat("energy") : GhostPowers.MAX_ENERGY;
 		if (n.contains("respawnDim")) {
