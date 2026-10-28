@@ -1447,7 +1447,7 @@ public final class Story {
 		}
 	}
 
-	private static void epUpkeep(ServerPlayerEntity p, GhostData d, GhostState st, BlockPos c, int t) {
+	private static void epUpkeep(ServerPlayerEntity p, GhostData d, GhostState st, BlockPos c, long t) {
 		Episodes.S s = Episodes.step(d.storyMission, d.storyStep);
 		if (s == null) return;
 		ServerWorld w = p.getServerWorld();
