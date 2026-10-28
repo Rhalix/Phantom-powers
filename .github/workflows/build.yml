@@ -97,7 +97,8 @@ jobs:
           fi
           pkill -f java || true
           grep -nE "ERROR|Exception|Caused by|at com\.phantompowers|Mixin|mixin|phantom" server.log \
-            | grep -vE "^\s*$" | grep -v "No data fixer registered" | head -120 > problems.txt || true
+            | grep -vE "^\s*$" | grep -v "No data fixer registered" \
+            | grep -vE "SocketTimeoutException|Read timed out|ConnectException|UnknownHostException|SocketException" | head -120 > problems.txt || true
           grep -q "Portal test: OK" server.log || { echo "Portal test did not pass" >> problems.txt; grep -n "Portal test" server.log >> problems.txt; ok=0; }
           grep -q "Prison test: OK" server.log || { echo "Prison test did not pass" >> problems.txt; grep -n -A3 "Prison test\|testprison" server.log >> problems.txt; ok=0; }
           grep -q "Summoned new Hover Glider" server.log || { echo "Glider summon failed" >> problems.txt; ok=0; }
