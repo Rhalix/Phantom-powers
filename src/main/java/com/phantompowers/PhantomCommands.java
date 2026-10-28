@@ -91,6 +91,10 @@ public final class PhantomCommands {
 					Story.fix(ctx.getSource().getPlayerOrThrow(), true);
 					return 1;
 				}))
+				.then(CommandManager.literal("info").executes(ctx -> {
+					Story.debug(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				}))
 				.then(CommandManager.literal("skip").executes(ctx -> {
 					Story.skip(ctx.getSource().getPlayerOrThrow());
 					return 1;

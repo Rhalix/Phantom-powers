@@ -639,6 +639,10 @@ public final class Story {
 	/** Every half second while a mission is running: keep the scene in place, count timers, glitch powers... */
 	private static void upkeep(ServerPlayerEntity p, GhostData d, GhostState st) {
 		ServerWorld w = p.getServerWorld();
+		if (Episodes.step(d.storyMission, d.storyStep) != null && AmityPark.ready(p.getServer())) {
+			epUpkeep(p, d, st, AmityPark.state(p.getServer()).center, w.getServer().getTicks());
+			return;
+		}
 		if (w != p.getServer().getOverworld() || !AmityPark.ready(p.getServer())) return;
 		BlockPos c = AmityPark.state(p.getServer()).center;
 		long t = w.getServer().getTicks();
@@ -1376,7 +1380,7 @@ public final class Story {
 
 	/** Where to put things for this objective: its spot, or near the player in the Ghost Zone / anywhere. */
 	private static Vec3d spawnSpot(ServerPlayerEntity p, Episodes.P where, BlockPos c, double ahead) {
-		if (where == Episodes.P.ZONE || where == Episodes.P.ANY || place(where, c) == null) {
+		if (where == Episodes.P.ZONE || where == Episodes.P.ANY || place(where, c) == null || atPlace(p, where, c, 40)) {
 			Vec3d look = Vec3d.fromPolar(0, p.getYaw());
 			return p.getPos().add(look.multiply(ahead));
 		}
@@ -1474,8 +1478,8 @@ public final class Story {
 				}
 			}
 			case Episodes.KILL -> {
-				if (t % 40 == 0 && d.storyCount < s.n() && atPlace(p, s.place(), c, 30)
-						&& epTagged(w, p.getPos(), "phantom_ep_minion", 48).isEmpty()) spawnEpMinions(p, s, c, s.n() - d.storyCount);
+				if (t % 20 == 0 && d.storyCount < s.n() && atPlace(p, s.place(), c, 30)
+						&& epTagged(w, p.getPos(), "phantom_ep_minion", 64).isEmpty()) spawnEpMinions(p, s, c, s.n() - d.storyCount);
 			}
 			case Episodes.ITEM -> {
 				if (t % 40 == 0) placeEpItem(p, s, c);
@@ -1511,6 +1515,10 @@ public final class Story {
 	private static void spawnEpBoss(ServerPlayerEntity p, Episodes.S s, BlockPos c) {
 		ServerWorld w = p.getServerWorld();
 		if (!epTagged(w, p.getPos(), "phantom_ep_boss", 96).isEmpty()) return;
+		if (w.getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
+			p.sendMessage(Text.literal("Ghosts can't appear on Peaceful! Turn the difficulty up to Easy or higher for this mission.").formatted(Formatting.RED), true);
+			return;
+		}
 		Entity e = epCreate(w, s.id());
 		if (!(e instanceof LivingEntity boss)) return;
 		Vec3d at = clearSpot(w, spawnSpot(p, s.place(), c, 7));
@@ -1537,6 +1545,10 @@ public final class Story {
 
 	private static void spawnEpMinions(ServerPlayerEntity p, Episodes.S s, BlockPos c, int n) {
 		ServerWorld w = p.getServerWorld();
+		if (w.getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
+			p.sendMessage(Text.literal("Ghosts can't appear on Peaceful! Turn the difficulty up to Easy or higher for this mission.").formatted(Formatting.RED), true);
+			return;
+		}
 		Vec3d base = spawnSpot(p, s.place(), c, 6);
 		for (int i = 0; i < n; i++) {
 			Entity e = epCreate(w, s.id());
@@ -1545,6 +1557,7 @@ public final class Story {
 			Vec3d at = clearSpot(w, base.add(Math.cos(a) * 4, 0, Math.sin(a) * 4));
 			e.refreshPositionAndAngles(at.x, at.y + (e instanceof AbstractGhostEntity ? 1 : 0), at.z, 0f, 0f);
 			e.addCommandTag("phantom_ep_minion");
+			e.setGlowing(true);
 			if (s.name() != null) e.setCustomName(Text.literal(s.name()));
 			if (e instanceof MobEntity m) {
 				m.setPersistent();
@@ -1554,6 +1567,7 @@ public final class Story {
 			w.spawnParticles(GhostPowers.GREEN, at.x, at.y + 1, at.z, 20, 0.4, 0.6, 0.4, 0.05);
 		}
 		w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON, SoundCategory.HOSTILE, 1f, 1.2f);
+		p.sendMessage(Text.literal("Here they come!").formatted(Formatting.RED), true);
 	}
 
 	private static void placeEpItem(ServerPlayerEntity p, Episodes.S s, BlockPos c) {
@@ -1643,6 +1657,19 @@ public final class Story {
 		announce(p, d);
 		stepStarted(p, d);
 		send(p, d, false);
+	}
+
+	/** /story info: what the story thinks is going on (handy when something seems stuck). */
+	public static void debug(ServerPlayerEntity p) {
+		GhostData d = GhostState.of(p.getServer()).data(p.getUuid());
+		Episodes.S s = Episodes.step(d.storyMission, d.storyStep);
+		BlockPos c = AmityPark.state(p.getServer()).center;
+		String where = s == null || place(s.place(), c) == null ? "-" : (int) Math.sqrt(p.getPos().squaredDistanceTo(place(s.place(), c))) + " blocks away";
+		p.sendMessage(Text.literal("Mission " + d.storyMission + ", objective " + (d.storyStep + 1) + ", progress " + d.storyCount
+				+ (s == null ? "" : ", type " + s.kind() + ", place " + s.place() + " (" + where + ")")
+				+ ", minions nearby " + epTagged(p.getServerWorld(), p.getPos(), "phantom_ep_minion", 64).size()
+				+ ", bosses nearby " + epTagged(p.getServerWorld(), p.getPos(), "phantom_ep_boss", 96).size()
+				+ ", difficulty " + p.getServerWorld().getDifficulty().getName()).formatted(Formatting.GRAY), false);
 	}
 
 	/** Leave a special early and go back to your story. */
