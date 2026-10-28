@@ -95,7 +95,7 @@ public final class EnergyProjectileRenderer {
 
 		@Override
 		public Identifier getTexture(KissEntity entity) {
-			return Identifier.ofVanilla("textures/misc/white.png");
+			return com.phantompowers.PhantomMod.id("textures/misc/white.png");
 		}
 	}
 
@@ -133,7 +133,7 @@ public final class EnergyProjectileRenderer {
 
 		@Override
 		public Identifier getTexture(PinkOrbEntity entity) {
-			return Identifier.ofVanilla("textures/misc/white.png");
+			return com.phantompowers.PhantomMod.id("textures/misc/white.png");
 		}
 	}
 

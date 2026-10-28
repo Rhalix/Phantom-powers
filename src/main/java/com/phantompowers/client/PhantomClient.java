@@ -527,6 +527,21 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(SkimmerHud::render);
 		HudRenderCallback.EVENT.register(StoryHud::render);
 		HudRenderCallback.EVENT.register(LockOn::render);
+		// make sure our textures load (and say why if they don't)
+		net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(net.minecraft.resource.ResourceType.CLIENT_RESOURCES).registerReloadListener(
+				new net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener() {
+					@Override
+					public net.minecraft.util.Identifier getFabricId() {
+						return com.phantompowers.PhantomMod.id("texture_check");
+					}
+
+					@Override
+					public void reload(net.minecraft.resource.ResourceManager manager) {
+						TextureCheck.run(manager);
+					}
+				});
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) ->
+				client.execute(() -> TextureCheck.tellPlayer(client)));
 		WorldRenderEvents.START.register(ctx -> LockOn.frame(net.minecraft.client.MinecraftClient.getInstance()));
 		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GHOST_PORTAL, RenderLayer.getTranslucent());
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutout(), ModBlocks.COFFEE_TABLE, ModBlocks.POTTED_PLANT);

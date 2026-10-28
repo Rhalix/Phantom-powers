@@ -63,7 +63,7 @@ public final class GhostNetRenderer {
 
 		@Override
 		public Identifier getTexture(GhostNetTrapEntity entity) {
-			return Identifier.ofVanilla("textures/misc/white.png");
+			return com.phantompowers.PhantomMod.id("textures/misc/white.png");
 		}
 	}
 
@@ -89,7 +89,7 @@ public final class GhostNetRenderer {
 
 		@Override
 		public Identifier getTexture(GhostNetProjectile entity) {
-			return Identifier.ofVanilla("textures/misc/white.png");
+			return com.phantompowers.PhantomMod.id("textures/misc/white.png");
 		}
 	}
 
