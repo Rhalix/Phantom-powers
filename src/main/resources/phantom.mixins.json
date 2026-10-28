@@ -10,7 +10,8 @@
     "MobEntityMixin",
     "ExplosionMixin",
     "FireBlockMixin",
-    "BlockItemMixin"
+    "BlockItemMixin",
+    "WorldMixin"
   ],
   "injectors": {
     "defaultRequire": 1

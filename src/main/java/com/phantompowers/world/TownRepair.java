@@ -39,6 +39,12 @@ public final class TownRepair {
 		return AmityPark.inTown(AmityPark.state(w.getServer()), pos);
 	}
 
+	/** A block that belongs to the town (not one a player put down) and grows back if broken. */
+	public static boolean isTownBlock(World world, BlockPos pos) {
+		if (!watching(world, pos)) return false;
+		return !AmityPark.state(world.getServer()).placed.contains(pos.asLong());
+	}
+
 	/** Remember what's here (and what's leaning on it) so it can grow back. */
 	public static void record(World world, BlockPos pos) {
 		if (!watching(world, pos)) return;
