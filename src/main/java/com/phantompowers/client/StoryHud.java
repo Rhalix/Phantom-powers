@@ -34,6 +34,23 @@ public final class StoryHud {
 		return current == null ? "" : current.objective();
 	}
 
+	public static boolean hasTarget() {
+		return current != null && current.hasTarget();
+	}
+
+	public static net.minecraft.util.math.Vec3d target() {
+		return current == null ? net.minecraft.util.math.Vec3d.ZERO : new net.minecraft.util.math.Vec3d(current.tx(), current.ty(), current.tz());
+	}
+
+	public static String targetDim() {
+		return current == null ? "" : current.targetDim();
+	}
+
+	/** The colour of your story path (green, pink or blue). */
+	public static int color() {
+		return current == null ? 0xFF55FF99 : current.path() == 2 ? 0xFFFF4FC8 : current.path() == 3 ? 0xFF5AE1FF : 0xFF55FF99;
+	}
+
 	public static void clear() {
 		current = null;
 	}

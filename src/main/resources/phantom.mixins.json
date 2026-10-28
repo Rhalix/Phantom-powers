@@ -18,6 +18,7 @@
   },
   "client": [
     "client.AbstractClientPlayerEntityMixin",
+    "client.BossBarHudAccessor",
     "client.ArmorFeatureRendererMixin",
     "client.CameraMixin",
     "client.BipedEntityModelMixin",

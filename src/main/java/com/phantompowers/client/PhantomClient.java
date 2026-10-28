@@ -526,6 +526,7 @@ public class PhantomClient implements ClientModInitializer {
 		HudRenderCallback.EVENT.register(MissileSight::render);
 		HudRenderCallback.EVENT.register(SkimmerHud::render);
 		HudRenderCallback.EVENT.register(StoryHud::render);
+		HudRenderCallback.EVENT.register(QuestCompass::render);
 		HudRenderCallback.EVENT.register(LockOn::render);
 		// make sure our textures load (and say why if they don't)
 		net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(net.minecraft.resource.ResourceType.CLIENT_RESOURCES).registerReloadListener(

@@ -393,6 +393,26 @@ public final class Story {
 		};
 	}
 
+	/** Where the compass points: the ghost or person you're after if they're around, otherwise the objective's spot. */
+	private static Vec3d compassTarget(ServerPlayerEntity p, GhostData d) {
+		ServerWorld w = p.getServerWorld();
+		String g = goal(d);
+		String tag = g.equals(Episodes.BOSS) || g.equals(Episodes.TRAP) ? "phantom_ep_boss" : g.equals(Episodes.KILL) ? "phantom_ep_minion"
+				: g.equals(Episodes.TALK) ? "phantom_ep_npc" : null;
+		if (tag != null) {
+			Entity best = null;
+			for (Entity e : epTagged(w, p.getPos(), tag, 160))
+				if (best == null || e.squaredDistanceTo(p) < best.squaredDistanceTo(p)) best = e;
+			if (best != null) return best.getPos();
+		}
+		if (g.equals(Episodes.ITEM)) {
+			Episodes.S s = Episodes.step(d.storyMission, d.storyStep);
+			if (s != null) for (var item : w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, p.getBoundingBox().expand(160),
+					e -> e.getStack().getName().getString().equals(s.name()))) return item.getPos();
+		}
+		return destination(d, AmityPark.state(p.getServer()).center);
+	}
+
 	/** "(312 blocks north-east)" toward the current objective. */
 	private static String direction(ServerPlayerEntity p, GhostData d) {
 		BlockPos c = AmityPark.state(p.getServer()).center;
@@ -1919,9 +1939,18 @@ public final class Story {
 		if (!ServerPlayNetworking.canSend(p, StoryPayload.ID)) return;
 		Step[] s = steps(d.storyPath, d.storyMission);
 		String obj = objective(d);
-		if (d.storyPath != NONE && active(d))
-			obj += AmityPark.ready(p.getServer()) ? direction(p, d) : " (Amity Park is being built: " + AmityPark.progress(p.getServer()) + "%)";
+		Vec3d target = null;
+		String dim = "minecraft:overworld";
+		if (d.storyPath != NONE && active(d)) {
+			if (!AmityPark.ready(p.getServer())) obj += " (Amity Park is being built: " + AmityPark.progress(p.getServer()) + "%)";
+			else {
+				target = compassTarget(p, d);
+				if (target != null && (goal(d).equals(Episodes.BOSS) || goal(d).equals(Episodes.TRAP) || goal(d).equals(Episodes.KILL)
+						|| goal(d).equals(Episodes.TALK) || goal(d).equals(Episodes.ITEM))) dim = p.getWorld().getRegistryKey().getValue().toString();
+			}
+		}
 		ServerPlayNetworking.send(p, new StoryPayload(openPicker, d.storyPath, missionTitle(d.storyPath, d.storyMission), obj,
-				Math.min(d.storyStep, s.length), s.length));
+				Math.min(d.storyStep, s.length), s.length, target != null, target == null ? 0 : target.x, target == null ? 0 : target.y,
+				target == null ? 0 : target.z, dim));
 	}
 }
