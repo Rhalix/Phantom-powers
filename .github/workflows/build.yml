@@ -154,7 +154,7 @@ jobs:
           done
           sleep 25
           pkill -f java || true
-          grep -nE "Crash|Mixin.*(error|fail)|InvalidInjection|Exception.*phantom|phantom.*(ERROR|Exception)|at com\.phantompowers|Caused by" client.log | grep -viE "flite|narrator|text2speech" | head -100 > cproblems.txt || true
+          grep -nE "Crash|Mixin.*(error|fail)|InvalidInjection|Exception.*phantom|phantom.*(ERROR|Exception)|at com\.phantompowers|Caused by" client.log | grep -viE "flite|narrator|text2speech|SocketTimeoutException|Read timed out|ConnectException|UnknownHostException|SocketException" | head -100 > cproblems.txt || true
           if [ $ok != 1 ] || [ -s cproblems.txt ]; then
             [ -s cproblems.txt ] || tail -60 client.log > cproblems.txt
             split -l 25 cproblems.txt cp_
