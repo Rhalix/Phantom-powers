@@ -151,6 +151,7 @@ public class PhantomMod implements ModInitializer {
 			Story.tick(server);
 			com.phantompowers.world.AmityPark.tick(server);
 			com.phantompowers.world.TownRepair.tick(server);
+			com.phantompowers.world.TownLife.tick(server);
 		});
 
 		// Amity Park grows back ten seconds after it gets damaged

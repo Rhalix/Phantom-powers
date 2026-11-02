@@ -66,13 +66,28 @@ public class FurnitureBlock extends HorizontalFacingBlock {
 		if (seatHeight < 0 || !player.getMainHandStack().isEmpty() || player.hasVehicle()) return ActionResult.PASS;
 		if (!(world instanceof ServerWorld sw)) return ActionResult.SUCCESS;
 		if (!sw.getEntitiesByClass(SeatEntity.class, new Box(pos), e -> true).isEmpty()) return ActionResult.CONSUME;   // taken
+		return sit(sw, pos, player) ? ActionResult.CONSUME : ActionResult.PASS;
+	}
+
+	/** Sit someone (a player or a townsperson) down on the chair, stool or sofa here. False if it can't be sat on or is taken. */
+	public static boolean sit(ServerWorld sw, BlockPos pos, net.minecraft.entity.LivingEntity who) {
+		BlockState state = sw.getBlockState(pos);
+		if (!(state.getBlock() instanceof FurnitureBlock f) || f.seatHeight < 0) return false;
+		if (!sw.getEntitiesByClass(SeatEntity.class, new Box(pos), e -> true).isEmpty()) return false;
 		SeatEntity seat = ModEntities.SEAT.create(sw);
-		if (seat == null) return ActionResult.PASS;
+		if (seat == null) return false;
 		float yaw = state.get(FACING).asRotation();
-		seat.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY() + seatHeight - 0.15, pos.getZ() + 0.5, yaw, 0);
+		seat.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY() + f.seatHeight - 0.15, pos.getZ() + 0.5, yaw, 0);
 		sw.spawnEntity(seat);
-		player.startRiding(seat);
-		player.setYaw(yaw);
-		return ActionResult.CONSUME;
+		who.startRiding(seat, true);
+		who.setYaw(yaw);
+		who.setBodyYaw(yaw);
+		who.setHeadYaw(yaw);
+		return true;
+	}
+
+	/** Can people sit here? */
+	public boolean seat() {
+		return seatHeight >= 0;
 	}
 }

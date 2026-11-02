@@ -64,6 +64,8 @@ public final class AmityPark {
 		public boolean built;
 		/** Windows, fences and railings joined up to their neighbours (towns built before this fix get it done once). */
 		public boolean connected;
+		/** Trees, bushes and flowers planted across town (towns built before they were added get them planted once). */
+		public boolean greened;
 		public BlockPos center = BlockPos.ORIGIN;
 		/** Blocks players placed in town themselves: those don't grow back when broken. */
 		public final it.unimi.dsi.fastutil.longs.LongOpenHashSet placed = new it.unimi.dsi.fastutil.longs.LongOpenHashSet();
@@ -72,6 +74,7 @@ public final class AmityPark {
 			State s = new State();
 			s.built = n.getBoolean("built");
 			s.connected = n.getBoolean("connected");
+			s.greened = n.getBoolean("greened");
 			s.center = BlockPos.fromLong(n.getLong("center"));
 			for (long l : n.getLongArray("placed")) s.placed.add(l);
 			return s;
@@ -81,6 +84,7 @@ public final class AmityPark {
 		public NbtCompound writeNbt(NbtCompound n, RegistryWrapper.WrapperLookup lookup) {
 			n.putBoolean("built", built);
 			n.putBoolean("connected", connected);
+			n.putBoolean("greened", greened);
 			n.putLong("center", center.asLong());
 			n.putLongArray("placed", placed.toLongArray());
 			return n;
@@ -225,6 +229,7 @@ public final class AmityPark {
 			State st = state(server);
 			if (st.built && !st.connected && server.getTicks() % 2 == 0
 					&& server.getOverworld().isChunkLoaded(net.minecraft.util.math.ChunkPos.toLong(st.center.getX() >> 4, st.center.getZ() >> 4))) repair(server);
+			else if (st.built && !st.greened && server.getTicks() % 4 == 0) plant(server, st);
 			return;
 		}
 		State st = state(server);
@@ -274,6 +279,7 @@ public final class AmityPark {
 				if (job.next >= job.tasks.size()) {
 					st.built = true;
 					st.connected = true;
+					st.greened = true;
 					st.center = job.center;
 					st.markDirty();
 					finish(w);
@@ -281,6 +287,44 @@ public final class AmityPark {
 				}
 			}
 		}
+	}
+
+	private static Builder planter;
+	private static java.util.BitSet planted;
+
+	/** An older town gets its trees and flowers, a patch at a time, wherever the land around it is loaded. */
+	private static void plant(MinecraftServer server, State st) {
+		ServerWorld w = server.getOverworld();
+		if (planter == null || !planter.c.equals(st.center)) {
+			planter = new Builder(w, st.center);
+			planted = new java.util.BitSet();
+		}
+		int half = AmityPark500.HALF, cells = (2 * half + 31) / 32;
+		long until = System.nanoTime() + 4_000_000L;
+		boolean all = true;
+		for (int i = 0; i < cells * cells; i++) {
+			if (planted.get(i)) continue;
+			int x0 = -half + (i % cells) * 32, z0 = -half + (i / cells) * 32;
+			if (System.nanoTime() > until || !landLoaded(w, st.center, x0 - 3, z0 - 3, x0 + 35, z0 + 35)) {
+				all = false;
+				continue;
+			}
+			AmityPark500.greenery(planter, x0, z0);
+			planted.set(i);
+		}
+		if (all) {
+			st.greened = true;
+			st.markDirty();
+			planter = null;
+			planted = null;
+		}
+	}
+
+	private static boolean landLoaded(ServerWorld w, BlockPos c, int x0, int z0, int x1, int z1) {
+		for (int x = (c.getX() + x0) >> 4; x <= (c.getX() + x1) >> 4; x++)
+			for (int z = (c.getZ() + z0) >> 4; z <= (c.getZ() + z1) >> 4; z++)
+				if (!w.isChunkLoaded(net.minecraft.util.math.ChunkPos.toLong(x, z))) return false;
+		return true;
 	}
 
 	/** Forget a half-built town (the server is shutting down; it starts again from scratch next time). */

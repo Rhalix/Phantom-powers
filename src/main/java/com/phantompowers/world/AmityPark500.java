@@ -99,6 +99,11 @@ public final class AmityPark500 {
 			b.welcome();
 		});
 		t.add(() -> landmarks(b, big));
+		for (int x = -half; x < half; x += 32)
+			for (int z = -half; z < half; z += 32) {
+				final int a = x, c = z;
+				t.add(() -> greenery(b, a, c));
+			}
 		t.add(b::connect);
 		return t;
 	}
@@ -366,5 +371,116 @@ public final class AmityPark500 {
 			b.set(-89, y + 2, z, s("light_blue_stained_glass"));
 		}
 		b.set(-92, y + 4, -76, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+	}
+	// ------------------------------------------------------------------ trees, bushes and flowers
+
+	static int hash(int x, int z) {
+		int h = x * 734287 + z * 912931 + 0x9E3779B9;
+		h ^= h >>> 13;
+		h *= 0x5bd1e995;
+		h ^= h >>> 15;
+		return h & 0x7fffffff;
+	}
+
+	/** The big park already has its own trees, ponds and paths, so it is left as it is. */
+	static boolean inPark(int x, int z) {
+		return x >= 6 && x <= 102 && z >= 6 && z <= 52;
+	}
+
+	/** Open lawn: grass underfoot and nothing above, all around this spot. */
+	static boolean openLawn(AmityPark.Builder b, int x, int z, int r, int height) {
+		for (int dx = -r; dx <= r; dx++)
+			for (int dz = -r; dz <= r; dz++) {
+				if (!b.get(x + dx, b.g - 1, z + dz).isOf(Blocks.GRASS_BLOCK)) return false;
+				for (int y = 0; y <= height; y++) if (!b.get(x + dx, b.g + y, z + dz).isAir()) return false;
+			}
+		return true;
+	}
+
+	static BlockState leaves(String name) {
+		return s(name).with(net.minecraft.block.LeavesBlock.PERSISTENT, true);
+	}
+
+	/** A round blob of leaves (only into empty space, so it never eats into a wall or roof). */
+	static void canopy(AmityPark.Builder b, int x, int z, int y0, int y1, int r, BlockState leaf) {
+		for (int dx = -r; dx <= r; dx++)
+			for (int dz = -r; dz <= r; dz++)
+				for (int y = y0; y <= y1; y++) {
+					int edge = Math.abs(dx) + Math.abs(dz);
+					int top = y == y1 ? r - 1 : r + 1;
+					if (edge > top || (Math.abs(dx) == r && Math.abs(dz) == r)) continue;
+					if (b.get(x + dx, b.g + y, z + dz).isAir()) b.set(x + dx, b.g + y, z + dz, leaf);
+				}
+	}
+
+	/** One of a few kinds of tree: oak, birch, spruce, cherry blossom, or a flowering bush. */
+	static void tree(AmityPark.Builder b, int x, int z, int kind, int h) {
+		switch (kind) {
+			case 0, 1 -> {   // oak
+				int top = 4 + h % 3;
+				canopy(b, x, z, top - 2, top + 1, 2, leaves("oak_leaves"));
+				fill(b, x, 0, z, x, top, z, "oak_log");
+			}
+			case 2 -> {   // birch: tall and thin
+				int top = 5 + h % 2;
+				canopy(b, x, z, top - 2, top + 1, 2, leaves("birch_leaves"));
+				fill(b, x, 0, z, x, top, z, "birch_log");
+			}
+			case 3 -> {   // spruce: a cone
+				int top = 7 + h % 2;
+				BlockState leaf = leaves("spruce_leaves");
+				for (int y = 2; y <= top + 1; y++) {
+					int r = y >= top ? 0 : y >= top - 2 ? 1 : (y % 2 == 0 ? 2 : 1);
+					for (int dx = -r; dx <= r; dx++)
+						for (int dz = -r; dz <= r; dz++)
+							if (Math.abs(dx) + Math.abs(dz) <= r + (r == 2 ? 1 : 0) && b.get(x + dx, b.g + y, z + dz).isAir())
+								b.set(x + dx, b.g + y, z + dz, leaf);
+				}
+				fill(b, x, 0, z, x, top, z, "spruce_log");
+			}
+			case 4 -> {   // cherry blossom: wide and pink
+				int top = 4 + h % 2;
+				canopy(b, x, z, top - 1, top + 1, 3, leaves("cherry_leaves"));
+				fill(b, x, 0, z, x, top, z, "cherry_log");
+			}
+			default -> {   // a flowering azalea bush
+				canopy(b, x, z, 0, 2, 1, leaves((h & 1) == 0 ? "flowering_azalea_leaves" : "azalea_leaves"));
+				set(b, x, 0, z, "oak_log");
+			}
+		}
+	}
+
+	private static final String[] PLANTS = {"short_grass", "short_grass", "short_grass", "short_grass", "short_grass", "fern",
+			"dandelion", "poppy", "cornflower", "oxeye_daisy", "azure_bluet", "allium", "red_tulip", "pink_tulip", "white_tulip",
+			"orange_tulip", "lily_of_the_valley"};
+	private static final String[] TALL = {"tall_grass", "rose_bush", "lilac", "peony", "tall_grass", "large_fern"};
+
+	/** Trees, bushes, flowers and long grass on the open lawns of a 32 x 32 patch of town (yards, verges, empty lots). */
+	public static void greenery(AmityPark.Builder b, int x0, int z0) {
+		int lim = HALF - 4;
+		for (int x = x0; x < x0 + 32; x += 7)
+			for (int z = z0; z < z0 + 32; z += 7) {
+				int h = hash(x, z);
+				if (h % 10 < 3) continue;
+				int tx = x + h % 4, tz = z + (h >> 5) % 4;
+				if (Math.abs(tx) > lim || Math.abs(tz) > lim || inPark(tx, tz)) continue;
+				int kind = (h >> 9) % 7;
+				if (!openLawn(b, tx, tz, kind == 6 ? 1 : 2, kind == 3 ? 9 : 7)) continue;
+				tree(b, tx, tz, kind, h >> 12);
+			}
+		BlockState grass = s("grass_block");
+		for (int x = x0; x < Math.min(x0 + 32, HALF); x++)
+			for (int z = z0; z < Math.min(z0 + 32, HALF); z++) {
+				int h = hash(x * 31 + 7, z * 17 + 3);
+				if (h % 100 >= 16) continue;
+				if (!b.get(x, b.g - 1, z).equals(grass) || !b.get(x, b.g, z).isAir() || !b.get(x, b.g + 1, z).isAir()) continue;
+				int pick = (h / 100) % (PLANTS.length + TALL.length);
+				if (pick < PLANTS.length) b.set(x, b.g, z, s(PLANTS[pick]));
+				else {
+					Block tall = block(TALL[pick - PLANTS.length]);
+					b.set(x, b.g, z, tall.getDefaultState().with(net.minecraft.block.TallPlantBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.LOWER));
+					b.set(x, b.g + 1, z, tall.getDefaultState().with(net.minecraft.block.TallPlantBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.UPPER));
+				}
+			}
 	}
 }
