@@ -74,6 +74,13 @@ public final class PhantomCommands {
 				.then(CommandManager.literal("accept").executes(ctx -> { Party.handle(ctx.getSource().getPlayerOrThrow(), Party.ACCEPT, ""); return 1; }))
 				.then(CommandManager.literal("decline").executes(ctx -> { Party.handle(ctx.getSource().getPlayerOrThrow(), Party.DECLINE, ""); return 1; }))
 				.then(CommandManager.literal("leave").executes(ctx -> { Party.handle(ctx.getSource().getPlayerOrThrow(), Party.LEAVE, ""); return 1; })));
+		dispatcher.register(CommandManager.literal("npcs")
+				.executes(ctx -> NpcShowcase.show(ctx.getSource().getPlayerOrThrow()))
+				.then(CommandManager.literal("clear").executes(ctx -> {
+					int n = NpcShowcase.clear(ctx.getSource().getPlayerOrThrow());
+					ctx.getSource().sendFeedback(() -> Text.literal(n == 0 ? "No line-up to put away." : "Put away " + n + " people."), false);
+					return n;
+				})));
 		dispatcher.register(CommandManager.literal("story")
 				.executes(ctx -> {
 					Story.open(ctx.getSource().getPlayerOrThrow());
