@@ -188,7 +188,7 @@ public class ShadeEntity extends AbstractGhostEntity implements Monster {
 
 	private void tickBoss(ServerWorld w) {
 		if (age % 20 == 0) {
-			for (net.minecraft.server.network.ServerPlayerEntity sp : w.getPlayers(sp -> sp.squaredDistanceTo(this) < 64 * 64)) bossBar.addPlayer(sp);
+			for (net.minecraft.server.network.ServerPlayerEntity sp : w.getPlayers(sp -> sp.squaredDistanceTo(this) < 64 * 64)) { if (!showcase()) bossBar.addPlayer(sp); }
 		}
 		if (!eclipse && getHealth() <= getMaxHealth() * 0.5f) startEclipse(w);
 		LivingEntity target = getTarget();
@@ -250,7 +250,7 @@ public class ShadeEntity extends AbstractGhostEntity implements Monster {
 	@Override
 	public void onStartedTrackingBy(net.minecraft.server.network.ServerPlayerEntity player) {
 		super.onStartedTrackingBy(player);
-		if (isBoss()) bossBar.addPlayer(player);
+		if (isBoss()) { if (!showcase()) bossBar.addPlayer(player); }
 	}
 
 	@Override

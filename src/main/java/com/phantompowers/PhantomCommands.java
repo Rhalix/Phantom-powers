@@ -81,6 +81,13 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal(n == 0 ? "No line-up to put away." : "Put away " + n + " people."), false);
 					return n;
 				})));
+		dispatcher.register(CommandManager.literal("ghosts")
+				.executes(ctx -> NpcShowcase.showGhosts(ctx.getSource().getPlayerOrThrow()))
+				.then(CommandManager.literal("clear").executes(ctx -> {
+					int n = NpcShowcase.clearGhosts(ctx.getSource().getPlayerOrThrow());
+					ctx.getSource().sendFeedback(() -> Text.literal(n == 0 ? "No ghost line-up to put away." : "Put away " + n + " ghosts."), false);
+					return n;
+				})));
 		dispatcher.register(CommandManager.literal("story")
 				.executes(ctx -> {
 					Story.open(ctx.getSource().getPlayerOrThrow());

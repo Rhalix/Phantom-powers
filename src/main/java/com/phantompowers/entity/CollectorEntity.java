@@ -339,7 +339,7 @@ public class CollectorEntity extends AbstractGhostEntity implements Monster {
 	@Override
 	public void onStartedTrackingBy(ServerPlayerEntity player) {
 		super.onStartedTrackingBy(player);
-		bossBar.addPlayer(player);
+		{ if (!showcase()) bossBar.addPlayer(player); }
 	}
 
 	@Override

@@ -70,6 +70,11 @@ public abstract class AbstractGhostEntity extends PathAwareEntity {
 		return noClip;
 	}
 
+	/** Standing in a /ghosts line-up: no boss bar, no fighting. */
+	public boolean showcase() {
+		return getCommandTags().contains(com.phantompowers.NpcShowcase.TAG);
+	}
+
 	@Override
 	public void tick() {
 		if (walker) {

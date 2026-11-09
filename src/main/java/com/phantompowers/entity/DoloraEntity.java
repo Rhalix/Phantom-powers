@@ -154,7 +154,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 		super.mobTick();
 		if (!(getWorld() instanceof ServerWorld w)) return;
 		bossBar.setPercent(getHealth() / getMaxHealth());
-		if (age % 20 == 0) for (ServerPlayerEntity sp : w.getPlayers(sp -> sp.squaredDistanceTo(this) < 64 * 64)) bossBar.addPlayer(sp);
+		if (age % 20 == 0) for (ServerPlayerEntity sp : w.getPlayers(sp -> sp.squaredDistanceTo(this) < 64 * 64)) { if (!showcase()) bossBar.addPlayer(sp); }
 		// transformations
 		int ch = changing();
 		if (ch > 0) {
@@ -408,7 +408,7 @@ public class DoloraEntity extends AbstractGhostEntity implements Monster {
 	@Override
 	public void onStartedTrackingBy(ServerPlayerEntity player) {
 		super.onStartedTrackingBy(player);
-		bossBar.addPlayer(player);
+		{ if (!showcase()) bossBar.addPlayer(player); }
 	}
 
 	@Override
