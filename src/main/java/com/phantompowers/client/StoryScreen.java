@@ -66,6 +66,8 @@ public class StoryScreen extends Screen {
 						initInfo();
 					}
 				}, GhostlyUi.PINK));
+		if (cw - 230 >= 50) addDrawableChild(new GhostlyUi.GhostButton(left + 150, top + ch - 30, cw - 230, 20, Text.literal("Skip part"),
+				b -> { MenuNet.send(1, 3, ""); close(); }, GhostlyUi.CYAN));
 		addDrawableChild(new GhostlyUi.GhostButton(left + cw - 74, top + ch - 30, 60, 20, Text.literal("Back"), b -> close(), 0x8899AA));
 	}
 

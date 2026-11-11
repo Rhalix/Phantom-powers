@@ -88,6 +88,19 @@ public final class PhantomCommands {
 					ctx.getSource().sendFeedback(() -> Text.literal(n == 0 ? "No ghost line-up to put away." : "Put away " + n + " ghosts."), false);
 					return n;
 				})));
+		dispatcher.register(CommandManager.literal("skip")
+				.executes(ctx -> {
+					Story.skip(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				})
+				.then(CommandManager.literal("part").executes(ctx -> {
+					Story.skip(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				}))
+				.then(CommandManager.literal("mission").executes(ctx -> {
+					Story.skipMission(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				})));
 		dispatcher.register(CommandManager.literal("story")
 				.executes(ctx -> {
 					Story.open(ctx.getSource().getPlayerOrThrow());
@@ -112,7 +125,10 @@ public final class PhantomCommands {
 				.then(CommandManager.literal("skip").executes(ctx -> {
 					Story.skip(ctx.getSource().getPlayerOrThrow());
 					return 1;
-				})));
+				}).then(CommandManager.literal("mission").executes(ctx -> {
+					Story.skipMission(ctx.getSource().getPlayerOrThrow());
+					return 1;
+				}))));
 		dispatcher.register(CommandManager.literal("phantom")
 				.requires(src -> src.hasPermissionLevel(2))
 				.then(CommandManager.literal("tp")

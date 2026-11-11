@@ -219,6 +219,7 @@ public class PhantomMod implements ModInitializer {
 				if (a.value() == 0) Story.open(p);
 				else if (a.value() == 1) Story.restart(p);
 				else if (a.value() == 2) Story.fastTravel(p);
+				else if (a.value() == 3) Story.skip(p);
 				else if (a.value() == 9) Story.quitSpecial(p);
 				else if (a.value() >= 10) Story.startSpecial(p, a.value() - 10);
 			}

@@ -1879,6 +1879,20 @@ public final class Story {
 		advance(p, d, st);
 	}
 
+	/** Skip the rest of the current mission (every part that's left) and go straight on to the next one. */
+	public static void skipMission(ServerPlayerEntity p) {
+		GhostState st = GhostState.of(p.getServer());
+		GhostData d = st.data(p.getUuid());
+		if (d.storyPath == NONE || !active(d)) {
+			p.sendMessage(Text.literal("You're not on a story mission right now.").formatted(Formatting.YELLOW), false);
+			return;
+		}
+		int mission = d.storyMission, path = d.storyPath;
+		p.sendMessage(Text.literal("Skipping the rest of " + missionTitle(path, mission) + "...").formatted(Formatting.YELLOW), false);
+		if (d.possessing != null) GhostPowers.stopPossess(p, d, false);
+		for (int n = 0; n < 40 && d.storyPath == path && d.storyMission == mission && active(d); n++) advance(p, d, st);
+	}
+
 	private static void startMission(ServerPlayerEntity p, GhostData d, int mission) {
 		d.storyMission = mission;
 		d.storyStep = 0;
